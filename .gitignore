@@ -1,0 +1,11 @@
+.env
+.venv/
+.venv.incomplete/
+.app-venv/
+__pycache__/
+*.py[cod]
+node_modules/
+frontend/dist/
+.tools/
+backend/db.sqlite3
+connect.db

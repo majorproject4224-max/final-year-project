@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Hello, {{ profile.name }}.</h1>
+<p class="sub">Your recommendations are ranked by the trained Random Forest compatibility model.</p>
+<div class="card grid">
+  <div class="metric"><b>{{ (metrics.accuracy * 100)|round|int }}%</b><span>User-disjoint test accuracy</span></div>
+  <div class="metric"><b>{{ (metrics.compatible_f1 * 100)|round(1) }}%</b><span>Held-out compatible F1</span></div>
+  <div class="metric"><b>{{ metrics.test_rows }}</b><span>Held-out pairs from {{ metrics.test_users }} unseen users</span></div>
+</div>
+<p class="sub">{{ metrics.evaluation_warning }}</p>
+<div class="grid2">
+  <section>
+    <h2>Recommended teammates</h2>
+    <div class="card">
+      {% for person in teammates %}
+      <div class="row">
+        <div>
+          <b>{{ person.name }}</b>
+          <p class="sub">{{ person.branch }} · Year {{ person.academic_year }} · {{ person.experience }}</p>
+          <ul class="reasons">{% for reason in person.reasons %}<li>{{ reason }}</li>{% endfor %}</ul>
+          {% if person.share_contact %}
+          <p class="sub"><b>Contact:</b>{% if person.email %} <a href="mailto:{{ person.email }}">{{ person.email }}</a>{% endif %}{% if person.phone %} · {{ person.phone }}{% endif %}{% if person.github %} · <a href="{{ person.github }}" target="_blank" rel="noopener">GitHub</a>{% endif %}</p>
+          {% endif %}
+        </div>
+        <span class="score">{{ person.score }}%</span>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  <section>
+    <h2>Suggested projects</h2>
+    <div class="card">
+      {% for project in projects %}
+      <div class="row">
+        <div><b>{{ project.title }}</b><p class="sub">{{ project.domain }} · {{ project.project_type }}</p><p class="sub">{{ project.description }}</p></div>
+        <span class="score">{{ project.score }}%</span>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}
