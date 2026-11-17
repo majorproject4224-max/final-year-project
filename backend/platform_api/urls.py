@@ -23,7 +23,7 @@ from .community import (
     FeedbackView,
     InteractionsView,
 )
-from .messaging import ConversationsView, ConversationMessagesView, WebSocketTicketView
+from .messaging import ConversationsView, ConversationMessagesView, MessageAttachmentView, WebSocketTicketView
 from .recommendations import (
     UserRecommendationsView,
     ProjectRecommendationsView,
@@ -57,6 +57,10 @@ urlpatterns = [
     path("interactions/", InteractionsView.as_view()),
     path("conversations/", ConversationsView.as_view()),
     path("conversations/<str:conversation_id>/messages/", ConversationMessagesView.as_view()),
+    path(
+        "conversations/<str:conversation_id>/messages/<str:message_id>/attachments/<str:attachment_id>/",
+        MessageAttachmentView.as_view(),
+    ),
     path("conversations/<str:conversation_id>/websocket-ticket/", WebSocketTicketView.as_view()),
     path("recommendations/users/", UserRecommendationsView.as_view()),
     path("recommendations/projects/", ProjectRecommendationsView.as_view()),

@@ -1142,6 +1142,7 @@ textarea::placeholder {
   border-radius: 16px;
 }
 .chat-panel {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -1182,6 +1183,7 @@ textarea::placeholder {
   gap: 14px;
 }
 .message {
+  min-width: 0;
   max-width: 85%;
   padding: 11px 14px;
   background: #fff;
@@ -1208,10 +1210,194 @@ textarea::placeholder {
 }
 .message-compose {
   display: flex;
+  flex-direction: column;
   gap: 10px;
   padding: 16px;
   border-top: 1px solid var(--line);
 }
+.compose-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.compose-controls input {
+  flex: 1;
+  min-width: 0;
+}
+.compose-controls > button {
+  flex-shrink: 0;
+}
+.compose-hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 0 0 0 2px;
+}
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--green);
+}
+.icon-button:hover:not(:disabled) {
+  background: #e1eee8;
+}
+.attach-button {
+  border: 1px solid var(--line);
+  width: 40px;
+  height: 40px;
+}
+.draft-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.draft-attachments li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #f8fafb;
+  width: min(100%, 260px);
+  min-width: 0;
+}
+.draft-attachments img {
+  width: 42px;
+  height: 42px;
+  border-radius: 5px;
+  object-fit: cover;
+}
+.draft-attachments li > span,
+.attachment-file > span {
+  flex: 1;
+  min-width: 0;
+}
+.draft-attachments strong,
+.attachment-file strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.draft-attachments small,
+.attachment-file small {
+  display: block;
+  text-align: left;
+  font-size: 11px;
+  color: var(--muted);
+}
+.message-attachments {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 8px;
+  width: 290px;
+  max-width: 100%;
+}
+.message-attachment {
+  min-width: 0;
+  border: 1px solid #dce5e1;
+  border-radius: 8px;
+  background: #ffffffb3;
+  overflow: hidden;
+}
+.attachment-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 6px 8px 10px;
+}
+.attachment-file > svg {
+  flex-shrink: 0;
+  color: var(--green);
+}
+.attachment-preview {
+  display: block;
+  border: 0;
+  padding: 0;
+  border-radius: 0;
+  width: 100%;
+  background: #edf1f4;
+  cursor: zoom-in;
+}
+.attachment-preview img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 220px;
+  object-fit: contain;
+}
+.attachment-placeholder {
+  display: grid;
+  place-items: center;
+  height: 150px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.message .attachment-error {
+  font-size: 11px;
+  padding: 0 10px 8px;
+  color: #9b2929;
+}
+.attachment-error button {
+  font-size: inherit;
+  padding: 2px 6px;
+}
+.image-viewer {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  width: min(960px, 94vw);
+  max-height: 90dvh;
+}
+.image-viewer::backdrop {
+  background: #101d2ac7;
+}
+.image-viewer header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.image-viewer > img {
+  display: block;
+  width: 100%;
+  max-height: 75dvh;
+  object-fit: contain;
+}
+.chat-dropzone {
+  position: absolute;
+  inset: 8px;
+  display: grid;
+  place-items: center;
+  background: #eff8f4f2;
+  border: 2px dashed var(--green);
+  border-radius: 10px;
+  z-index: 5;
+  color: var(--green);
+  font-size: 17px;
+  font-weight: 600;
+  pointer-events: none;
+}
+.spin { animation: attachment-spin 1s linear infinite; }
+@keyframes attachment-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
 .load-older {
   font-size: 12px;
   align-self: center;

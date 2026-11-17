@@ -100,6 +100,6 @@ Vite embeds these in the browser bundle. Never put MongoDB credentials, Redis cr
 - Check the mobile layout and direct route refresh.
 - Check service memory and usage during this small demo. No production load test has been performed.
 
-The app stores no uploaded résumés or photos on Render disk. Résumés are parsed in memory for suggestions; the user explicitly saves reviewed profile fields. The trained bundle is part of the deployed Git checkout.
+The app stores no permanent uploads on Render disk. Resumes are parsed for suggestions; the user explicitly saves reviewed profile fields. Chat images/documents are stored as bounded binary attachments in MongoDB, with authenticated downloads and a default 100 MiB total attachment budget (`CHAT_ATTACHMENT_STORAGE_MB`). This consumes database capacity; the budget is not a replacement for monitoring the provider's total storage limit. No paid file-storage service is required. A future larger deployment needs object storage, malware scanning and a retention policy. The trained bundle is part of the deployed Git checkout.
 
 If a provider asks for a paid resource or the app exceeds a free limit, stop and discuss it with the owner. Do not silently upgrade.

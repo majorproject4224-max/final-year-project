@@ -8,15 +8,20 @@ from asgiref.sync import async_to_sync, sync_to_async
 from bson import ObjectId
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from channels.layers import get_channel_layer
+from django.conf import settings
 from django.core.cache import cache
+from django.http import HttpResponse
+from django.utils.http import content_disposition_header
 from pymongo.errors import DuplicateKeyError
 from rest_framework.exceptions import NotFound, PermissionDenied, Throttled, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from urllib.parse import parse_qs
 from .authentication import session_is_active
+from .attachments import ChatMultiPartParser, attachment_metadata, prepare_attachments
 from .common import now, object_id, pair_key
-from .mongo import get_collection
+from .mongo import get_collection, run_transaction
+from .parsers import ObjectJSONParser
 from .people import are_connected
 from .serializers import ConversationSerializer, MessageSerializer
 
@@ -46,6 +51,7 @@ def message_data(message):
         "client_id": message.get("client_id"),
         "created_at": message["created_at"].isoformat(),
         "read_by": [str(u) for u in message.get("read_by", [])],
+        "attachments": [attachment_metadata(row) for row in message.get("attachments", [])],
     }
 
 
@@ -57,13 +63,12 @@ def publish(conversation_id, event):
         logger.exception("Live delivery failed; message/history remains in MongoDB.")
 
 
-def persist_message(conversation_id, sender_id, content, client_id):
+def persist_message(conversation_id, sender_id, content, client_id, attachments=None):
     conversation_id, sender_id = object_id(conversation_id), object_id(sender_id)
     if not allowed_conversation(sender_id, conversation_id):
         raise PermissionDenied("Connect with this student before messaging.")
-    duplicate = get_collection("messages").find_one(
-        {"conversation_id": conversation_id, "sender_id": sender_id, "client_id": str(client_id)}
-    )
+    identity = {"conversation_id": conversation_id, "sender_id": sender_id, "client_id": str(client_id)}
+    duplicate = get_collection("messages").find_one(identity, {"attachments.data": 0})
     if duplicate:
         return message_data(duplicate)
     key = f"message-rate:{sender_id}"
@@ -77,6 +82,7 @@ def persist_message(conversation_id, sender_id, content, client_id):
             count = 1
     if count > 60:
         raise Throttled(detail="Please wait before sending more messages.")
+    files = prepare_attachments(attachments or [])
     row = {
         "conversation_id": conversation_id,
         "sender_id": sender_id,
@@ -84,19 +90,50 @@ def persist_message(conversation_id, sender_id, content, client_id):
         "client_id": str(client_id),
         "created_at": now(),
         "read_by": [sender_id],
+        "attachments": files,
     }
     try:
-        row["_id"] = get_collection("messages").insert_one(row).inserted_id
+        if files:
+            usage = get_collection("storage_usage")
+            usage.update_one(
+                {"_id": "chat_attachments"}, {"$setOnInsert": {"bytes": 0}}, upsert=True
+            )
+            size = sum(file["size"] for file in files)
+
+            def store_with_budget(session):
+                existing = get_collection("messages").find_one(
+                    identity, {"attachments.data": 0}, session=session
+                )
+                if existing:
+                    return existing
+                reserved = usage.update_one(
+                    {"_id": "chat_attachments", "bytes": {"$lte": settings.CHAT_ATTACHMENT_STORAGE_BYTES - size}},
+                    {"$inc": {"bytes": size}}, session=session
+                )
+                if not reserved.modified_count:
+                    raise ValidationError("Attachment storage is full. You can still send text messages.")
+                get_collection("messages").insert_one(row, session=session)
+                return row
+
+            # Files and their message commit together; retries cannot leave orphan uploads
+            # or double-charge the shared storage budget.
+            row = run_transaction(store_with_budget)
+        else:
+            row["_id"] = get_collection("messages").insert_one(row).inserted_id
     except DuplicateKeyError:
         row = get_collection("messages").find_one(
             {
                 "conversation_id": conversation_id,
                 "sender_id": sender_id,
                 "client_id": str(client_id),
-            }
+            }, {"attachments.data": 0}
         )
+    preview = row["content"] or (
+        row["attachments"][0]["name"] if len(row.get("attachments", [])) == 1
+        else f"{len(row.get('attachments', []))} attachments"
+    )
     get_collection("conversations").update_one(
-        {"_id": conversation_id}, {"$set": {"last_message": content, "updated_at": now()}}
+        {"_id": conversation_id}, {"$set": {"last_message": preview, "updated_at": now()}}
     )
     payload = message_data(row)
     publish(str(conversation_id), {"type": "chat.message", "message": payload})
@@ -166,6 +203,8 @@ class ConversationsView(APIView):
 
 
 class ConversationMessagesView(APIView):
+    parser_classes = [ObjectJSONParser, ChatMultiPartParser]
+
     def get_conversation(self, request, conversation_id):
         conversation = allowed_conversation(ObjectId(request.user.id), object_id(conversation_id))
         if conversation is None:
@@ -181,7 +220,7 @@ class ConversationMessagesView(APIView):
         if before or after:
             query["_id"] = {"$lt" if before else "$gt": object_id(before or after)}
         rows = list(
-            get_collection("messages").find(query).sort("_id", 1 if after else -1).limit(51)
+            get_collection("messages").find(query, {"attachments.data": 0}).sort("_id", 1 if after else -1).limit(51)
         )
         more = len(rows) > 50
         rows = rows[:50]
@@ -221,6 +260,28 @@ class ConversationMessagesView(APIView):
             {"type": "chat.read", "reader_id": request.user.id, "through": str(through)},
         )
         return Response({"status": "read"})
+
+
+class MessageAttachmentView(APIView):
+    def get(self, request, conversation_id, message_id, attachment_id):
+        conversation = allowed_conversation(ObjectId(request.user.id), object_id(conversation_id))
+        if conversation is None:
+            raise NotFound("Attachment not found.")
+        row = get_collection("messages").find_one(
+            {"_id": object_id(message_id), "conversation_id": conversation["_id"],
+             "attachments.id": attachment_id},
+            {"attachments": {"$elemMatch": {"id": attachment_id}}},
+        )
+        if not row:
+            raise NotFound("Attachment not found.")
+        attachment = row["attachments"][0]
+        response = HttpResponse(attachment["data"], content_type=attachment["content_type"])
+        response["Content-Disposition"] = content_disposition_header(True, attachment["name"])
+        response["Content-Length"] = attachment["size"]
+        response["Cache-Control"] = "private, no-store"
+        response["Content-Security-Policy"] = "default-src 'none'; sandbox"
+        response["X-Content-Type-Options"] = "nosniff"
+        return response
 
 
 class WebSocketTicketView(APIView):
@@ -304,7 +365,7 @@ class ConversationConsumer(AsyncJsonWebsocketConsumer):
                 self.conversation_id, self.user_id, **serializer.validated_data
             )
             await self.send_json({"type": "sent", "message_id": message["id"]})
-        except (PermissionDenied, Throttled) as error:
+        except (PermissionDenied, Throttled, ValidationError) as error:
             await self.send_json({"type": "error", "detail": str(error.detail)})
 
     async def chat_message(self, event):

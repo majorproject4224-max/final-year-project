@@ -4,6 +4,8 @@ import json
 import os
 from io import BytesIO
 from docx import Document
+from PIL import Image, ImageDraw
+from pypdf import PdfWriter
 from pathlib import Path
 from urllib.request import Request, urlopen
 from playwright.sync_api import sync_playwright, expect
@@ -161,7 +163,80 @@ with sync_playwright() as p:
         other_page.get_by_label("Message", exact=True).fill("Yes, let's plan the first milestone.")
         other_page.get_by_role("button", name="Send", exact=True).click()
         expect(page.locator(".message").last).to_contain_text("first milestone")
+        # Send files through the actual browser, and deliberately lose the HTTP response.
+        # A retry must reuse the client identifier without duplicating the saved message.
+        sketch = Image.new("RGB", (640, 320), "#eaf5f0")
+        drawing = ImageDraw.Draw(sketch)
+        drawing.rounded_rectangle((40, 50, 600, 270), radius=20, fill="white", outline="#15795b", width=3)
+        drawing.text((75, 85), "CAMPUS KNOWLEDGE ASSISTANT", fill="#173f32", font_size=24)
+        drawing.text((75, 140), "Students  >  Shared ideas  >  Project team", fill="#526c62", font_size=18)
+        drawing.text((75, 200), "First milestone: design the project dashboard", fill="#526c62", font_size=16)
+        sketch_file = BytesIO()
+        sketch.save(sketch_file, format="PNG")
+        notes = b"Milestone 1: build the dashboard.\nMilestone 2: review together.\n"
+        page.get_by_label("Attach files", exact=True).set_input_files([
+            {"name": "project-sketch.png", "mimeType": "image/png", "buffer": sketch_file.getvalue()},
+            {"name": "project-notes.txt", "mimeType": "text/plain", "buffer": notes},
+        ])
+        expect(page.get_by_role("list", name="Files to send")).to_contain_text("project-sketch.png")
+        expect(page.locator(".draft-attachments img")).to_be_visible()
+        page.get_by_role("button", name="Remove project-notes.txt", exact=True).click()
+        expect(page.get_by_role("list", name="Files to send")).not_to_contain_text("project-notes.txt")
+        page.get_by_label("Attach files", exact=True).set_input_files(
+            {"name": "project-notes.txt", "mimeType": "text/plain", "buffer": notes}
+        )
+        page.get_by_label("Message", exact=True).fill("Here is the project sketch and our notes.")
+
+        def lose_upload_response(route):
+            if route.request.method == "POST":
+                response = route.fetch()
+                assert response.status == 201, response.text()
+                route.abort("failed")
+            else:
+                route.continue_()
+
+        page.route("**/api/conversations/*/messages/", lose_upload_response)
+        page.get_by_role("button", name="Send", exact=True).click()
+        expect(page.get_by_role("button", name="Send", exact=True)).to_be_enabled()
+        expect(page.get_by_role("list", name="Files to send")).to_be_visible()
+        page.unroute("**/api/conversations/*/messages/", lose_upload_response)
+        page.get_by_role("button", name="Send", exact=True).click()
+        expect(page.get_by_role("list", name="Files to send")).to_have_count(0)
+        received = other_page.locator(".message").filter(has_text="Here is the project sketch and our notes.")
+        expect(received).to_have_count(1)
+        expect(page.locator(".message").filter(has_text="Here is the project sketch and our notes.")).to_have_count(1)
+        image_preview = received.get_by_role("img", name="project-sketch.png", exact=True)
+        expect(image_preview).to_be_visible(timeout=15000)
+        expect(image_preview).to_have_js_property("naturalWidth", 640)
+        received.get_by_role("button", name="Open image project-sketch.png").click()
+        expect(other_page.get_by_role("dialog")).to_be_visible()
+        other_page.keyboard.press("Escape")
+        expect(other_page.get_by_role("dialog")).to_have_count(0)
+        with other_page.expect_download() as download_info:
+            received.get_by_role("button", name="Download project-notes.txt").click()
+        downloaded = download_info.value
+        assert downloaded.suggested_filename == "project-notes.txt"
+        assert Path(downloaded.path()).read_bytes() == notes
+        pdf = BytesIO()
+        writer = PdfWriter()
+        writer.add_blank_page(width=300, height=200)
+        writer.write(pdf)
+        other_page.get_by_label("Attach files", exact=True).set_input_files(
+            {"name": "project-outline.pdf", "mimeType": "application/pdf", "buffer": pdf.getvalue()}
+        )
+        other_page.get_by_role("button", name="Send", exact=True).click()
+        expect(page.locator(".message").last).to_contain_text("project-outline.pdf")
+        page.reload()
+        expect(page.locator(".chat-panel header")).to_contain_text("Live")
+        expect(page.locator(".message").last).to_contain_text("project-outline.pdf")
+        page.locator(".message").filter(has_text="Here is the project sketch and our notes.").scroll_into_view_if_needed()
+        expect(page.get_by_role("img", name="project-sketch.png", exact=True)).to_be_visible()
         page.screenshot(path=str(OUT / "chat-desktop.png"), full_page=True)
+        page.set_viewport_size({"width": 390, "height": 844})
+        expect(page.get_by_role("button", name="Add files or images")).to_be_visible()
+        assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth"), "Mobile chat horizontal overflow"
+        page.screenshot(path=str(OUT / "chat-mobile.png"), full_page=True)
+        page.set_viewport_size({"width": 1440, "height": 1050})
         page.get_by_role("link", name="Events", exact=True).click()
         page.get_by_role("button", name="Create an event").click()
         page.get_by_label("Event title").fill("Campus demo day")
@@ -197,7 +272,7 @@ with sync_playwright() as p:
         expect(page.get_by_role("link", name="My profile", exact=True)).not_to_be_visible()
         assert not errors, errors
         print(
-            "Browser journey passed: registration, profile, ML recommendations, connections, project applications, teams, two-user live chat, read receipts, events and mobile navigation."
+            "Browser journey passed: registration, profile, ML recommendations, connections, project applications, teams, two-user live chat, image/file uploads, private previews/downloads, retry deduplication, persistent attachment history, read receipts, events and mobile navigation."
         )
     except Exception:
         page.screenshot(path=str(OUT / "failure.png"), full_page=True)

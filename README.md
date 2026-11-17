@@ -32,7 +32,7 @@ Students create profiles, connect, form project teams, chat and discover persona
 | Projects | Create/edit, apply/withdraw, owner decisions, invitations, capacity-safe team formation, progress and completed-project feedback |
 | Discovery | Student → student, student → project and project → teammate recommendations with actual feature explanations |
 | Events | Create, list upcoming events, attend/leave, organizer deletion |
-| Messaging | One-to-one chat for accepted connections, persistent history, read receipts, WebSocket delivery, reconnect and duplicate-safe sending |
+| Messaging | One-to-one chat, private image/file attachments, previews/downloads, persistent history, read receipts, WebSocket delivery, reconnect and duplicate-safe sending |
 | Personal space | My teams/projects, sent/received invitations and saved projects |
 
 No external AI API subscription is needed. There is no automatic online retraining.

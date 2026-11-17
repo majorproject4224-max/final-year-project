@@ -39,6 +39,7 @@ This preserves the existing document architecture while making MongoDB transacti
 | `services/projects.py` | Shared ownership checks and atomic membership decisions |
 | `community.py` | Events, feedback and saved/ignored targets |
 | `messaging.py` | History, idempotent send, read receipts, WebSocket tickets and consumer |
+| `attachments.py` | Bounded multipart uploads, file validation, image sanitization and metadata |
 | `recommendations.py` | Three authenticated recommendation endpoints |
 | `services/recommendations.py` | Model loading, candidate generation and inference |
 | `ml/features.py` | Normalization, pair features and actual comparison explanations |
@@ -74,7 +75,8 @@ erDiagram
 | applications | unique project/user pair, decision and timestamps |
 | invitations | unique project/recipient pair, sender and decision |
 | conversations | unique sorted pair key; participant array is indexed **without** uniqueness |
-| messages | conversation/sender/content/timestamp/read-by IDs; unique conversation/sender/client UUID prevents retry duplicates |
+| messages | conversation/sender/content/timestamp/read-by IDs, small binary attachments and metadata; unique conversation/sender/client UUID prevents retry duplicates |
+| storage_usage | Shared attachment byte counter; reservation and message insert are transactional |
 | events | organizer, start time, location, attendee-ID array |
 | feedback | unique project/reviewer/recipient tuple, rating/comment, verified-completed-project source |
 | interactions | unique user/type/target/action tuple for view/save/ignore |
@@ -101,6 +103,8 @@ Access tokens last 15 minutes. Refresh tokens last 7 days and rotate; the previo
 The browser obtains a single-use WebSocket ticket through an authenticated API call. The stored hash expires after 60 seconds and is bound to user/session/conversation. Channels checks origin, ticket, active session and accepted connection. Authorization is rechecked for messages and broadcasts. Access/refresh tokens are not placed in WebSocket URLs.
 
 The UI sends durable messages through the authenticated REST endpoint and receives live message/read events through **Django Channels WebSockets**. The consumer also supports validated WebSocket sends. Redis carries short-lived group events, while MongoDB keeps history. Reconnect requests new tickets and catches up on missed history. The “Live” indicator describes the connection, not the other student's presence.
+
+Chat attachments are limited to 3 files / 10 MiB per message (5 MiB each), stored in the same MongoDB document as the message for this small demonstration. Binary fields are excluded from all history queries; only metadata travels over Channels. Downloads recheck authentication, conversation membership and the accepted connection. The total default attachment budget is 100 MiB, reserved transactionally to avoid concurrent over-allocation. No cloud storage account or persistent web-server disk is needed. This is deliberately a bounded prototype: there is no virus scanning, deletion/retention UI or scalable object-storage integration. Images are decoded/re-encoded to strip metadata; document/archive files are never rendered or extracted by the server.
 
 ## Deployment boundaries
 

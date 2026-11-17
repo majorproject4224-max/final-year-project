@@ -114,8 +114,16 @@ class ConversationSerializer(serializers.Serializer):
 
 
 class MessageSerializer(serializers.Serializer):
-    content = serializers.CharField(max_length=4000, trim_whitespace=True)
+    content = serializers.CharField(max_length=4000, trim_whitespace=True, allow_blank=True, default="")
     client_id = serializers.UUIDField()
+    attachments = serializers.ListField(
+        child=serializers.FileField(), max_length=3, required=False, default=list
+    )
+
+    def validate(self, attrs):
+        if not attrs["content"] and not attrs["attachments"]:
+            raise serializers.ValidationError("Write a message or attach a file.")
+        return attrs
 
 
 class ConnectionRequestSerializer(serializers.Serializer):

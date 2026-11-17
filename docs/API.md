@@ -1,6 +1,6 @@
 # API reference
 
-Base: `/api`. Requests/responses are JSON, except résumé upload. Add `Authorization: Bearer <access>` to protected requests. IDs are MongoDB ObjectId strings; timestamps are ISO 8601 UTC. The client formats local dates.
+Base: `/api`. Requests/responses are JSON, except Resume/chat uploads and attachment downloads. Add `Authorization: Bearer <access>` to protected requests. IDs are MongoDB ObjectId strings; timestamps are ISO 8601 UTC. The client formats local dates.
 
 Lists generally return `{items, page, page_size, total}`. Page size defaults to 20 and is capped at 50. Recommendations, conversations and saved targets return bounded `items` lists. Errors use `detail` and `code`, or field validation errors. Codes include 400 validation, 401 authentication, 403 permission, 404 absent/inaccessible, 409 conflict, 429 rate limit and 503 unavailable dependency.
 
@@ -77,7 +77,8 @@ Recommendation items contain compatibility_score and explanations. Only scores m
 |---|---|---|
 | GET / POST | conversations/ | List / recipient_id; requires accepted connection |
 | GET | conversations/{id}/messages/ | Latest 50; before or after ObjectId cursor, never both |
-| POST | conversations/{id}/messages/ | content (≤4000 chars), client_id (UUID); duplicate-safe |
+| POST | conversations/{id}/messages/ | JSON or multipart: content (≤4000 chars), client_id (UUID), optional repeated attachments fields; duplicate-safe |
+| GET | conversations/{id}/messages/{message_id}/attachments/{attachment_id}/ | Authenticated binary download; both conversation membership and accepted connection required |
 | PATCH | conversations/{id}/messages/ | through: latest visible message ID; read receipt |
 | POST | conversations/{id}/websocket-ticket/ | One-use ticket, expires in 60 seconds |
 
@@ -86,6 +87,12 @@ Connect to `/ws/conversations/{id}/?ticket=...` with an allowed Origin. Receive:
 - `{type:"read", reader_id, through}`
 
 Optional WebSocket send: `{content, client_id}`, acknowledged with `{type:"sent", message_id}`. Persistent content is still written through the same service. Invalid/auth-revoked connections cannot receive further chat events.
+
+Attachment uploads use multipart REST, not WebSocket frames. A message must contain text or a file. Up to 3 files, 5 MiB per file, 10 MiB total. Supported extensions: JPG/JPEG, PNG, WebP, PDF, DOCX, XLSX, PPTX, TXT, CSV and ZIP. Text/CSV must be UTF-8. Images must be still images of at most 12 million pixels; the server decodes/re-encodes them, validates the format and removes metadata. Other files are download-only with basic format checks; this is not malware scanning.
+
+Messages/history/live events include an `attachments` array of `{id, name, content_type, size, is_image, width?, height?}`. Binary data is excluded from queries for history and never serialized into events. The client fetches private downloads with its usual Authorization header and creates temporary browser object URLs for image previews. Access tokens are never included in attachment URLs. Downloads return `Content-Disposition: attachment`, `Cache-Control: private, no-store`, `X-Content-Type-Options: nosniff` and a restrictive CSP.
+
+Files are embedded as BSON binary in their message, below MongoDB's 16 MiB document limit. The app has a shared 100 MiB attachment budget by default (`CHAT_ATTACHMENT_STORAGE_MB`). A MongoDB transaction commits the message and storage counter together. Retrying the same conversation/sender/client UUID does not create a second message or consume the budget twice. Failed validation/budget checks save no message. Text messages remain available when attachment storage is full. There is no attachment-deletion interface yet; use dedicated object storage and a retention policy before expanding beyond a small demo.
 
 ## Operations
 

@@ -9,6 +9,7 @@ The automated workflow is [Project checks](https://github.com/majorproject4224-m
 - Profile validation, contact visibility, anonymous access, pagination and malformed JSON.
 - Project ownership, applications, completed-project feedback, invitations and concurrent approvals for the last slot.
 - Multiple conversations per student, duplicate-safe message retries, history/read state, outsider access, removed connections, WebSocket origin validation and one-use tickets.
+- Chat attachment format/size/count checks, image re-encoding, private download permissions, shared storage budget and no partial messages on failure. Two-browser checks cover live images/documents, download contents, image viewer, lost-upload-response retries, history after reload and mobile chat layout.
 - All three recommendation types, cold start, missing artifacts, ordered scores and no classifier training during API requests.
 - Excel/CSV loading, normalization, duplicate/reference validation, entity-disjoint splits, shared feature calculations, saved K-Means/RF inference and résumé parsing.
 - React production build.

@@ -13,12 +13,14 @@ from channels.security.websocket import OriginValidator
 from channels.testing import WebsocketCommunicator
 from django.conf import settings
 from django.core.cache import cache
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import SimpleTestCase, override_settings
 from django.urls import re_path
 from rest_framework.test import APIClient
 from .common import now
 from .mongo import get_client, get_collection, ensure_indexes
 from .messaging import ConversationConsumer
+from .test_attachments import image_file
 from .services.projects import decide_membership, Conflict
 from .services.recommendations import load_models
 
@@ -321,6 +323,74 @@ class PlatformTests(SimpleTestCase):
             ).status_code,
             404,
         )
+
+    def test_chat_attachments_persist_download_privately_and_retry_once(self):
+        left, right, stranger = self.register("Asha"), self.register("Rahul"), self.register("Priya")
+        connection_id = self.connect(left, right)
+        self.as_user(left)
+        conversation = self.client.post("/api/conversations/", {"recipient_id": right["id"]}, format="json").data["id"]
+        endpoint = f"/api/conversations/{conversation}/messages/"
+        client_id = str(uuid.uuid4())
+        with patch("platform_api.messaging.publish") as publish:
+            response = self.client.post(endpoint, {
+                "client_id": client_id, "attachments": [image_file(), SimpleUploadedFile("notes.txt", b"Plan together")],
+            }, format="multipart")
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertEqual(response.data["content"], "")
+        self.assertEqual(len(response.data["attachments"]), 2)
+        self.assertNotIn("data", response.data["attachments"][0])
+        self.assertNotIn("data", publish.call_args.args[1]["message"]["attachments"][0])
+        usage = get_collection("storage_usage").find_one({"_id": "chat_attachments"})["bytes"]
+        repeated = self.client.post(endpoint, {
+            "client_id": client_id, "attachments": [image_file(), SimpleUploadedFile("notes.txt", b"Plan together")],
+        }, format="multipart")
+        self.assertEqual(repeated.data["id"], response.data["id"])
+        self.assertEqual(get_collection("messages").count_documents({}), 1)
+        self.assertEqual(get_collection("storage_usage").find_one({"_id": "chat_attachments"})["bytes"], usage)
+        attachments = response.data["attachments"]
+        download_url = endpoint + response.data["id"] + "/attachments/" + attachments[1]["id"] + "/"
+        self.as_user(right)
+        history = self.client.get(endpoint).data["items"]
+        self.assertEqual(history[0]["attachments"], attachments)
+        download = self.client.get(download_url)
+        self.assertEqual(download.status_code, 200)
+        self.assertEqual(download.content, b"Plan together")
+        self.assertIn("attachment", download["Content-Disposition"])
+        self.assertEqual(download["Cache-Control"], "private, no-store")
+        self.assertEqual(download["X-Content-Type-Options"], "nosniff")
+        self.assertEqual(self.client.patch(endpoint, {"through": response.data["id"]}, format="json").status_code, 200)
+        self.as_user(stranger)
+        self.assertEqual(self.client.get(download_url).status_code, 404)
+        self.assertEqual(self.client.post(endpoint, {"client_id": str(uuid.uuid4()), "attachments": [image_file()]}, format="multipart").status_code, 404)
+        self.client.credentials()
+        self.assertEqual(self.client.get(download_url).status_code, 401)
+        self.as_user(left)
+        self.client.delete(f"/api/connections/{connection_id}/")
+        self.assertEqual(self.client.get(download_url).status_code, 404)
+
+    def test_chat_attachment_budget_and_validation_leave_no_partial_message(self):
+        left, right = self.register("Asha"), self.register("Rahul")
+        self.connect(left, right)
+        self.as_user(left)
+        conversation = self.client.post("/api/conversations/", {"recipient_id": right["id"]}, format="json").data["id"]
+        endpoint = f"/api/conversations/{conversation}/messages/"
+        for payload in [
+            {"client_id": str(uuid.uuid4()), "content": "   "},
+            {"client_id": str(uuid.uuid4()), "attachments": [image_file("broken.pdf")]},
+            {"client_id": str(uuid.uuid4()), "attachments": [image_file() for _ in range(4)]},
+            {"client_id": str(uuid.uuid4()), "attachments": [image_file(), SimpleUploadedFile("bad.exe", b"MZ")]},
+            {"client_id": str(uuid.uuid4()), "attachments": [SimpleUploadedFile("huge.txt", b"a" * (5 * 1024 * 1024 + 1))]},
+        ]:
+            with self.subTest(keys=list(payload)):
+                result = self.client.post(endpoint, payload, format="multipart")
+                self.assertEqual(result.status_code, 400, getattr(result, "data", None))
+        with override_settings(CHAT_ATTACHMENT_STORAGE_BYTES=1):
+            result = self.client.post(endpoint, {"client_id": str(uuid.uuid4()), "attachments": [image_file()]}, format="multipart")
+            self.assertEqual(result.status_code, 400, result.data)
+        self.assertEqual(get_collection("messages").count_documents({}), 0)
+        self.assertEqual(get_collection("storage_usage").find_one({"_id": "chat_attachments"})["bytes"], 0)
+        result = self.client.post(endpoint, {"client_id": str(uuid.uuid4()), "content": "Text still works"}, format="json")
+        self.assertEqual(result.status_code, 201, result.data)
 
     def test_websocket_origin_tickets_delivery_and_reuse(self):
         left, right = self.register("Asha"), self.register("Rahul")
