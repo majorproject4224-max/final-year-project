@@ -1,6 +1,9 @@
 name: Prepare readable source
 on:
   workflow_dispatch:
+  push:
+    branches: [complete-platform]
+    paths: [.github/workflows/format-source.yml]
 permissions:
   contents: read
 jobs:
