@@ -4,6 +4,7 @@ import uuid
 from datetime import timedelta
 from concurrent.futures import ThreadPoolExecutor
 from unittest import skipUnless
+from unittest.mock import patch
 from asgiref.sync import async_to_sync
 from bson import ObjectId
 from channels.routing import URLRouter
@@ -11,7 +12,7 @@ from channels.security.websocket import OriginValidator
 from channels.testing import WebsocketCommunicator
 from django.conf import settings
 from django.core.cache import cache
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, override_settings
 from django.urls import re_path
 from rest_framework.test import APIClient
 from .common import now
@@ -202,3 +203,49 @@ class PlatformTests(SimpleTestCase):
             reused = WebsocketCommunicator(app, address, headers=[(b"origin", b"http://localhost:5173")])
             self.assertFalse((await reused.connect())[0])
         async_to_sync(exercise)()
+
+    def test_profile_privacy_validation_password_change_and_missing_models(self):
+        owner, viewer = self.register("Owner"), self.register("Viewer")
+        self.as_user(owner)
+        self.client.put("/api/profiles/me/", {**PROFILE, "phone": "private-number", "share_contact": True}, format="json")
+        self.as_user(viewer)
+        endpoint = f"/api/students/{owner['id']}/"
+        self.assertNotIn("phone", self.client.get(endpoint).data)
+        self.assertNotIn("email", self.client.get(endpoint).data)
+        self.connect(owner, viewer)
+        self.as_user(viewer)
+        self.assertEqual(self.client.get(endpoint).data["phone"], "private-number")
+        self.assertEqual(self.client.get("/api/students/?page=invalid").status_code, 400)
+        self.assertEqual(self.client.post("/api/invitations/", [], format="json").status_code, 400)
+        self.assertEqual(self.client.patch("/api/auth/me/", {"current_password": "wrong", "new_password": "Changed-credentials-4224!"}, format="json").status_code, 400)
+        self.assertEqual(self.client.patch("/api/auth/me/", {"current_password": "Learning-project-4224!", "new_password": "Changed-credentials-4224!"}, format="json").status_code, 200)
+        self.assertEqual(self.client.get("/api/auth/me/").status_code, 401)
+        self.assertEqual(self.client.post("/api/auth/token/refresh/", {"refresh": self.tokens[viewer["id"]]["refresh"]}, format="json").status_code, 401)
+        candidate = self.register("Candidate")
+        self.as_user(owner)
+        load_models.cache_clear()
+        try:
+            with override_settings(ML_MODEL_PATH="/missing/model.joblib"):
+                response = self.client.get("/api/recommendations/users/")
+                self.assertEqual(response.status_code, 503)
+                self.assertEqual(response.data["code"], "models_unavailable")
+        finally:
+            load_models.cache_clear()
+
+    def test_cold_start_duplicate_accounts_and_no_training_during_inference(self):
+        owner, student = self.register("Owner"), self.register("Student")
+        self.client.credentials()
+        self.assertEqual(self.client.get("/api/students/").status_code, 401)
+        duplicate = self.client.post("/api/auth/register/", {"name": "Duplicate", "email": "STUDENT@example.edu", "password": "Learning-project-4224!"}, format="json")
+        self.assertEqual(duplicate.status_code, 409)
+        self.as_user(student)
+        with patch("sklearn.ensemble.RandomForestClassifier.fit", side_effect=AssertionError("Requests must not train")):
+            result = self.client.get("/api/recommendations/users/")
+            self.assertEqual(result.status_code, 200)
+            scores = [item["compatibility_score"] for item in result.data["items"]]
+            self.assertEqual(scores, sorted(scores, reverse=True))
+        get_collection("profiles").delete_one({"user_id": ObjectId(student["id"])})
+        result = self.client.get("/api/recommendations/users/")
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(result.data["items"], [])
+        self.assertIn("skills", result.data["detail"])

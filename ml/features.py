@@ -1,6 +1,7 @@
 """Shared, deterministic feature engineering for training and API inference."""
 import math
 import re
+import unicodedata
 
 ALIASES = {"ml": "machine learning", "machine-learning": "machine learning", "js": "javascript", "node": "node.js", "nodejs": "node.js", "scikit learn": "scikit-learn", "sklearn": "scikit-learn", "ai": "artificial intelligence"}
 EXPERIENCE = {"beginner": 0, "intermediate": 1, "advanced": 2}
@@ -10,7 +11,7 @@ PROJECT_FEATURES = ["skill_coverage", "interest_similarity", "domain_similarity"
 def normalize_text(value):
     if value is None or isinstance(value, float) and math.isnan(value):
         return ""
-    return " ".join(str(value).strip().casefold().split())
+    return " ".join(unicodedata.normalize("NFKC", str(value)).strip().casefold().split())
 
 def normalize_items(values):
     if values is None or isinstance(values, float) and math.isnan(values):

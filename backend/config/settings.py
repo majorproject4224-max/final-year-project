@@ -55,6 +55,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ["platform_api.authentication.MongoJWTAuthentication"],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
+    "DEFAULT_PARSER_CLASSES": ["platform_api.parsers.ObjectJSONParser"],
     "EXCEPTION_HANDLER": "platform_api.exceptions.api_exception_handler",
     "DEFAULT_THROTTLE_RATES": {"anon": "120/hour", "user": "3000/hour", "auth": "20/hour"},
 }
