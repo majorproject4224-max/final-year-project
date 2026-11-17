@@ -1,4 +1,12 @@
 .env
+.env.*
+!.env.example
+!frontend/.env.example
+.coverage
+htmlcov/
+test-results/
+playwright-report/
+*.log
 .venv/
 .venv.incomplete/
 .app-venv/

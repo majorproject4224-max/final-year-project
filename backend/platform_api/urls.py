@@ -1,45 +1,40 @@
 from django.urls import path
-from rest_framework_simplejwt.views import TokenRefreshView
-
-from .views import (
-    LoginView,
-    ConnectionDetailView,
-    ConnectionsView,
-    EventAttendanceView,
-    EventsView,
-    FeedbackView,
-    ProfileView,
-    ProjectApplicationView,
-    ProjectsView,
-    RegisterView,
-    ResumeSuggestionsView,
-    ProjectRecommendationsView,
-    ProjectTeammateRecommendationsView,
-    UserRecommendationsView,
-)
-from .messaging import (
-    ConversationMessagesView,
-    ConversationsView,
-    WebSocketTicketView,
-)
+from .accounts import RegisterView, LoginView, RefreshView, LogoutView, AccountView
+from .people import ProfileView, ResumeSuggestionsView, StudentsView, StudentDetailView, ConnectionsView, ConnectionDetailView
+from .projects import ProjectsView, ProjectDetailView, ProjectApplicationView, ProjectMembersView, InvitationsView, InvitationDetailView
+from .community import EventsView, EventDetailView, EventAttendanceView, FeedbackView, InteractionsView
+from .messaging import ConversationsView, ConversationMessagesView, WebSocketTicketView
+from .recommendations import UserRecommendationsView, ProjectRecommendationsView, ProjectTeammateRecommendationsView
 
 urlpatterns = [
-    path("auth/register/", RegisterView.as_view(), name="register"),
-    path("auth/login/", LoginView.as_view(), name="login"),
-    path("auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    path("profiles/me/", ProfileView.as_view(), name="profile"),
-    path("profiles/resume-suggestions/", ResumeSuggestionsView.as_view(), name="resume_suggestions"),
-    path("projects/", ProjectsView.as_view(), name="projects"),
-    path("projects/<str:project_id>/applications/", ProjectApplicationView.as_view(), name="project_application"),
-    path("projects/recommendations/", ProjectRecommendationsView.as_view(), name="project_recommendations"),
-    path("projects/<str:project_id>/teammates/", ProjectTeammateRecommendationsView.as_view(), name="project_teammates"),
-    path("recommendations/users/", UserRecommendationsView.as_view(), name="user_recommendations"),
-    path("connections/", ConnectionsView.as_view(), name="connections"),
-    path("connections/<str:connection_id>/", ConnectionDetailView.as_view(), name="connection_detail"),
-    path("events/", EventsView.as_view(), name="events"),
-    path("events/<str:event_id>/attendance/", EventAttendanceView.as_view(), name="event_attendance"),
-    path("feedback/", FeedbackView.as_view(), name="feedback"),
-    path("conversations/", ConversationsView.as_view(), name="conversations"),
-    path("conversations/<str:conversation_id>/messages/", ConversationMessagesView.as_view(), name="conversation_messages"),
-    path("conversations/<str:conversation_id>/websocket-ticket/", WebSocketTicketView.as_view(), name="websocket_ticket"),
+    path("auth/register/", RegisterView.as_view()),
+    path("auth/login/", LoginView.as_view()),
+    path("auth/token/refresh/", RefreshView.as_view()),
+    path("auth/logout/", LogoutView.as_view()),
+    path("auth/me/", AccountView.as_view()),
+    path("profiles/me/", ProfileView.as_view()),
+    path("profiles/resume-suggestions/", ResumeSuggestionsView.as_view()),
+    path("students/", StudentsView.as_view()),
+    path("students/<str:user_id>/", StudentDetailView.as_view()),
+    path("connections/", ConnectionsView.as_view()),
+    path("connections/<str:connection_id>/", ConnectionDetailView.as_view()),
+    path("projects/", ProjectsView.as_view()),
+    path("projects/recommendations/", ProjectRecommendationsView.as_view()),
+    path("projects/<str:project_id>/", ProjectDetailView.as_view()),
+    path("projects/<str:project_id>/applications/", ProjectApplicationView.as_view()),
+    path("projects/<str:project_id>/members/<str:user_id>/", ProjectMembersView.as_view()),
+    path("projects/<str:project_id>/teammates/", ProjectTeammateRecommendationsView.as_view()),
+    path("invitations/", InvitationsView.as_view()),
+    path("invitations/<str:invitation_id>/", InvitationDetailView.as_view()),
+    path("events/", EventsView.as_view()),
+    path("events/<str:event_id>/", EventDetailView.as_view()),
+    path("events/<str:event_id>/attendance/", EventAttendanceView.as_view()),
+    path("feedback/", FeedbackView.as_view()),
+    path("interactions/", InteractionsView.as_view()),
+    path("conversations/", ConversationsView.as_view()),
+    path("conversations/<str:conversation_id>/messages/", ConversationMessagesView.as_view()),
+    path("conversations/<str:conversation_id>/websocket-ticket/", WebSocketTicketView.as_view()),
+    path("recommendations/users/", UserRecommendationsView.as_view()),
+    path("recommendations/projects/", ProjectRecommendationsView.as_view()),
+    path("recommendations/teammates/<str:project_id>/", ProjectTeammateRecommendationsView.as_view()),
 ]

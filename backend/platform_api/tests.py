@@ -1,285 +1,204 @@
-import io
-from datetime import datetime, timedelta, timezone
+"""Real MongoDB/Redis integration tests; never run against a production database."""
+import os
+import uuid
+from datetime import timedelta
+from concurrent.futures import ThreadPoolExecutor
+from unittest import skipUnless
 from asgiref.sync import async_to_sync
-import mongomock
 from bson import ObjectId
-from docx import Document
 from channels.routing import URLRouter
-from django.core.files.uploadedfile import SimpleUploadedFile
+from channels.security.websocket import OriginValidator
+from channels.testing import WebsocketCommunicator
+from django.conf import settings
+from django.core.cache import cache
 from django.test import SimpleTestCase
 from django.urls import re_path
-from pymongo.errors import ServerSelectionTimeoutError
 from rest_framework.test import APIClient
-from unittest.mock import patch
-from channels.testing import WebsocketCommunicator
-
+from .common import now
+from .mongo import get_client, get_collection, ensure_indexes
 from .messaging import ConversationConsumer
+from .services.projects import decide_membership, Conflict
+from .services.recommendations import load_models
 
+PROFILE = {"name": "Asha", "branch": "CSE", "academic_year": 3, "skills": ["Python", "ML", "SQL"], "interests": ["Research", "AI"], "domain": "AI / ML", "experience": "Intermediate", "preferred_project_type": "AI/ML Application", "availability_hours": 8}
+PROJECT = {"title": "Campus research assistant", "description": "Build a research tool with student collaborators.", "required_skills": ["Python", "Machine Learning"], "required_interests": ["Research", "AI"], "domain": "AI / ML", "project_type": "AI/ML Application", "team_size": 3}
 
-PROFILE = {
-    "name": "Asha Student",
-    "branch": "Computer Science and Engineering",
-    "academic_year": 3,
-    "skills": ["Python", "ML", "SQL"],
-    "interests": ["Research", "AI"],
-    "domain": "AI / ML",
-    "experience": "Intermediate",
-    "preferred_project_type": "AI/ML Application",
-    "city": "Pune",
-}
-
-
-class PlatformApiTests(SimpleTestCase):
+@skipUnless(os.getenv("RUN_MONGO_TESTS") == "1", "Set RUN_MONGO_TESTS=1 with a disposable replica-set database ending in _test.")
+class PlatformTests(SimpleTestCase):
     def setUp(self):
-        self.mongo_client = mongomock.MongoClient()
-        self.mongo_patch = patch("platform_api.mongo.get_client", return_value=self.mongo_client)
-        self.mongo_patch.start()
-        self.addCleanup(self.mongo_patch.stop)
+        if not settings.MONGODB_DATABASE.endswith("_test"):
+            raise RuntimeError("Refusing to reset a database whose name does not end in _test.")
+        get_client().drop_database(settings.MONGODB_DATABASE)
+        ensure_indexes()
+        cache.clear()
         self.client = APIClient()
-        self.access_tokens = {}
+        self.tokens = {}
 
-    def register(self, name, email):
-        response = self.client.post("/api/auth/register/", {
-            "name": name,
-            "email": email,
-            "password": "a-strong-password",
-        }, format="json")
-        self.assertEqual(response.status_code, 201, response.data)
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {response.data['tokens']['access']}")
-        self.access_tokens[email] = response.data["tokens"]["access"]
-        return response.data["user"]
-
-    def test_registration_login_profile_project_application_and_recommendation(self):
-        first_user = self.register("Asha Student", "asha@example.edu")
-        response = self.client.put("/api/profiles/me/", PROFILE, format="json")
-        self.assertEqual(response.status_code, 200, response.data)
-
-        response = self.client.post("/api/projects/", {
-            "title": "Campus Research Assistant",
-            "description": "Build a research assistant for student teams.",
-            "required_skills": ["Python", "NLP"],
-            "domain": "AI / ML",
-            "project_type": "AI/ML Application",
-        }, format="json")
-        self.assertEqual(response.status_code, 201, response.data)
-        project_id = response.data["id"]
-
+    def register(self, name):
         self.client.credentials()
-        second_user = self.register("Rahul Student", "rahul@example.edu")
-        self.client.put("/api/profiles/me/", {**PROFILE, "name": "Rahul Student", "skills": ["python", "Machine Learning"]}, format="json")
-
-        response = self.client.get("/api/recommendations/users/")
-        self.assertEqual(response.status_code, 200, response.data)
-        self.assertEqual(response.data["items"][0]["name"], "Asha Student")
-        self.assertGreaterEqual(response.data["items"][0]["compatibility_score"], 0)
-        self.assertIn("model_notice", response.data)
-
-        response = self.client.post(f"/api/projects/{project_id}/applications/", {}, format="json")
+        response = self.client.post("/api/auth/register/", {"name": name, "email": f"{name.lower()}@example.edu", "password": "Learning-project-4224!"}, format="json")
         self.assertEqual(response.status_code, 201, response.data)
-        response = self.client.post(f"/api/projects/{project_id}/applications/", {}, format="json")
-        self.assertEqual(response.status_code, 409, response.data)
+        user = response.data["user"]
+        self.tokens[user["id"]] = response.data["tokens"]
+        self.as_user(user)
+        profile = self.client.put("/api/profiles/me/", {**PROFILE, "name": name}, format="json")
+        self.assertEqual(profile.status_code, 200, profile.data)
+        return user
 
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.access_tokens['asha@example.edu']}")
-        response = self.client.get(f"/api/projects/{project_id}/applications/")
-        self.assertEqual(response.status_code, 200, response.data)
-        self.assertEqual(response.data[0]["name"], "Rahul Student")
-        application_id = response.data[0]["id"]
-        response = self.client.patch(f"/api/projects/{project_id}/applications/", {
-            "application_id": application_id,
-            "decision": "Accepted",
-        }, format="json")
-        self.assertEqual(response.status_code, 200, response.data)
-        project = self.mongo_client.connect_ai.projects.find_one({"_id": ObjectId(project_id)})
-        self.assertIn(ObjectId(second_user["id"]), project["team_members"])
+    def as_user(self, user):
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.tokens[user['id']]['access']}")
 
+    def project(self, owner, **changes):
+        self.as_user(owner)
+        response = self.client.post("/api/projects/", {**PROJECT, **changes}, format="json")
+        self.assertEqual(response.status_code, 201, response.data)
+        return response.data["id"]
+
+    def connect(self, left, right):
+        self.as_user(left)
+        response = self.client.post("/api/connections/", {"user_id": right["id"]}, format="json")
+        self.assertEqual(response.status_code, 201, response.data)
+        self.as_user(right)
+        response2 = self.client.patch(f"/api/connections/{response.data['id']}/", {"action": "accept"}, format="json")
+        self.assertEqual(response2.status_code, 200, response2.data)
+        return response.data["id"]
+
+    def test_authentication_rotation_logout_validation_and_search(self):
+        user = self.register("Asha")
         self.client.credentials()
-        response = self.client.post("/api/auth/login/", {
-            "email": "rahul@example.edu",
-            "password": "a-strong-password",
-        }, format="json")
+        refresh = self.tokens[user["id"]]["refresh"]
+        response = self.client.post("/api/auth/token/refresh/", {"refresh": refresh}, format="json")
         self.assertEqual(response.status_code, 200, response.data)
-        self.assertEqual(response.data["user"]["id"], second_user["id"])
-
-    def test_invalid_profile_is_rejected_and_protected_route_requires_token(self):
-        response = self.client.get("/api/profiles/me/")
-        self.assertEqual(response.status_code, 401)
-
-        self.register("Asha Student", "asha@example.edu")
-        response = self.client.put("/api/profiles/me/", {**PROFILE, "academic_year": 7}, format="json")
+        self.assertEqual(self.client.post("/api/auth/token/refresh/", {"refresh": refresh}, format="json").status_code, 401)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {response.data['access']}")
+        self.assertEqual(self.client.post("/api/auth/logout/").status_code, 200)
+        self.assertEqual(self.client.get("/api/auth/me/").status_code, 401)
+        self.assertEqual(self.client.post("/api/auth/register/", {"name": "Invalid", "email": "invalid@example.edu", "password": "12345678"}, format="json").status_code, 400)
+        second = self.register("Rahul")
+        self.assertEqual(self.client.get("/api/students/?q=machine").data["total"], 1)
+        response = self.client.put("/api/profiles/me/", {**PROFILE, "academic_year": 9}, format="json")
         self.assertEqual(response.status_code, 400)
+        self.assertEqual(self.client.get("/api/students/not-an-id/").status_code, 404)
 
-    def test_mongodb_unavailable_returns_json_service_unavailable(self):
-        with patch("platform_api.views.get_collection") as get_collection_mock:
-            get_collection_mock.return_value.find_one.side_effect = ServerSelectionTimeoutError(
-                "127.0.0.1:27017 connection refused"
-            )
-            response = self.client.post("/api/auth/login/", {
-                "email": "student@example.edu",
-                "password": "a-strong-password",
-            }, format="json")
-
-        self.assertEqual(response.status_code, 503)
-        self.assertEqual(response.data["code"], "database_unavailable")
-        self.assertIn("Start MongoDB", response.data["detail"])
-
-    def test_resume_suggestions_are_reviewable_and_do_not_guess_missing_domain(self):
-        self.register("Asha Student", "asha@example.edu")
-        document = Document()
-        document.add_paragraph("Resume Applicant")
-        document.add_paragraph("Branch: Computer Science and Engineering")
-        document.add_paragraph("Year: 2")
-        document.add_paragraph("Skills: Communication, Leadership, Teamwork")
-        buffer = io.BytesIO()
-        document.save(buffer)
-        upload = SimpleUploadedFile(
-            "resume.docx",
-            buffer.getvalue(),
-            content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        )
-
-        response = self.client.post("/api/profiles/resume-suggestions/", {"resume": upload}, format="multipart")
-
-        self.assertEqual(response.status_code, 200, response.data)
-        self.assertTrue(response.data["requires_review"])
-        self.assertEqual(response.data["suggestions"]["branch"], "Computer Science And Engineering")
-        self.assertEqual(response.data["suggestions"]["academic_year"], "2")
-        self.assertEqual(response.data["suggestions"]["skills"], [])
-        self.assertEqual(response.data["suggestions"]["domain"], "")
-
-    def test_conversation_history_read_state_and_websocket_ticket(self):
-        first_user = self.register("Asha Student", "asha@example.edu")
-        self.client.credentials()
-        second_user = self.register("Rahul Student", "rahul@example.edu")
-
-        response = self.client.post("/api/conversations/", {"recipient_id": first_user["id"]}, format="json")
-        self.assertEqual(response.status_code, 403, response.data)
-
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.access_tokens['asha@example.edu']}")
-        response = self.client.post("/api/connections/", {"user_id": second_user["id"]}, format="json")
+    def test_applications_permissions_capacity_and_feedback(self):
+        owner, applicant, outsider = self.register("Owner"), self.register("Applicant"), self.register("Outsider")
+        project_id = self.project(owner, team_size=2)
+        self.as_user(applicant)
+        response = self.client.post(f"/api/projects/{project_id}/applications/", {}, format="json")
         self.assertEqual(response.status_code, 201, response.data)
-        connection_id = response.data["id"]
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.access_tokens['rahul@example.edu']}")
-        response = self.client.patch(f"/api/connections/{connection_id}/")
-        self.assertEqual(response.status_code, 200, response.data)
+        application_id = response.data["id"]
+        self.assertEqual(self.client.get(f"/api/projects/{project_id}/applications/").status_code, 403)
+        self.as_user(owner)
+        result = self.client.patch(f"/api/projects/{project_id}/applications/", {"application_id": application_id, "decision": "Accepted"}, format="json")
+        self.assertEqual(result.status_code, 200, result.data)
+        self.as_user(outsider)
+        self.assertEqual(self.client.post(f"/api/projects/{project_id}/applications/", {}, format="json").status_code, 409)
+        self.assertEqual(self.client.patch(f"/api/projects/{project_id}/", {"title": "Hijacked"}, format="json").status_code, 403)
+        self.as_user(applicant)
+        payload = {"project_id": project_id, "to_user_id": owner["id"], "rating": 5, "comment": "Helpful teammate"}
+        self.assertEqual(self.client.post("/api/feedback/", payload, format="json").status_code, 403)
+        self.as_user(owner)
+        for state in ("In Progress", "Completed"):
+            self.assertEqual(self.client.patch(f"/api/projects/{project_id}/", {"status": state}, format="json").status_code, 200)
+        self.as_user(applicant)
+        self.assertEqual(self.client.post("/api/feedback/", payload, format="json").status_code, 201)
+        self.assertEqual(self.client.delete(f"/api/projects/{project_id}/members/{applicant['id']}/").status_code, 409)
 
-        response = self.client.post("/api/conversations/", {"recipient_id": first_user["id"]}, format="json")
-        self.assertIn(response.status_code, (200, 201), response.data)
-        conversation_id = response.data["id"]
-        response = self.client.post(
-            f"/api/conversations/{conversation_id}/messages/",
-            {"content": "Would you like to collaborate?"},
-            format="json",
-        )
+    def test_concurrent_applications_cannot_overfill_team(self):
+        owner, first, second = self.register("Owner"), self.register("First"), self.register("Second")
+        identifier = self.project(owner, team_size=2)
+        applications = []
+        for user in (first, second):
+            self.as_user(user)
+            applications.append(self.client.post(f"/api/projects/{identifier}/applications/", {}, format="json").data["id"])
+        def accept(application):
+            try:
+                decide_membership(ObjectId(identifier), ObjectId(application), ObjectId(owner["id"]), "Accepted")
+                return True
+            except Conflict:
+                return False
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            accepted = list(pool.map(accept, applications))
+        self.assertEqual(sum(accepted), 1)
+        project = get_collection("projects").find_one({"_id": ObjectId(identifier)})
+        self.assertEqual(len(project["team_members"]), 2)
+        self.assertEqual(get_collection("applications").count_documents({"status": "Accepted"}), 1)
+
+    def test_invitations_events_and_recommendations(self):
+        owner, student, other = self.register("Owner"), self.register("Student"), self.register("Other")
+        identifier = self.project(owner)
+        response = self.client.post("/api/invitations/", {"project_id": identifier, "recipient_id": student["id"]}, format="json")
         self.assertEqual(response.status_code, 201, response.data)
-        self.assertEqual(response.data["sender_id"], second_user["id"])
-        response = self.client.get(f"/api/conversations/{conversation_id}/messages/")
-        self.assertEqual(response.status_code, 200, response.data)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]["sender_id"], second_user["id"])
+        invitation = response.data["id"]
+        self.as_user(other)
+        self.assertEqual(self.client.patch(f"/api/invitations/{invitation}/", {"decision": "Accepted"}, format="json").status_code, 403)
+        self.as_user(student)
+        self.assertEqual(self.client.patch(f"/api/invitations/{invitation}/", {"decision": "Accepted"}, format="json").status_code, 200)
+        self.as_user(other)
+        for url in ("/api/recommendations/users/", "/api/recommendations/projects/"):
+            matches = self.client.get(url)
+            self.assertEqual(matches.status_code, 200, matches.data)
+            self.assertTrue(matches.data["items"], matches.data)
+            self.assertIn("synthetic", matches.data["model_notice"])
+        self.as_user(owner)
+        matches = self.client.get(f"/api/projects/{identifier}/teammates/")
+        self.assertEqual(matches.status_code, 200, matches.data)
+        self.assertNotIn(student["id"], [p["user_id"] for p in matches.data["items"]])
+        event = self.client.post("/api/events/", {"title": "Showcase", "description": "Demo day", "location": "Campus", "starts_at": (now() + timedelta(days=5)).isoformat()}, format="json")
+        self.assertEqual(event.status_code, 201, event.data)
+        endpoint = f"/api/events/{event.data['id']}/attendance/"
+        self.client.post(endpoint)
+        self.client.post(endpoint)
+        self.assertEqual(self.client.get("/api/events/").data["items"][0]["attendee_count"], 1)
+        self.client.delete(endpoint)
+        self.assertEqual(self.client.get("/api/events/").data["items"][0]["attendee_count"], 0)
 
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.access_tokens['asha@example.edu']}")
-        response = self.client.get(f"/api/conversations/{conversation_id}/messages/")
-        self.assertEqual(response.status_code, 200, response.data)
-        self.assertEqual(response.data[0]["sender_id"], second_user["id"])
-        response = self.client.post(
-            f"/api/conversations/{conversation_id}/messages/",
-            {"content": "Yes, let's collaborate."},
-            format="json",
-        )
-        self.assertEqual(response.status_code, 201, response.data)
-        self.assertEqual(response.data["sender_id"], first_user["id"])
-        response = self.client.patch(f"/api/conversations/{conversation_id}/messages/")
-        self.assertEqual(response.status_code, 200, response.data)
-        response = self.client.post(f"/api/conversations/{conversation_id}/websocket-ticket/")
-        self.assertEqual(response.status_code, 200, response.data)
-        ticket = response.data["ticket"]
+    def test_multiple_chat_partners_idempotence_read_receipts_and_permissions(self):
+        left, right, third = self.register("Asha"), self.register("Rahul"), self.register("Priya")
+        connection_id = self.connect(left, right)
+        self.connect(left, third)
+        self.as_user(left)
+        first = self.client.post("/api/conversations/", {"recipient_id": right["id"]}, format="json")
+        second = self.client.post("/api/conversations/", {"recipient_id": third["id"]}, format="json")
+        self.assertEqual(first.status_code, 201, first.data)
+        self.assertEqual(second.status_code, 201, second.data)
+        identifier = first.data["id"]
+        endpoint = f"/api/conversations/{identifier}/messages/"
+        message = {"content": "Hello Rahul", "client_id": str(uuid.uuid4())}
+        sent = self.client.post(endpoint, message, format="json")
+        self.assertEqual(sent.status_code, 201, sent.data)
+        repeated = self.client.post(endpoint, message, format="json")
+        self.assertEqual(sent.data["id"], repeated.data["id"])
+        self.assertEqual(get_collection("messages").count_documents({}), 1)
+        self.as_user(third)
+        self.assertEqual(self.client.get(endpoint).status_code, 404)
+        self.as_user(right)
+        self.assertEqual(self.client.patch(endpoint, {"through": sent.data["id"]}, format="json").status_code, 200)
+        self.as_user(left)
+        history = self.client.get(endpoint).data["items"]
+        self.assertIn(right["id"], history[0]["read_by"])
+        ticket = self.client.post(f"/api/conversations/{identifier}/websocket-ticket/").data["ticket"]
+        self.client.delete(f"/api/connections/{connection_id}/")
+        self.assertIsNone(ConversationConsumer.consume_ticket(ticket, identifier))
+        self.assertEqual(self.client.post(endpoint, {"content": "Blocked", "client_id": str(uuid.uuid4())}, format="json").status_code, 404)
 
-        async def exercise_socket():
-            communicator = WebsocketCommunicator(
-                URLRouter([re_path(r"^ws/conversations/(?P<conversation_id>[0-9a-fA-F]{24})/$", ConversationConsumer.as_asgi())]),
-                f"/ws/conversations/{conversation_id}/?ticket={ticket}",
-            )
-            connected, _ = await communicator.connect()
-            self.assertTrue(connected)
-            await communicator.send_json_to({"content": "Live message"})
-            sent = await communicator.receive_json_from()
-            broadcast = await communicator.receive_json_from()
-            self.assertEqual(sent["type"], "sent")
-            self.assertEqual(broadcast["type"], "message")
-            self.assertEqual(broadcast["message"]["content"], "Live message")
-            self.assertEqual(broadcast["message"]["sender_id"], first_user["id"])
-            await communicator.disconnect()
-
-        async_to_sync(exercise_socket)()
-
-        async def reject_reused_ticket():
-            communicator = WebsocketCommunicator(
-                URLRouter([re_path(r"^ws/conversations/(?P<conversation_id>[0-9a-fA-F]{24})/$", ConversationConsumer.as_asgi())]),
-                f"/ws/conversations/{conversation_id}/?ticket={ticket}",
-            )
-            connected, _ = await communicator.connect()
-            self.assertFalse(connected)
-
-        async_to_sync(reject_reused_ticket)()
-        self.assertEqual(second_user["email"], "rahul@example.edu")
-
-    def test_connections_projects_events_and_feedback(self):
-        first_user = self.register("Asha Student", "asha@example.edu")
-        self.client.put("/api/profiles/me/", PROFILE, format="json")
-        self.client.credentials()
-        second_user = self.register("Rahul Student", "rahul@example.edu")
-        self.client.put("/api/profiles/me/", {**PROFILE, "name": "Rahul Student"}, format="json")
-        response = self.client.post("/api/projects/", {
-            "title": "Campus Research Assistant",
-            "description": "Build an assistant for research teams.",
-            "required_skills": ["Python", "NLP"],
-            "domain": "AI / ML",
-            "project_type": "AI/ML Application",
-        }, format="json")
-        self.assertEqual(response.status_code, 201, response.data)
-        project_id = response.data["id"]
-
-        response = self.client.get(f"/api/projects/{project_id}/teammates/")
-        self.assertEqual(response.status_code, 200, response.data)
-        self.assertEqual(response.data["items"][0]["name"], "Asha Student")
-        self.assertIn("required_skill_coverage", response.data["items"][0])
-
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.access_tokens['asha@example.edu']}")
-        response = self.client.get("/api/projects/recommendations/")
-        self.assertEqual(response.status_code, 200, response.data)
-        self.assertEqual(response.data["items"][0]["title"], "Campus Research Assistant")
-        self.assertEqual(response.data["items"][0]["explanations"][0]["items"], ["python"])
-        self.assertIn("not a trained project classifier", response.data["ranking_method"])
-
-        response = self.client.post("/api/connections/", {"user_id": second_user["id"]}, format="json")
-        self.assertEqual(response.status_code, 201, response.data)
-        connection_id = response.data["id"]
-        response = self.client.post("/api/connections/", {"user_id": second_user["id"]}, format="json")
-        self.assertEqual(response.status_code, 409)
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.access_tokens['rahul@example.edu']}")
-        response = self.client.patch(f"/api/connections/{connection_id}/")
-        self.assertEqual(response.status_code, 200, response.data)
-        response = self.client.get("/api/connections/")
-        self.assertEqual(response.data[0]["status"], "Accepted")
-
-        starts_at = (datetime.now(timezone.utc) + timedelta(days=4)).isoformat()
-        response = self.client.post("/api/events/", {
-            "title": "Project Showcase",
-            "description": "Student teams share current work.",
-            "location": "Engineering Hall",
-            "starts_at": starts_at,
-        }, format="json")
-        self.assertEqual(response.status_code, 201, response.data)
-        event_id = response.data["id"]
-        response = self.client.post(f"/api/events/{event_id}/attendance/", {}, format="json")
-        self.assertEqual(response.status_code, 200, response.data)
-        response = self.client.get("/api/events/")
-        self.assertEqual(response.data[0]["attendee_count"], 1)
-
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.access_tokens['asha@example.edu']}")
-        response = self.client.post("/api/feedback/", {
-            "to_user_id": second_user["id"],
-            "rating": 5,
-            "comment": "Clear communication during the project.",
-        }, format="json")
-        self.assertEqual(response.status_code, 201, response.data)
+    def test_websocket_origin_tickets_delivery_and_reuse(self):
+        left, right = self.register("Asha"), self.register("Rahul")
+        self.connect(left, right)
+        self.as_user(left)
+        identifier = self.client.post("/api/conversations/", {"recipient_id": right["id"]}, format="json").data["id"]
+        ticket = self.client.post(f"/api/conversations/{identifier}/websocket-ticket/").data["ticket"]
+        app = OriginValidator(URLRouter([re_path(r"^ws/conversations/(?P<conversation_id>[0-9a-fA-F]{24})/$", ConversationConsumer.as_asgi())]), ["http://localhost:5173"])
+        async def exercise():
+            address = f"/ws/conversations/{identifier}/?ticket={ticket}"
+            denied = WebsocketCommunicator(app, address, headers=[(b"origin", b"https://evil.example")])
+            self.assertFalse((await denied.connect())[0])
+            socket = WebsocketCommunicator(app, address, headers=[(b"origin", b"http://localhost:5173")])
+            self.assertTrue((await socket.connect())[0])
+            await socket.send_json_to({"content": "Live message", "client_id": str(uuid.uuid4())})
+            events = [await socket.receive_json_from(timeout=5), await socket.receive_json_from(timeout=5)]
+            self.assertEqual({e["type"] for e in events}, {"sent", "message"})
+            await socket.disconnect()
+            reused = WebsocketCommunicator(app, address, headers=[(b"origin", b"http://localhost:5173")])
+            self.assertFalse((await reused.connect())[0])
+        async_to_sync(exercise)()

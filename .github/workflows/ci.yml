@@ -1,0 +1,86 @@
+name: Project checks
+on:
+  push:
+    branches: [main, complete-platform]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DJANGO_DEBUG: "1"
+      DJANGO_SECRET_KEY: ci-only-not-used-in-any-deployment
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,testserver
+      MONGODB_URI: mongodb://localhost:27017/?replicaSet=rs0
+      MONGODB_DATABASE: connect_ai_test
+      REDIS_URL: redis://localhost:6379/0
+      RUN_MONGO_TESTS: "1"
+      API_THROTTLING_ENABLED: "0"
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+    services:
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - name: Start disposable MongoDB replica set
+        run: |
+          docker run -d --name connect-mongo -p 27017:27017 mongo:8.0 --replSet rs0 --bind_ip_all
+          for attempt in $(seq 1 30); do
+            docker exec connect-mongo mongosh --quiet --eval 'db.adminCommand({ping:1})' && break
+            sleep 2
+          done
+          docker exec connect-mongo mongosh --quiet --eval 'rs.initiate({_id:"rs0",members:[{_id:0,host:"localhost:27017"}]})'
+          for attempt in $(seq 1 30); do
+            docker exec connect-mongo mongosh --quiet --eval 'if (!db.hello().isWritablePrimary) quit(1)' && break
+            sleep 2
+          done
+      - run: pip install -r backend/requirements-dev.txt
+      - name: Generate explicitly synthetic data and train offline
+        run: |
+          python dataset/generate_synthetic_datasets.py
+          python ml/train.py
+          pip freeze > backend/requirements-lock.txt
+      - name: Validate backend and ML
+        run: |
+          python backend/manage.py check
+          python backend/manage.py test platform_api config --verbosity 2
+          python -m unittest discover -s tests -v
+      - name: Save reproducible model, data and evaluation
+        uses: actions/upload-artifact@v4
+        with:
+          name: trained-model-and-datasets
+          path: |
+            dataset/*.csv
+            dataset/*.xlsx
+            ml/models/recommender.joblib
+            ml/evaluation/metrics.json
+            backend/requirements-lock.txt
+          retention-days: 7
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run build
+        working-directory: frontend
