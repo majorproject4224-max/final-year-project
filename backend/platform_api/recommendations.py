@@ -35,9 +35,9 @@ class UserRecommendationsView(APIView):
         if not candidates:
             return Response({"items": [], "detail": "Your profile needs skills represented in the current model. You can still browse students."})
         scores = probabilities(source, candidates)
-        result = [{**profile_data(c, request.user.id), "compatibility_score": round(float(score) * 100, 1), "explanations": explain_pair(source, c)} for c, score in zip(candidates, scores)]
+        result = [{**profile_data(c, request.user.id), "compatibility_score": round(float(score) * 100, 1), "explanations": explain_pair(source, c)} for c, score in zip(candidates, scores) if score >= .5]
         result.sort(key=lambda item: (-item["compatibility_score"], item["user_id"]))
-        return Response({"items": result[:12], "model_notice": notice(), "candidate_cluster": cluster, "candidate_count": len(candidates)})
+        return Response({"items": result[:12], "detail": "No candidates met the current model’s match threshold. Browse everyone to explore more options." if not result else "", "model_notice": notice(), "candidate_cluster": cluster, "candidate_count": len(candidates)})
 
 class ProjectRecommendationsView(APIView):
     def get(self, request):
@@ -53,9 +53,9 @@ class ProjectRecommendationsView(APIView):
         if not candidates:
             return Response({"items": [], "detail": "No model-supported project matches yet. Browse all projects."})
         scores = probabilities(source, candidates, "projects")
-        result = [{**project_data(c, actor), "compatibility_score": round(float(score) * 100, 1), "explanations": explain_project(source, c)} for c, score in zip(candidates, scores)]
+        result = [{**project_data(c, actor), "compatibility_score": round(float(score) * 100, 1), "explanations": explain_project(source, c)} for c, score in zip(candidates, scores) if score >= .5]
         result.sort(key=lambda item: (-item["compatibility_score"], item["id"]))
-        return Response({"items": result[:12], "model_notice": notice(), "ranking_method": "Random Forest student-project model", "candidate_cluster": cluster})
+        return Response({"items": result[:12], "detail": "No candidates met the current model’s match threshold. Browse everyone to explore more options." if not result else "", "model_notice": notice(), "ranking_method": "Random Forest student-project model", "candidate_cluster": cluster})
 
 class ProjectTeammateRecommendationsView(APIView):
     def get(self, request, project_id):
@@ -74,6 +74,6 @@ class ProjectTeammateRecommendationsView(APIView):
         bundle = load_models()
         vectors = [project_features(c, project) for c in candidates]
         scores = bundle["projects"].predict_proba(pd.DataFrame(vectors, columns=bundle["project_features"]))[:, list(bundle["projects"].classes_).index(1)]
-        result = [{**profile_data(c, request.user.id), "compatibility_score": round(float(score) * 100, 1), "explanations": explain_project(c, project)} for c, score in zip(candidates, scores)]
+        result = [{**profile_data(c, request.user.id), "compatibility_score": round(float(score) * 100, 1), "explanations": explain_project(c, project)} for c, score in zip(candidates, scores) if score >= .5]
         result.sort(key=lambda item: (-item["compatibility_score"], item["user_id"]))
-        return Response({"items": result[:12], "model_notice": notice(), "ranking_method": "Random Forest student-project model; excludes existing members"})
+        return Response({"items": result[:12], "detail": "No candidates met the current model’s match threshold. Browse everyone to explore more options." if not result else "", "model_notice": notice(), "ranking_method": "Random Forest student-project model; excludes existing members"})

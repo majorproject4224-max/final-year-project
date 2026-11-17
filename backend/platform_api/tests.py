@@ -244,6 +244,8 @@ class PlatformTests(SimpleTestCase):
             self.assertEqual(result.status_code, 200)
             scores = [item["compatibility_score"] for item in result.data["items"]]
             self.assertEqual(scores, sorted(scores, reverse=True))
+        with patch("platform_api.recommendations.probabilities", return_value=[.1]):
+            self.assertEqual(self.client.get("/api/recommendations/users/").data["items"], [])
         get_collection("profiles").delete_one({"user_id": ObjectId(student["id"])})
         result = self.client.get("/api/recommendations/users/")
         self.assertEqual(result.status_code, 200)

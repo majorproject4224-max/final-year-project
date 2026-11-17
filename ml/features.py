@@ -88,5 +88,5 @@ def explain_project(student, project):
     if equal_present(normalize_domain(student.get("domain")), normalize_domain(project.get("domain"))):
         reasons.append({"feature": "same_domain", "value": project["domain"]})
     if project_features(student, project)["availability_fit"] == 1:
-        reasons.append({"feature": "availability", "value": "Your weekly availability meets the project requirement"})
+        reasons.append({"feature": "availability", "value": "Weekly availability meets the project requirement"})
     return reasons

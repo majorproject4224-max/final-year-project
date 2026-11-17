@@ -1,0 +1,4 @@
+* text=auto eol=lf
+*.xlsx binary
+*.joblib binary
+*.png binary

@@ -22,7 +22,7 @@ def request(method, route, payload=None, token=None):
 
 with sync_playwright() as p:
     browser = p.chromium.launch()
-    context = browser.new_context(viewport={"width": 1440, "height": 1050})
+    context = browser.new_context(viewport={"width": 1440, "height": 1050}, reduced_motion="reduce")
     context.tracing.start(screenshots=True, snapshots=True)
     page = context.new_page()
     errors = []
@@ -48,6 +48,8 @@ with sync_playwright() as p:
         expect(page.locator(".student-card").first).to_be_visible(timeout=15000)
         expect(page.locator(".project-card").first).to_be_visible()
         expect(page.locator(".model-note").first).to_contain_text("synthetic")
+        if page.get_by_role("button", name="Dismiss notification").is_visible():
+            page.get_by_role("button", name="Dismiss notification").click()
         page.screenshot(path=str(OUT / "dashboard-desktop.png"), full_page=True)
         page.get_by_role("link", name="Students", exact=True).click()
         page.get_by_label("Search students").fill("Dev Tester")

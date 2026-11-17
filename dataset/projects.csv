@@ -1,0 +1,85 @@
+project_id,title,domain,required_skills,required_interests,required_experience,team_size,project_type,expected_hours,data_source
+P001,Campus research assistant — scenario 1,AI / ML,"Python,Machine Learning,React","Research,AI",Advanced,5,AI/ML Application,8,synthetic_project_scenario_v2
+P002,Accessible campus portal — scenario 2,Web Development,"React,HTML,CSS","Accessibility,UI/UX",Beginner,5,Web Application,10,synthetic_project_scenario_v2
+P003,Project collaboration API — scenario 3,Backend Development,"Python,Django,REST API","Backend,Open Source",Intermediate,2,Web Application,8,synthetic_project_scenario_v2
+P004,Library usage analysis — scenario 4,Data Science,"Python,Pandas,Statistics","Analytics,Research",Intermediate,5,Data Analysis,4,synthetic_project_scenario_v2
+P005,Security log explorer — scenario 5,Cybersecurity,"Python,Linux,React","Security,Analytics",Intermediate,4,Security Tool,6,synthetic_project_scenario_v2
+P006,Campus navigation app — scenario 6,Mobile Development,"Kotlin,Firebase,UI/UX","Mobile Apps,Accessibility",Beginner,4,Mobile Application,10,synthetic_project_scenario_v2
+P007,Student deployment toolkit — scenario 7,Cloud / DevOps,"Docker,Python,Git","Automation,Open Source",Intermediate,5,Developer Tool,8,synthetic_project_scenario_v2
+P008,Research data dashboard — scenario 8,Data Science,"Pandas,React,SQL","Research,UI/UX",Intermediate,4,Data Analysis,6,synthetic_project_scenario_v2
+P009,Open-source issue matcher — scenario 9,AI / ML,"Python,Scikit-learn,Git","Open Source,AI",Beginner,2,AI/ML Application,4,synthetic_project_scenario_v2
+P010,Event booking service — scenario 10,Backend Development,"Django,SQL,React","Backend,Web Development",Advanced,3,Web Application,8,synthetic_project_scenario_v2
+P011,Mobile safety companion — scenario 11,Mobile Development,"Kotlin,Networking,Firebase","Mobile Apps,Security",Beginner,3,Mobile Application,6,synthetic_project_scenario_v2
+P012,Cloud cost explorer — scenario 12,Cloud / DevOps,"AWS,Pandas,React","Cloud,Analytics",Advanced,6,Developer Tool,4,synthetic_project_scenario_v2
+P013,Campus research assistant — scenario 13,AI / ML,"Python,Machine Learning,React","Research,AI",Advanced,2,AI/ML Application,4,synthetic_project_scenario_v2
+P014,Accessible campus portal — scenario 14,Web Development,"React,HTML,CSS","Accessibility,UI/UX",Beginner,2,Web Application,8,synthetic_project_scenario_v2
+P015,Project collaboration API — scenario 15,Backend Development,"Python,Django,REST API","Backend,Open Source",Intermediate,6,Web Application,4,synthetic_project_scenario_v2
+P016,Library usage analysis — scenario 16,Data Science,"Python,Pandas,Statistics","Analytics,Research",Intermediate,6,Data Analysis,6,synthetic_project_scenario_v2
+P017,Security log explorer — scenario 17,Cybersecurity,"Python,Linux,React","Security,Analytics",Intermediate,3,Security Tool,4,synthetic_project_scenario_v2
+P018,Campus navigation app — scenario 18,Mobile Development,"Kotlin,Firebase,UI/UX","Mobile Apps,Accessibility",Intermediate,2,Mobile Application,4,synthetic_project_scenario_v2
+P019,Student deployment toolkit — scenario 19,Cloud / DevOps,"Docker,Python,Git","Automation,Open Source",Intermediate,3,Developer Tool,6,synthetic_project_scenario_v2
+P020,Research data dashboard — scenario 20,Data Science,"Pandas,React,SQL","Research,UI/UX",Advanced,6,Data Analysis,4,synthetic_project_scenario_v2
+P021,Open-source issue matcher — scenario 21,AI / ML,"Python,Scikit-learn,Git","Open Source,AI",Advanced,2,AI/ML Application,4,synthetic_project_scenario_v2
+P022,Event booking service — scenario 22,Backend Development,"Django,SQL,React","Backend,Web Development",Advanced,3,Web Application,8,synthetic_project_scenario_v2
+P023,Mobile safety companion — scenario 23,Mobile Development,"Kotlin,Networking,Firebase","Mobile Apps,Security",Advanced,6,Mobile Application,6,synthetic_project_scenario_v2
+P024,Cloud cost explorer — scenario 24,Cloud / DevOps,"AWS,Pandas,React","Cloud,Analytics",Advanced,3,Developer Tool,6,synthetic_project_scenario_v2
+P025,Campus research assistant — scenario 25,AI / ML,"Python,Machine Learning,React","Research,AI",Beginner,5,AI/ML Application,8,synthetic_project_scenario_v2
+P026,Accessible campus portal — scenario 26,Web Development,"React,HTML,CSS","Accessibility,UI/UX",Beginner,5,Web Application,8,synthetic_project_scenario_v2
+P027,Project collaboration API — scenario 27,Backend Development,"Python,Django,REST API","Backend,Open Source",Advanced,3,Web Application,6,synthetic_project_scenario_v2
+P028,Library usage analysis — scenario 28,Data Science,"Python,Pandas,Statistics","Analytics,Research",Advanced,4,Data Analysis,8,synthetic_project_scenario_v2
+P029,Security log explorer — scenario 29,Cybersecurity,"Python,Linux,React","Security,Analytics",Intermediate,6,Security Tool,10,synthetic_project_scenario_v2
+P030,Campus navigation app — scenario 30,Mobile Development,"Kotlin,Firebase,UI/UX","Mobile Apps,Accessibility",Advanced,3,Mobile Application,4,synthetic_project_scenario_v2
+P031,Student deployment toolkit — scenario 31,Cloud / DevOps,"Docker,Python,Git","Automation,Open Source",Intermediate,5,Developer Tool,10,synthetic_project_scenario_v2
+P032,Research data dashboard — scenario 32,Data Science,"Pandas,React,SQL","Research,UI/UX",Beginner,6,Data Analysis,4,synthetic_project_scenario_v2
+P033,Open-source issue matcher — scenario 33,AI / ML,"Python,Scikit-learn,Git","Open Source,AI",Beginner,5,AI/ML Application,8,synthetic_project_scenario_v2
+P034,Event booking service — scenario 34,Backend Development,"Django,SQL,React","Backend,Web Development",Intermediate,2,Web Application,4,synthetic_project_scenario_v2
+P035,Mobile safety companion — scenario 35,Mobile Development,"Kotlin,Networking,Firebase","Mobile Apps,Security",Beginner,6,Mobile Application,4,synthetic_project_scenario_v2
+P036,Cloud cost explorer — scenario 36,Cloud / DevOps,"AWS,Pandas,React","Cloud,Analytics",Advanced,3,Developer Tool,10,synthetic_project_scenario_v2
+P037,Campus research assistant — scenario 37,AI / ML,"Python,Machine Learning,React","Research,AI",Beginner,5,AI/ML Application,6,synthetic_project_scenario_v2
+P038,Accessible campus portal — scenario 38,Web Development,"React,HTML,CSS","Accessibility,UI/UX",Intermediate,3,Web Application,8,synthetic_project_scenario_v2
+P039,Project collaboration API — scenario 39,Backend Development,"Python,Django,REST API","Backend,Open Source",Beginner,3,Web Application,10,synthetic_project_scenario_v2
+P040,Library usage analysis — scenario 40,Data Science,"Python,Pandas,Statistics","Analytics,Research",Intermediate,5,Data Analysis,6,synthetic_project_scenario_v2
+P041,Security log explorer — scenario 41,Cybersecurity,"Python,Linux,React","Security,Analytics",Beginner,6,Security Tool,10,synthetic_project_scenario_v2
+P042,Campus navigation app — scenario 42,Mobile Development,"Kotlin,Firebase,UI/UX","Mobile Apps,Accessibility",Beginner,4,Mobile Application,8,synthetic_project_scenario_v2
+P043,Student deployment toolkit — scenario 43,Cloud / DevOps,"Docker,Python,Git","Automation,Open Source",Beginner,6,Developer Tool,10,synthetic_project_scenario_v2
+P044,Research data dashboard — scenario 44,Data Science,"Pandas,React,SQL","Research,UI/UX",Beginner,5,Data Analysis,8,synthetic_project_scenario_v2
+P045,Open-source issue matcher — scenario 45,AI / ML,"Python,Scikit-learn,Git","Open Source,AI",Beginner,4,AI/ML Application,6,synthetic_project_scenario_v2
+P046,Event booking service — scenario 46,Backend Development,"Django,SQL,React","Backend,Web Development",Beginner,6,Web Application,4,synthetic_project_scenario_v2
+P047,Mobile safety companion — scenario 47,Mobile Development,"Kotlin,Networking,Firebase","Mobile Apps,Security",Beginner,3,Mobile Application,8,synthetic_project_scenario_v2
+P048,Cloud cost explorer — scenario 48,Cloud / DevOps,"AWS,Pandas,React","Cloud,Analytics",Intermediate,2,Developer Tool,6,synthetic_project_scenario_v2
+P049,Campus research assistant — scenario 49,AI / ML,"Python,Machine Learning,React","Research,AI",Intermediate,2,AI/ML Application,10,synthetic_project_scenario_v2
+P050,Accessible campus portal — scenario 50,Web Development,"React,HTML,CSS","Accessibility,UI/UX",Beginner,2,Web Application,10,synthetic_project_scenario_v2
+P051,Project collaboration API — scenario 51,Backend Development,"Python,Django,REST API","Backend,Open Source",Advanced,2,Web Application,10,synthetic_project_scenario_v2
+P052,Library usage analysis — scenario 52,Data Science,"Python,Pandas,Statistics","Analytics,Research",Advanced,4,Data Analysis,6,synthetic_project_scenario_v2
+P053,Security log explorer — scenario 53,Cybersecurity,"Python,Linux,React","Security,Analytics",Beginner,4,Security Tool,6,synthetic_project_scenario_v2
+P054,Campus navigation app — scenario 54,Mobile Development,"Kotlin,Firebase,UI/UX","Mobile Apps,Accessibility",Advanced,6,Mobile Application,6,synthetic_project_scenario_v2
+P055,Student deployment toolkit — scenario 55,Cloud / DevOps,"Docker,Python,Git","Automation,Open Source",Intermediate,5,Developer Tool,6,synthetic_project_scenario_v2
+P056,Research data dashboard — scenario 56,Data Science,"Pandas,React,SQL","Research,UI/UX",Intermediate,3,Data Analysis,10,synthetic_project_scenario_v2
+P057,Open-source issue matcher — scenario 57,AI / ML,"Python,Scikit-learn,Git","Open Source,AI",Advanced,5,AI/ML Application,6,synthetic_project_scenario_v2
+P058,Event booking service — scenario 58,Backend Development,"Django,SQL,React","Backend,Web Development",Advanced,6,Web Application,10,synthetic_project_scenario_v2
+P059,Mobile safety companion — scenario 59,Mobile Development,"Kotlin,Networking,Firebase","Mobile Apps,Security",Intermediate,3,Mobile Application,10,synthetic_project_scenario_v2
+P060,Cloud cost explorer — scenario 60,Cloud / DevOps,"AWS,Pandas,React","Cloud,Analytics",Beginner,6,Developer Tool,10,synthetic_project_scenario_v2
+P061,Campus research assistant — scenario 61,AI / ML,"Python,Machine Learning,React","Research,AI",Intermediate,4,AI/ML Application,4,synthetic_project_scenario_v2
+P062,Accessible campus portal — scenario 62,Web Development,"React,HTML,CSS","Accessibility,UI/UX",Intermediate,2,Web Application,4,synthetic_project_scenario_v2
+P063,Project collaboration API — scenario 63,Backend Development,"Python,Django,REST API","Backend,Open Source",Advanced,2,Web Application,4,synthetic_project_scenario_v2
+P064,Library usage analysis — scenario 64,Data Science,"Python,Pandas,Statistics","Analytics,Research",Intermediate,2,Data Analysis,4,synthetic_project_scenario_v2
+P065,Security log explorer — scenario 65,Cybersecurity,"Python,Linux,React","Security,Analytics",Beginner,3,Security Tool,10,synthetic_project_scenario_v2
+P066,Campus navigation app — scenario 66,Mobile Development,"Kotlin,Firebase,UI/UX","Mobile Apps,Accessibility",Beginner,2,Mobile Application,6,synthetic_project_scenario_v2
+P067,Student deployment toolkit — scenario 67,Cloud / DevOps,"Docker,Python,Git","Automation,Open Source",Intermediate,4,Developer Tool,6,synthetic_project_scenario_v2
+P068,Research data dashboard — scenario 68,Data Science,"Pandas,React,SQL","Research,UI/UX",Beginner,5,Data Analysis,8,synthetic_project_scenario_v2
+P069,Open-source issue matcher — scenario 69,AI / ML,"Python,Scikit-learn,Git","Open Source,AI",Advanced,4,AI/ML Application,8,synthetic_project_scenario_v2
+P070,Event booking service — scenario 70,Backend Development,"Django,SQL,React","Backend,Web Development",Advanced,6,Web Application,6,synthetic_project_scenario_v2
+P071,Mobile safety companion — scenario 71,Mobile Development,"Kotlin,Networking,Firebase","Mobile Apps,Security",Advanced,6,Mobile Application,4,synthetic_project_scenario_v2
+P072,Cloud cost explorer — scenario 72,Cloud / DevOps,"AWS,Pandas,React","Cloud,Analytics",Advanced,3,Developer Tool,10,synthetic_project_scenario_v2
+P073,Campus research assistant — scenario 73,AI / ML,"Python,Machine Learning,React","Research,AI",Beginner,2,AI/ML Application,10,synthetic_project_scenario_v2
+P074,Accessible campus portal — scenario 74,Web Development,"React,HTML,CSS","Accessibility,UI/UX",Intermediate,4,Web Application,6,synthetic_project_scenario_v2
+P075,Project collaboration API — scenario 75,Backend Development,"Python,Django,REST API","Backend,Open Source",Intermediate,6,Web Application,6,synthetic_project_scenario_v2
+P076,Library usage analysis — scenario 76,Data Science,"Python,Pandas,Statistics","Analytics,Research",Intermediate,5,Data Analysis,10,synthetic_project_scenario_v2
+P077,Security log explorer — scenario 77,Cybersecurity,"Python,Linux,React","Security,Analytics",Intermediate,5,Security Tool,10,synthetic_project_scenario_v2
+P078,Campus navigation app — scenario 78,Mobile Development,"Kotlin,Firebase,UI/UX","Mobile Apps,Accessibility",Advanced,3,Mobile Application,4,synthetic_project_scenario_v2
+P079,Student deployment toolkit — scenario 79,Cloud / DevOps,"Docker,Python,Git","Automation,Open Source",Intermediate,4,Developer Tool,8,synthetic_project_scenario_v2
+P080,Research data dashboard — scenario 80,Data Science,"Pandas,React,SQL","Research,UI/UX",Intermediate,3,Data Analysis,6,synthetic_project_scenario_v2
+P081,Open-source issue matcher — scenario 81,AI / ML,"Python,Scikit-learn,Git","Open Source,AI",Beginner,5,AI/ML Application,10,synthetic_project_scenario_v2
+P082,Event booking service — scenario 82,Backend Development,"Django,SQL,React","Backend,Web Development",Beginner,3,Web Application,4,synthetic_project_scenario_v2
+P083,Mobile safety companion — scenario 83,Mobile Development,"Kotlin,Networking,Firebase","Mobile Apps,Security",Intermediate,3,Mobile Application,10,synthetic_project_scenario_v2
+P084,Cloud cost explorer — scenario 84,Cloud / DevOps,"AWS,Pandas,React","Cloud,Analytics",Advanced,2,Developer Tool,10,synthetic_project_scenario_v2

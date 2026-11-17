@@ -26,7 +26,7 @@ export function Avatar({ name = 'Student', large = false }) {
   return <span className={`avatar ${large ? 'large' : ''}`} aria-hidden="true">{name.split(' ').slice(0, 2).map(word => word[0]).join('')}</span>;
 }
 export function Explanations({ items = [] }) {
-  return <ul className="reasons">{items.map((reason, i) => <li key={i}>{reason.items ? `${({ shared_skills: 'Shared skills', shared_interests: 'Common interests', required_skills_matched: 'Required skills matched', skills_to_learn: 'Skills to learn' })[reason.feature] || reason.feature}: ${reason.items.join(', ')}` : reason.value}</li>)}</ul>;
+  return <ul className="reasons">{items.map((reason, i) => <li key={i}>{reason.items ? `${({ shared_skills: 'Shared skills', shared_interests: 'Common interests', required_skills_matched: 'Required skills matched', skills_to_learn: 'Skills to learn' })[reason.feature] || reason.feature}: ${reason.items.join(', ')}` : reason.feature === "same_domain" ? "Same domain: " + reason.value : reason.feature === "same_project_type" ? "Shared project preference: " + reason.value : reason.value}</li>)}</ul>;
 }
 export function ActionButton({ action, children, className = '', onDone, ...props }) {
   const [busy, setBusy] = useState(false);

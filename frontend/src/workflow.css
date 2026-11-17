@@ -1,9 +1,0 @@
-.project-team-count{font:9px var(--mono);color:#697873;margin:9px 0 0}.application-actions{display:flex;align-items:center;gap:8px}.quiet-button{border:0;background:transparent;color:#9a4b36;padding:8px;font-size:10px;font-weight:800}.quiet-button:hover{color:#73311f;text-decoration:underline}.message-sender{display:block;margin-bottom:5px;font:9px var(--mono);opacity:.78}.message-bubble.sent .message-sender{color:#1c6852}.message-bubble.received .message-sender{color:#9a4b36}@media(max-width:600px){.application-actions{align-items:flex-start;flex-direction:column;gap:2px}.application-actions .secondary-button{padding:8px}}
-.notice.warning{margin:0 0 16px;background:#fff0dd;color:#77501f;border-left:3px solid #d99545}
-.connect-button.connected{border-color:#bfd6c3;background:#e6f0e7;color:#35684a;cursor:default}.connect-button:disabled:not(.connected){opacity:.72;cursor:default}
-.chat-page{height:100vh;min-height:0}
-.chat-layout{min-height:0}
-.chat-panel{min-height:0}
-.message-list{min-height:0}
-.message-status{align-self:center;margin:auto;color:var(--muted);font-size:11px;text-align:center}
-@media(max-width:600px){.chat-page{height:auto;min-height:calc(100vh - 61px)}.chat-layout{min-height:560px}}.connect-button:disabled:not(.connected){opacity:.72;cursor:default}

@@ -1,80 +1,62 @@
 # connecT AI
 
-An AI-powered university social and project collaboration platform. The current application has a React frontend, Django REST Framework API, MongoDB document storage, Random Forest student matching, K-Means candidate grouping, and Django Channels messaging. The earlier Flask demo remains available during migration.
+An AI-powered university social and project collaboration platform for a B.Tech CSE major project.
 
-## Current Features
+[![Project checks](https://github.com/majorproject4224-max/final-year-project/actions/workflows/ci.yml/badge.svg)](https://github.com/majorproject4224-max/final-year-project/actions/workflows/ci.yml)
 
-- JWT signup/login and protected APIs.
-- Student profiles with PDF/DOCX résumé suggestions, manual review, and save.
-- Student-to-student recommendations: K-Means candidate grouping followed by Random Forest compatibility ranking, with feature-derived explanations.
-- Project creation, applications, profile-to-project skill/domain recommendations, and project-specific teammate recommendations.
-- Connection requests, events/attendance, feedback capture, conversation history, read receipts, and Channels WebSocket delivery.
-- A reproducible synthetic Excel dataset and offline K-Means/Random Forest training scripts.
+Students create profiles, connect, form project teams, chat and discover personalized suggestions. React is the interface; Django REST Framework and Channels provide the API and live chat; MongoDB stores application data. Offline scikit-learn models provide recommendations.
 
-## WSL Setup
+**The bundled data is synthetic.** Match percentages are model estimates learned from a documented development rubric, not validated probabilities of successful real collaboration.
 
-Run commands from this directory in WSL. Python packages install into the project-local `.venv`:
+## Start here
 
-```bash
-source .venv/bin/activate
-pip install -r backend/requirements-dev.txt
-cp .env.example .env
+- **Office laptop / no local installations:** [Use GitHub Codespaces in your browser](docs/SETUP.md#browser-only-development).
+- **Personal laptop:** [Windows setup and run instructions](docs/SETUP.md#personal-windows-laptop).
+- **Free hosting:** [Vercel + Render + MongoDB Atlas deployment guide](docs/DEPLOYMENT.md). Deployment requires the owner's approval; no hosting accounts or resources are created by this repository.
+- **Understand the code:** [Architecture](docs/ARCHITECTURE.md), [API reference](docs/API.md), [beginner learning guide](docs/LEARNING.md).
+- **College report / viva:** [Project report](docs/PROJECT_REPORT.md), [ML methodology](docs/ML_METHODOLOGY.md), [measured results](docs/RESULTS.md), [demonstration script](docs/DEMO.md).
+
+## Implemented workflows
+
+| Area | Functionality |
+|---|---|
+| Accounts | Registration, login, rotating JWT refresh, logout, password changes and session revocation |
+| Profiles | Skills/interests normalization, academic details, availability, contact privacy, optional PDF/DOCX résumé suggestions |
+| Community | Student search, profile details, connection requests, acceptance/removal |
+| Projects | Create/edit, apply/withdraw, owner decisions, invitations, capacity-safe team formation, progress and completed-project feedback |
+| Discovery | Student → student, student → project and project → teammate recommendations with actual feature explanations |
+| Events | Create, list upcoming events, attend/leave, organizer deletion |
+| Messaging | One-to-one chat for accepted connections, persistent history, read receipts, WebSocket delivery, reconnect and duplicate-safe sending |
+| Personal space | My teams/projects, sent/received invitations and saved projects |
+
+No external AI API subscription is needed. There is no automatic online retraining.
+
+## Machine learning
+
+- **K-Means:** TF-IDF features from normalized skills/interests; select k by silhouette over 2–10, retain inertia for analysis.
+- **Random Forest:** separate student–student and student–project classifiers.
+- **Evaluation:** entities are separated between training/test sets; supervised features are recomputed from raw profiles. Reports include majority and similarity baselines, confusion matrices and ranking metrics.
+- **Artifacts:** the repository includes the offline trained bundle, Excel/CSV data and measured results. Inference loads the bundle once per process; request handlers do not train.
+
+```text
+backend/       Django API, Channels, permissions and domain services
+frontend/      React pages, reusable components and API client
+ml/            Shared preprocessing, offline training, saved model and metrics
+dataset/       Reproducible generator + explicitly synthetic Excel/CSV datasets
+docs/          Setup, architecture, API, methodology, results and report
+scripts/       Development and deployment startup helpers
+tests/         ML, résumé and browser journey tests
+.devcontainer/ Browser-only development configuration
 ```
 
-Provide a reachable MongoDB deployment through `MONGODB_URI` and `MONGODB_DATABASE` in `.env`. MongoDB is not bundled with this repository. For production/multi-process Channels, configure `REDIS_URL`; without it, Channels uses an in-memory layer suitable only for local single-process development.
+## Checks
 
-Start the Django ASGI backend:
+GitHub Actions trains from the reproducible generator, checks Django, tests against a disposable MongoDB replica set and Redis, builds React, and runs a real Chromium browser journey. Test artifacts include screenshots, a browser trace, the trained model and measured metrics. See [testing instructions](docs/TESTING.md).
 
-```bash
-cd backend
-../.venv/bin/daphne -b 127.0.0.1 -p 8000 config.asgi:application
-```
+Do not run the database tests on an important database: they deliberately reset the database and refuse names that do not end in `_test`.
 
-The liveness endpoint is `http://127.0.0.1:8000/api/health/`. The readiness endpoint `http://127.0.0.1:8000/api/health/ready/` also pings MongoDB and returns `503` with a JSON explanation when the database is unavailable. The sign-in page checks readiness and displays this prerequisite before a login attempt.
+## Scope and limitations
 
-Install Node.js LTS and npm inside WSL for a fresh checkout, then start the React app in another terminal:
+This is an academic prototype, not a production university service. Free hosting can sleep and has usage limits. There is no email verification/recovery, moderation console, profile photo storage, group chat or presence indicator. Profiles use initials as avatars. Candidate retrieval is bounded for a small campus demo. Synthetic labels and related project scenarios limit what evaluation proves. Read [the limitations](docs/ML_METHODOLOGY.md#limitations) before presenting results.
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Vite serves `http://localhost:5173` and proxies `/api` and `/ws` to the backend. In the current WSL workspace, a verified Node 24 runtime is installed under the ignored `.tools/` directory for local builds; it is not committed. To use it in this checkout, add `.tools/node-v24.21.0-linux-x64/bin` to `PATH` before running npm. MongoDB is not installed in this WSL environment, so authenticated/database-backed browser workflows need a local MongoDB service or an Atlas URI.
-
-## API Map
-
-- `POST /api/auth/register/`, `POST /api/auth/login/`, `POST /api/auth/token/refresh/`
-- `GET/PUT /api/profiles/me/`, `POST /api/profiles/resume-suggestions/`
-- `GET/POST /api/projects/`, `POST /api/projects/{id}/applications/`
-- `GET /api/projects/recommendations/`, `GET /api/projects/{id}/teammates/`
-- `GET/POST /api/connections/`, `PATCH /api/connections/{id}/`
-- `GET/POST /api/events/`, `POST /api/events/{id}/attendance/`
-- `POST /api/feedback/`
-- `GET/POST /api/conversations/`, `GET/POST/PATCH /api/conversations/{id}/messages/`
-- `POST /api/conversations/{id}/websocket-ticket/`, WebSocket `/ws/conversations/{id}/`
-- `GET /api/recommendations/users/`
-
-All APIs use JSON except résumé suggestions, which accept multipart form uploads. User/project/message endpoints require a bearer access token.
-
-## Validation and ML Training
-
-```bash
-.venv/bin/python backend/manage.py check
-.venv/bin/python backend/manage.py test platform_api config
-.venv/bin/python -m unittest discover -s tests -v
-.venv/bin/python ml/train_student_clusters.py
-.venv/bin/python ml/train_compatibility_model.py
-```
-
-Both datasets are synthetic. The Random Forest target is generated from an auditable weighted compatibility rule, so reported performance measures reproduction of that rule, not real-world student outcomes. Evaluation now holds out users rather than randomly splitting pairs: the latest run used 959 training pairs and 65 test pairs from 189 unseen users, with no user shared across the partitions. The held-out set is small (53 incompatible, 12 compatible) and currently scores 100%; treat this as prototype verification only. See [the dataset and evaluation note](docs/ml/phase1_dataset_design.md).
-
-K-Means evaluates $k=2$ through $k=10$ using silhouette score and selected $k=6$ (0.524659) on the current 1,000 synthetic profiles. Cluster IDs are algorithmic group identifiers, not hard-coded domain labels.
-
-## MongoDB Choice
-
-The backend uses MongoDB's official `django-mongodb-backend` 5.2.x with Django 5.2.x and direct PyMongo collection operations for domain documents. MongoDB documents Django REST Framework support as partial; the API keeps its persistence operations explicit and avoids depending on complex ORM joins. Validate against a real MongoDB deployment before production.
-
-## Earlier Flask Demo
-
-The existing profile/recommendation demo remains runnable from the repository root with `.venv/bin/python server.py` at `http://127.0.0.1:5000/`. It uses SQLite and is retained only as a migration/demo path; the Django application is the target architecture.
+The conceptual reference is [RohitGaira/connecT-University-Social-Platform](https://github.com/RohitGaira/connecT-University-Social-Platform). This implementation uses its own React/Django/MongoDB/ML architecture. Earlier Flask, SQLite and static-site experiments were removed from the current tree to leave one supported application; they remain in Git history at `8eaf15a`.
