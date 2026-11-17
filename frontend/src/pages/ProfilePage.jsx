@@ -6,7 +6,7 @@ import { DOMAINS, EXPERIENCE, SelectField, splitTags } from '../components/Profi
 
 export default function ProfilePage() {
   const { user, profile, setProfile, setUser, notify } = useAuth();
-  const [form, setForm] = useState({ name: user.name, branch: 'CSE', academic_year: 3, skills: '', interests: '', domain: 'AI / ML', experience: 'Beginner', preferred_project_type: 'Web Application', projects_completed: 0, availability_hours: 8, bio: '', city: '', phone: '', github: '', share_contact: false, ...profile, skills: profile?.skills?.join(', ') || '', interests: profile?.interests?.join(', ') || '' });
+  const [form, setForm] = useState({ name: user.name, branch: 'CSE', academic_year: 3, domain: 'AI / ML', experience: 'Beginner', preferred_project_type: 'Web Application', projects_completed: 0, availability_hours: 8, bio: '', city: '', phone: '', github: '', share_contact: false, ...profile, skills: profile?.skills?.join(', ') || '', interests: profile?.interests?.join(', ') || '' });
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [suggestions, setSuggestions] = useState(null);
