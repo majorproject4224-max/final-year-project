@@ -40,6 +40,9 @@ class PublicAuthView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
 
+    def get_authenticate_header(self, request):
+        return 'Bearer realm="api"'
+
     def get_throttles(self):
         return [AuthThrottle()] if settings.REST_FRAMEWORK.get("DEFAULT_THROTTLE_CLASSES") else []
 
