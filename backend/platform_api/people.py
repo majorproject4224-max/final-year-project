@@ -14,6 +14,11 @@ def profile_data(profile, viewer=None):
     result = {key: value for key, value in profile.items() if key not in {"_id", "user_id", "phone", "share_contact"}}
     result.update({"id": str(profile["_id"]), "user_id": str(profile["user_id"]), "name": user["name"] if user else "Unavailable account"})
     own = viewer and str(profile["user_id"]) == str(viewer)
+    result["connection"] = None
+    if viewer and not own:
+        connection = get_collection("connections").find_one({"pair_key": pair_key(viewer, profile["user_id"])})
+        if connection and connection["status"] != "Rejected":
+            result["connection"] = {"id": str(connection["_id"]), "status": connection["status"], "direction": "sent" if str(connection["requester_id"]) == str(viewer) else "received"}
     if own:
         result.update({"phone": profile.get("phone", ""), "share_contact": profile.get("share_contact", False)})
     elif viewer and profile.get("share_contact") and are_connected(ObjectId(viewer), profile["user_id"]):
