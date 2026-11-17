@@ -6,6 +6,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from .common import now
 from .mongo import get_collection
 
+
 @dataclass
 class MongoPrincipal:
     id: str
@@ -21,13 +22,17 @@ class MongoPrincipal:
     def is_authenticated(self):
         return True
 
+
 def session_is_active(user_id, sid):
     return (
-        get_collection("users").find_one({"_id": user_id, "is_active": True}, {"_id": 1}) is not None
+        get_collection("users").find_one({"_id": user_id, "is_active": True}, {"_id": 1})
+        is not None
         and get_collection("auth_sessions").find_one(
             {"user_id": user_id, "sid": sid, "expires_at": {"$gt": now()}}, {"_id": 1}
-        ) is not None
+        )
+        is not None
     )
+
 
 class MongoJWTAuthentication(JWTAuthentication):
     def get_user(self, validated_token):

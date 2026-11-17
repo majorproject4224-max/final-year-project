@@ -16,6 +16,12 @@ Students create profiles, connect, form project teams, chat and discover persona
 - **Understand the code:** [Architecture](docs/ARCHITECTURE.md), [API reference](docs/API.md), [beginner learning guide](docs/LEARNING.md).
 - **College report / viva:** [Project report](docs/PROJECT_REPORT.md), [ML methodology](docs/ML_METHODOLOGY.md), [measured results](docs/RESULTS.md), [demonstration script](docs/DEMO.md).
 
+## Preview
+
+![Dashboard with fictional test records](docs/screenshots/dashboard-desktop.png)
+
+[Mobile view](docs/screenshots/dashboard-mobile.png) · [Project team](docs/screenshots/project-team.png) · [Live chat](docs/screenshots/chat-desktop.png)
+
 ## Implemented workflows
 
 | Area | Functionality |

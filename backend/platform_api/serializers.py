@@ -3,12 +3,24 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 from ml.features import normalize_items, normalize_domain
 
-DOMAINS = ["AI / ML", "Data Science", "Web Development", "Mobile Development", "Backend Development", "Cybersecurity", "Cloud / DevOps", "Other"]
+DOMAINS = [
+    "AI / ML",
+    "Data Science",
+    "Web Development",
+    "Mobile Development",
+    "Backend Development",
+    "Cybersecurity",
+    "Cloud / DevOps",
+    "Other",
+]
 EXPERIENCE = ["Beginner", "Intermediate", "Advanced"]
+
 
 class PasswordField(serializers.CharField):
     def __init__(self, **kwargs):
-        super().__init__(min_length=8, max_length=128, write_only=True, trim_whitespace=False, **kwargs)
+        super().__init__(
+            min_length=8, max_length=128, write_only=True, trim_whitespace=False, **kwargs
+        )
 
     def to_internal_value(self, data):
         value = super().to_internal_value(data)
@@ -18,6 +30,7 @@ class PasswordField(serializers.CharField):
             raise serializers.ValidationError(error.messages)
         return value
 
+
 class RegisterSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=80)
     email = serializers.EmailField(max_length=254)
@@ -26,12 +39,14 @@ class RegisterSerializer(serializers.Serializer):
     def validate_email(self, value):
         return value.strip().casefold()
 
+
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField(max_length=254)
     password = serializers.CharField(max_length=128, write_only=True, trim_whitespace=False)
 
     def validate_email(self, value):
         return value.strip().casefold()
+
 
 class NormalizedItemsField(serializers.ListField):
     def __init__(self, **kwargs):
@@ -42,6 +57,7 @@ class NormalizedItemsField(serializers.ListField):
         if not values and not self.allow_empty:
             raise serializers.ValidationError("Add at least one item.")
         return values
+
 
 class ProfileSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=80)
@@ -60,6 +76,7 @@ class ProfileSerializer(serializers.Serializer):
     github = serializers.URLField(allow_blank=True, default="")
     share_contact = serializers.BooleanField(default=False)
 
+
 class ProjectSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=100)
     description = serializers.CharField(max_length=3000)
@@ -72,9 +89,11 @@ class ProjectSerializer(serializers.Serializer):
     expected_hours = serializers.IntegerField(min_value=1, max_value=40, default=6)
     deadline = serializers.DateTimeField(required=False, allow_null=True)
 
+
 class ApplicationDecisionSerializer(serializers.Serializer):
     application_id = serializers.CharField(max_length=24)
     decision = serializers.ChoiceField(choices=["Accepted", "Rejected"])
+
 
 class EventSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=120)
@@ -82,26 +101,32 @@ class EventSerializer(serializers.Serializer):
     location = serializers.CharField(max_length=160)
     starts_at = serializers.DateTimeField()
 
+
 class FeedbackSerializer(serializers.Serializer):
     to_user_id = serializers.CharField(max_length=24)
     project_id = serializers.CharField(max_length=24)
     rating = serializers.IntegerField(min_value=1, max_value=5)
     comment = serializers.CharField(max_length=1000, allow_blank=True, default="")
 
+
 class ConversationSerializer(serializers.Serializer):
     recipient_id = serializers.CharField(max_length=24)
+
 
 class MessageSerializer(serializers.Serializer):
     content = serializers.CharField(max_length=4000, trim_whitespace=True)
     client_id = serializers.UUIDField()
 
+
 class ConnectionRequestSerializer(serializers.Serializer):
     user_id = serializers.CharField(max_length=24)
+
 
 class InteractionSerializer(serializers.Serializer):
     target_type = serializers.ChoiceField(choices=["student", "project"])
     target_id = serializers.CharField(max_length=24)
     action = serializers.ChoiceField(choices=["view", "ignore", "save", "unsave"])
+
 
 class PasswordChangeSerializer(serializers.Serializer):
     current_password = serializers.CharField(max_length=128, trim_whitespace=False)

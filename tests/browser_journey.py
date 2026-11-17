@@ -1,4 +1,5 @@
 """End-to-end browser checks run in GitHub Actions, never on the office laptop."""
+
 import json
 import os
 from pathlib import Path
@@ -10,15 +11,29 @@ API = "http://127.0.0.1:8000/api"
 PASSWORD = os.environ["E2E_PASSWORD"]
 OUT = Path("test-results")
 OUT.mkdir(exist_ok=True)
-PROFILE = {"name": "Dev Tester", "branch": "CSE", "academic_year": 3, "skills": ["Python", "ML", "Django", "React"], "interests": ["Research", "AI", "Open Source"], "domain": "AI / ML", "experience": "Intermediate", "preferred_project_type": "AI/ML Application", "availability_hours": 8}
+PROFILE = {
+    "name": "Dev Tester",
+    "branch": "CSE",
+    "academic_year": 3,
+    "skills": ["Python", "ML", "Django", "React"],
+    "interests": ["Research", "AI", "Open Source"],
+    "domain": "AI / ML",
+    "experience": "Intermediate",
+    "preferred_project_type": "AI/ML Application",
+    "availability_hours": 8,
+}
+
 
 def request(method, route, payload=None, token=None):
     headers = {"Content-Type": "application/json"}
     if token:
         headers["Authorization"] = "Bearer " + token
     data = json.dumps(payload).encode() if payload is not None else None
-    with urlopen(Request(API + route, data=data, headers=headers, method=method), timeout=30) as response:
+    with urlopen(
+        Request(API + route, data=data, headers=headers, method=method), timeout=30
+    ) as response:
         return json.load(response) if response.status != 204 else None
+
 
 with sync_playwright() as p:
     browser = p.chromium.launch()
@@ -28,7 +43,11 @@ with sync_playwright() as p:
     errors = []
     page.on("pageerror", lambda error: errors.append(str(error)))
     try:
-        dev = request("POST", "/auth/register/", {"name": "Dev Tester", "email": "dev@browser.example", "password": PASSWORD})
+        dev = request(
+            "POST",
+            "/auth/register/",
+            {"name": "Dev Tester", "email": "dev@browser.example", "password": PASSWORD},
+        )
         token = dev["tokens"]["access"]
         request("PUT", "/profiles/me/", PROFILE, token)
         page.goto(BASE + "/register")
@@ -63,17 +82,23 @@ with sync_playwright() as p:
         page.get_by_role("link", name="Explore projects", exact=True).click()
         page.get_by_role("link", name="Create a project").click()
         page.get_by_label("Project title", exact=True).fill("Campus knowledge assistant")
-        page.get_by_label("Description", exact=True).fill("Build a campus assistant with real student collaborators.")
+        page.get_by_label("Description", exact=True).fill(
+            "Build a campus assistant with real student collaborators."
+        )
         page.get_by_label("Required skills, separated by commas").fill("Python, Django, React")
         page.get_by_label("Related interests, separated by commas").fill("Research, AI")
         page.get_by_label("Domain", exact=True).select_option("AI / ML")
         page.get_by_label("Project type", exact=True).fill("AI/ML Application")
         page.get_by_role("button", name="Create project", exact=True).click()
-        expect(page.get_by_role("heading", name="Campus knowledge assistant", exact=True)).to_be_visible()
+        expect(
+            page.get_by_role("heading", name="Campus knowledge assistant", exact=True)
+        ).to_be_visible()
         project_id = page.url.rstrip("/").split("/")[-1]
         request("POST", "/projects/" + project_id + "/applications/", {}, token)
         page.reload()
-        applications = page.locator("section.card").filter(has=page.get_by_role("heading", name="Applications", exact=True))
+        applications = page.locator("section.card").filter(
+            has=page.get_by_role("heading", name="Applications", exact=True)
+        )
         applications.get_by_role("button", name="Accept", exact=True).click()
         expect(page.get_by_role("heading", name="The team 2/4")).to_be_visible()
         page.screenshot(path=str(OUT / "project-team.png"), full_page=True)
@@ -113,13 +138,17 @@ with sync_playwright() as p:
         expect(page.locator(".student-card").first).to_be_visible()
         page.set_viewport_size({"width": 390, "height": 844})
         expect(page.get_by_role("button", name="Toggle navigation")).to_be_visible()
-        assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth"), "Mobile horizontal overflow"
+        assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth"), (
+            "Mobile horizontal overflow"
+        )
         page.screenshot(path=str(OUT / "dashboard-mobile.png"), full_page=True)
         page.get_by_role("button", name="Toggle navigation").click()
         page.get_by_role("link", name="My space", exact=True).click()
         expect(page.get_by_role("heading", name="A little space for big ideas.")).to_be_visible()
         assert not errors, errors
-        print("Browser journey passed: registration, profile, ML recommendations, connections, project applications, teams, two-user live chat, read receipts, events and mobile navigation.")
+        print(
+            "Browser journey passed: registration, profile, ML recommendations, connections, project applications, teams, two-user live chat, read receipts, events and mobile navigation."
+        )
     except Exception:
         page.screenshot(path=str(OUT / "failure.png"), full_page=True)
         raise

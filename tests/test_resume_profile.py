@@ -3,8 +3,10 @@ import unittest
 import sys
 from pathlib import Path
 from docx import Document
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "backend"))
 from platform_api.resume import extract_resume
+
 
 class ResumeTests(unittest.TestCase):
     def test_resume_suggestions_extract_explicit_data(self):

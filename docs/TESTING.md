@@ -34,6 +34,10 @@ Use the virtual-environment Python path from SETUP if it is not activated.
 
 The browser journey additionally needs Playwright/Chromium in the test environment, seeded fictional data and running backend/frontend processes. The exact setup is in `.github/workflows/ci.yml`; it includes clearly disposable CI-only credentials. Never use those credentials on a public deployment.
 
+## Verified package checkpoint
+
+[Run 44099277272](https://github.com/majorproject4224-max/final-year-project/actions/runs/44099277272) passed on 2026-11-17: 12 Django/API/Channels tests, 10 ML/resume tests, the React production build, the complete browser journey, and the same 10 model/preprocessing tests against the committed artifacts on Windows. Later source formatting does not change these test expectations; check the latest workflow for the final commit.
+
 ## Evidence and troubleshooting
 
 Each successful backend test stage uploads `trained-model-and-datasets`: generated tables, bundle, metrics and the Linux dependency lock. Browser runs upload `browser-checks`: screenshots, trace and server logs. A failed browser run saves `failure.png` before exiting. Artifacts expire after seven days; selected demonstration screenshots and the trained artifacts are committed separately.

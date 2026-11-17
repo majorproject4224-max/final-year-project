@@ -30,7 +30,9 @@ class HealthEndpointTests(SimpleTestCase):
 
     @patch("config.views.get_client")
     def test_readiness_returns_json_unavailable_when_mongodb_ping_fails(self, get_client):
-        get_client.return_value.admin.command.side_effect = ServerSelectionTimeoutError("connection refused")
+        get_client.return_value.admin.command.side_effect = ServerSelectionTimeoutError(
+            "connection refused"
+        )
 
         response = APIClient().get("/api/health/ready/")
 

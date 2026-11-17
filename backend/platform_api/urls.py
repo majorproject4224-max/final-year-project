@@ -1,10 +1,34 @@
 from django.urls import path
 from .accounts import RegisterView, LoginView, RefreshView, LogoutView, AccountView
-from .people import ProfileView, ResumeSuggestionsView, StudentsView, StudentDetailView, ConnectionsView, ConnectionDetailView
-from .projects import ProjectsView, ProjectDetailView, ProjectApplicationView, ProjectMembersView, InvitationsView, InvitationDetailView
-from .community import EventsView, EventDetailView, EventAttendanceView, FeedbackView, InteractionsView
+from .people import (
+    ProfileView,
+    ResumeSuggestionsView,
+    StudentsView,
+    StudentDetailView,
+    ConnectionsView,
+    ConnectionDetailView,
+)
+from .projects import (
+    ProjectsView,
+    ProjectDetailView,
+    ProjectApplicationView,
+    ProjectMembersView,
+    InvitationsView,
+    InvitationDetailView,
+)
+from .community import (
+    EventsView,
+    EventDetailView,
+    EventAttendanceView,
+    FeedbackView,
+    InteractionsView,
+)
 from .messaging import ConversationsView, ConversationMessagesView, WebSocketTicketView
-from .recommendations import UserRecommendationsView, ProjectRecommendationsView, ProjectTeammateRecommendationsView
+from .recommendations import (
+    UserRecommendationsView,
+    ProjectRecommendationsView,
+    ProjectTeammateRecommendationsView,
+)
 
 urlpatterns = [
     path("auth/register/", RegisterView.as_view()),
@@ -36,5 +60,7 @@ urlpatterns = [
     path("conversations/<str:conversation_id>/websocket-ticket/", WebSocketTicketView.as_view()),
     path("recommendations/users/", UserRecommendationsView.as_view()),
     path("recommendations/projects/", ProjectRecommendationsView.as_view()),
-    path("recommendations/teammates/<str:project_id>/", ProjectTeammateRecommendationsView.as_view()),
+    path(
+        "recommendations/teammates/<str:project_id>/", ProjectTeammateRecommendationsView.as_view()
+    ),
 ]

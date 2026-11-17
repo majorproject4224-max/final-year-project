@@ -9,9 +9,7 @@ class MongoAuthConfig(AuthConfig):
         super().ready()
         from django.db.models.signals import post_migrate
 
-        post_migrate.disconnect(
-            dispatch_uid="django.contrib.auth.management.create_permissions"
-        )
+        post_migrate.disconnect(dispatch_uid="django.contrib.auth.management.create_permissions")
 
 
 class MongoContentTypesConfig(ContentTypesConfig):

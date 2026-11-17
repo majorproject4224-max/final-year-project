@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 from platform_api.common import pair_key
 from platform_api.mongo import ensure_indexes, get_collection
 
+
 class Command(BaseCommand):
     help = "Create MongoDB indexes and repair legacy pair identifiers without deleting records."
 
@@ -10,10 +11,16 @@ class Command(BaseCommand):
             collection = get_collection(name)
             seen = set()
             for row in collection.find({}):
-                participants = row["participants"] if name == "conversations" else [row["requester_id"], row["recipient_id"]]
+                participants = (
+                    row["participants"]
+                    if name == "conversations"
+                    else [row["requester_id"], row["recipient_id"]]
+                )
                 key = pair_key(*participants)
                 if key in seen:
-                    raise CommandError(f"Duplicate pair in {name}; review before migration. No records deleted.")
+                    raise CommandError(
+                        f"Duplicate pair in {name}; review before migration. No records deleted."
+                    )
                 seen.add(key)
                 collection.update_one({"_id": row["_id"]}, {"$set": {"pair_key": key}})
         conversations = get_collection("conversations")

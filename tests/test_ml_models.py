@@ -1,21 +1,31 @@
 """Saved-model checks; the CI training step creates the artifact beforehand."""
+
 import unittest
 from pathlib import Path
 import joblib
 import numpy as np
 import pandas as pd
-from ml.features import profile_text, pair_features, project_features, USER_FEATURES, PROJECT_FEATURES
+from ml.features import (
+    profile_text,
+    pair_features,
+    project_features,
+    USER_FEATURES,
+    PROJECT_FEATURES,
+)
 from ml.train import split_pairs
 from ml.data import clean_profiles, load_table, STUDENT_COLUMNS, PROJECT_COLUMNS
 
 ROOT = Path(__file__).resolve().parents[1]
+
 
 class SavedModelTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.bundle = joblib.load(ROOT / "ml/models/recommender.joblib")
         cls.students = clean_profiles(load_table(ROOT / "dataset/students.csv", STUDENT_COLUMNS))
-        cls.projects = clean_profiles(load_table(ROOT / "dataset/projects.csv", PROJECT_COLUMNS), True)
+        cls.projects = clean_profiles(
+            load_table(ROOT / "dataset/projects.csv", PROJECT_COLUMNS), True
+        )
 
     def test_saved_preprocessing_and_cluster_prediction(self):
         vector = self.bundle["vectorizer"].transform([profile_text(s) for s in self.students[:10]])
@@ -26,12 +36,22 @@ class SavedModelTests(unittest.TestCase):
 
     def test_classifiers_and_probability_order(self):
         for kind, features, names in (
-            ("users", [pair_features(self.students[0], s) for s in self.students[1:21]], USER_FEATURES),
-            ("projects", [project_features(self.students[0], p) for p in self.projects[:20]], PROJECT_FEATURES),
+            (
+                "users",
+                [pair_features(self.students[0], s) for s in self.students[1:21]],
+                USER_FEATURES,
+            ),
+            (
+                "projects",
+                [project_features(self.students[0], p) for p in self.projects[:20]],
+                PROJECT_FEATURES,
+            ),
         ):
             scores = self.bundle[kind].predict_proba(pd.DataFrame(features, columns=names))[:, 1]
             self.assertTrue(np.all((scores >= 0) & (scores <= 1)))
-            self.assertGreater(np.ptp(scores), 0, "The model must distinguish different candidates.")
+            self.assertGreater(
+                np.ptp(scores), 0, "The model must distinguish different candidates."
+            )
             order = np.argsort(-scores)
             self.assertTrue(np.all(np.diff(scores[order]) <= 0))
 

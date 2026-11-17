@@ -4,8 +4,10 @@ from bson import ObjectId
 from bson.errors import InvalidId
 from rest_framework.exceptions import NotFound, ValidationError
 
+
 def now():
     return datetime.now(timezone.utc)
+
 
 def object_id(value):
     try:
@@ -13,8 +15,10 @@ def object_id(value):
     except (InvalidId, TypeError):
         raise NotFound("Record not found.")
 
+
 def pair_key(left, right):
     return ":".join(sorted([str(left), str(right)]))
+
 
 def page_args(request, maximum=50):
     try:
@@ -24,10 +28,17 @@ def page_args(request, maximum=50):
         raise ValidationError("Page and page_size must be integers.")
     return page, size
 
+
 def page_result(collection, query, request, serialize, sort=None):
     page, size = page_args(request)
     rows = collection.find(query).sort(sort or [("_id", -1)]).skip((page - 1) * size).limit(size)
-    return {"items": [serialize(item) for item in rows], "page": page, "page_size": size, "total": collection.count_documents(query)}
+    return {
+        "items": [serialize(item) for item in rows],
+        "page": page,
+        "page_size": size,
+        "total": collection.count_documents(query),
+    }
+
 
 def search_regex(value):
     return {"$regex": re.escape(value.strip()[:100]), "$options": "i"}

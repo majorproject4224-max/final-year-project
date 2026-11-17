@@ -2,6 +2,7 @@
 Profile attributes are sampled from documented overlapping skill pools. Labels are
 deterministic rubric decisions; their source and audit score are retained per row.
 """
+
 import argparse
 import random
 import sys
@@ -14,13 +15,48 @@ sys.path.insert(0, str(ROOT))
 from ml.features import pair_features, project_features
 
 POOLS = [
-    ("AI / ML", ["Python", "Machine Learning", "Pandas", "Scikit-learn", "SQL"], ["AI", "Research", "Data Science"], "AI/ML Application"),
-    ("Web Development", ["JavaScript", "React", "HTML", "CSS", "Git"], ["UI/UX", "Web Development", "Accessibility"], "Web Application"),
-    ("Backend Development", ["Python", "Django", "REST API", "SQL", "Git"], ["Backend", "Open Source", "Cloud"], "Web Application"),
-    ("Data Science", ["Python", "Pandas", "SQL", "Power BI", "Statistics"], ["Analytics", "Research", "Data Science"], "Data Analysis"),
-    ("Cybersecurity", ["Python", "Linux", "Networking", "Cybersecurity", "Git"], ["Security", "CTF", "Open Source"], "Security Tool"),
-    ("Mobile Development", ["Java", "Kotlin", "Firebase", "Git", "UI/UX"], ["Mobile Apps", "Accessibility", "Startups"], "Mobile Application"),
-    ("Cloud / DevOps", ["Linux", "Docker", "Python", "Git", "AWS"], ["Cloud", "Automation", "Open Source"], "Developer Tool"),
+    (
+        "AI / ML",
+        ["Python", "Machine Learning", "Pandas", "Scikit-learn", "SQL"],
+        ["AI", "Research", "Data Science"],
+        "AI/ML Application",
+    ),
+    (
+        "Web Development",
+        ["JavaScript", "React", "HTML", "CSS", "Git"],
+        ["UI/UX", "Web Development", "Accessibility"],
+        "Web Application",
+    ),
+    (
+        "Backend Development",
+        ["Python", "Django", "REST API", "SQL", "Git"],
+        ["Backend", "Open Source", "Cloud"],
+        "Web Application",
+    ),
+    (
+        "Data Science",
+        ["Python", "Pandas", "SQL", "Power BI", "Statistics"],
+        ["Analytics", "Research", "Data Science"],
+        "Data Analysis",
+    ),
+    (
+        "Cybersecurity",
+        ["Python", "Linux", "Networking", "Cybersecurity", "Git"],
+        ["Security", "CTF", "Open Source"],
+        "Security Tool",
+    ),
+    (
+        "Mobile Development",
+        ["Java", "Kotlin", "Firebase", "Git", "UI/UX"],
+        ["Mobile Apps", "Accessibility", "Startups"],
+        "Mobile Application",
+    ),
+    (
+        "Cloud / DevOps",
+        ["Linux", "Docker", "Python", "Git", "AWS"],
+        ["Cloud", "Automation", "Open Source"],
+        "Developer Tool",
+    ),
 ]
 SCENARIOS = [
     ("Campus research assistant", 0, ["Python", "Machine Learning", "React"], ["Research", "AI"]),
@@ -33,19 +69,33 @@ SCENARIOS = [
     ("Research data dashboard", 3, ["Pandas", "React", "SQL"], ["Research", "UI/UX"]),
     ("Open-source issue matcher", 0, ["Python", "Scikit-learn", "Git"], ["Open Source", "AI"]),
     ("Event booking service", 2, ["Django", "SQL", "React"], ["Backend", "Web Development"]),
-    ("Mobile safety companion", 5, ["Kotlin", "Networking", "Firebase"], ["Mobile Apps", "Security"]),
+    (
+        "Mobile safety companion",
+        5,
+        ["Kotlin", "Networking", "Firebase"],
+        ["Mobile Apps", "Security"],
+    ),
     ("Cloud cost explorer", 6, ["AWS", "Pandas", "React"], ["Cloud", "Analytics"]),
 ]
 
+
 def user_rubric(features):
-    score = sum(features[k] * w for k, w in zip(features, [.30, .25, .10, .10, .10, .15]))
-    label = int(features["skill_similarity"] >= .15 and features["interest_similarity"] > 0 and score >= .48)
+    score = sum(features[k] * w for k, w in zip(features, [0.30, 0.25, 0.10, 0.10, 0.10, 0.15]))
+    label = int(
+        features["skill_similarity"] >= 0.15
+        and features["interest_similarity"] > 0
+        and score >= 0.48
+    )
     return score, label
 
+
 def project_rubric(features):
-    score = sum(features[k] * w for k, w in zip(features, [.45, .15, .10, .10, .10, .10]))
-    label = int(features["skill_coverage"] >= .5 and features["availability_fit"] >= .5 and score >= .58)
+    score = sum(features[k] * w for k, w in zip(features, [0.45, 0.15, 0.10, 0.10, 0.10, 0.10]))
+    label = int(
+        features["skill_coverage"] >= 0.5 and features["availability_fit"] >= 0.5 and score >= 0.58
+    )
     return score, label
+
 
 def write_table(rows, folder, name):
     frame = pd.DataFrame(rows)
@@ -59,7 +109,10 @@ def write_table(rows, folder, name):
             cell.font = Font(bold=True, color="FFFFFF")
             cell.fill = PatternFill("solid", fgColor="203B36")
         for column in sheet.columns:
-            sheet.column_dimensions[column[0].column_letter].width = min(45, max(18, len(str(column[0].value)) + 3))
+            sheet.column_dimensions[column[0].column_letter].width = min(
+                45, max(18, len(str(column[0].value)) + 3)
+            )
+
 
 def generate(folder, seed=4224):
     rng = random.Random(seed)
@@ -73,40 +126,81 @@ def generate(folder, seed=4224):
         if index % 3 == 0:
             skills += rng.sample(other[1], 2)
             interests += rng.sample(other[2], 1)
-        students.append({
-            "user_id": f"S{index+1:04}", "student_name": f"Demo Student {index+1:03}",
-            "academic_year": rng.randint(1, 4), "branch": "Computer Science and Engineering",
-            "skills": ",".join(sorted(set(skills))), "interests": ",".join(sorted(set(interests))),
-            "domain": pool[0], "experience": rng.choice(["Beginner", "Intermediate", "Advanced"]),
-            "projects_completed": rng.randint(0, 6), "preferred_project_type": pool[3],
-            "availability_hours": rng.choice([4, 6, 8, 10, 12]), "data_source": "synthetic_profile_v2",
-        })
+        students.append(
+            {
+                "user_id": f"S{index + 1:04}",
+                "student_name": f"Demo Student {index + 1:03}",
+                "academic_year": rng.randint(1, 4),
+                "branch": "Computer Science and Engineering",
+                "skills": ",".join(sorted(set(skills))),
+                "interests": ",".join(sorted(set(interests))),
+                "domain": pool[0],
+                "experience": rng.choice(["Beginner", "Intermediate", "Advanced"]),
+                "projects_completed": rng.randint(0, 6),
+                "preferred_project_type": pool[3],
+                "availability_hours": rng.choice([4, 6, 8, 10, 12]),
+                "data_source": "synthetic_profile_v2",
+            }
+        )
     projects = []
     for index in range(84):
         title, pool_id, skills, interests = SCENARIOS[index % len(SCENARIOS)]
         pool = POOLS[pool_id]
-        projects.append({
-            "project_id": f"P{index+1:03}", "title": f"{title} — scenario {index+1}",
-            "domain": pool[0], "required_skills": ",".join(skills), "required_interests": ",".join(interests),
-            "required_experience": rng.choice(["Beginner", "Intermediate", "Advanced"]),
-            "team_size": rng.randint(2, 6), "project_type": pool[3], "expected_hours": rng.choice([4, 6, 8, 10]),
-            "data_source": "synthetic_project_scenario_v2",
-        })
+        projects.append(
+            {
+                "project_id": f"P{index + 1:03}",
+                "title": f"{title} — scenario {index + 1}",
+                "domain": pool[0],
+                "required_skills": ",".join(skills),
+                "required_interests": ",".join(interests),
+                "required_experience": rng.choice(["Beginner", "Intermediate", "Advanced"]),
+                "team_size": rng.randint(2, 6),
+                "project_type": pool[3],
+                "expected_hours": rng.choice([4, 6, 8, 10]),
+                "data_source": "synthetic_project_scenario_v2",
+            }
+        )
     user_pairs = []
-    combinations = [(a, b) for a in range(len(students)) for b in range(a+1, len(students))]
+    combinations = [(a, b) for a in range(len(students)) for b in range(a + 1, len(students))]
     for a, b in rng.sample(combinations, 6000):
         features = pair_features(students[a], students[b])
         score, label = user_rubric(features)
-        user_pairs.append({"user1_id": students[a]["user_id"], "user2_id": students[b]["user_id"], **features, "rubric_score": score, "compatibility_label": label, "label_source": "synthetic_user_rubric_v2"})
+        user_pairs.append(
+            {
+                "user1_id": students[a]["user_id"],
+                "user2_id": students[b]["user_id"],
+                **features,
+                "rubric_score": score,
+                "compatibility_label": label,
+                "label_source": "synthetic_user_rubric_v2",
+            }
+        )
     project_pairs = []
-    for a, b in rng.sample([(a, b) for a in range(len(students)) for b in range(len(projects))], 6000):
+    for a, b in rng.sample(
+        [(a, b) for a in range(len(students)) for b in range(len(projects))], 6000
+    ):
         features = project_features(students[a], projects[b])
         score, label = project_rubric(features)
-        project_pairs.append({"user_id": students[a]["user_id"], "project_id": projects[b]["project_id"], **features, "rubric_score": score, "compatibility_label": label, "label_source": "synthetic_project_rubric_v2"})
-    for name, rows in (("students", students), ("projects", projects), ("matching_data", user_pairs), ("project_matches", project_pairs)):
+        project_pairs.append(
+            {
+                "user_id": students[a]["user_id"],
+                "project_id": projects[b]["project_id"],
+                **features,
+                "rubric_score": score,
+                "compatibility_label": label,
+                "label_source": "synthetic_project_rubric_v2",
+            }
+        )
+    for name, rows in (
+        ("students", students),
+        ("projects", projects),
+        ("matching_data", user_pairs),
+        ("project_matches", project_pairs),
+    ):
         write_table(rows, folder, name)
         print(f"{name}: {len(rows)} synthetic rows")
     return students, projects
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

@@ -7,11 +7,37 @@ from pypdf import PdfReader
 
 MAX_RESUME_BYTES = 5 * 1024 * 1024
 SKILLS = [
-    "Python", "Java", "C++", "C", "JavaScript", "TypeScript", "HTML", "CSS",
-    "React", "Node.js", "Flask", "Django", "SQL", "MySQL", "MongoDB",
-    "Firebase", "Git", "GitHub", "Docker", "AWS", "Machine Learning",
-    "Deep Learning", "Pandas", "NumPy", "Scikit-learn", "Power BI", "Tableau",
-    "UI/UX", "Kotlin", "Android", "Cybersecurity",
+    "Python",
+    "Java",
+    "C++",
+    "C",
+    "JavaScript",
+    "TypeScript",
+    "HTML",
+    "CSS",
+    "React",
+    "Node.js",
+    "Flask",
+    "Django",
+    "SQL",
+    "MySQL",
+    "MongoDB",
+    "Firebase",
+    "Git",
+    "GitHub",
+    "Docker",
+    "AWS",
+    "Machine Learning",
+    "Deep Learning",
+    "Pandas",
+    "NumPy",
+    "Scikit-learn",
+    "Power BI",
+    "Tableau",
+    "UI/UX",
+    "Kotlin",
+    "Android",
+    "Cybersecurity",
 ]
 DOMAIN_TERMS = {
     "AI / ML": ["machine learning", "deep learning", "artificial intelligence", "scikit-learn"],
@@ -36,16 +62,23 @@ def extract_resume(upload):
         else:
             text = "\n".join(paragraph.text for paragraph in Document(BytesIO(data)).paragraphs)
     except Exception as error:
-        raise ValueError("We could not read that resume. Try a text-based PDF or DOCX file.") from error
+        raise ValueError(
+            "We could not read that resume. Try a text-based PDF or DOCX file."
+        ) from error
     if len(text.strip()) < 20:
-        raise ValueError("No readable text was found. Scanned image PDFs need OCR before they can be used.")
+        raise ValueError(
+            "No readable text was found. Scanned image PDFs need OCR before they can be used."
+        )
 
     lower = re.sub(r"\s+", " ", text).casefold()
     skills = [
-        skill for skill in SKILLS
+        skill
+        for skill in SKILLS
         if re.search(r"(?<![\w+])" + re.escape(skill.casefold()) + r"(?![\w+])", lower)
     ]
-    domain_scores = {domain: sum(term in lower for term in terms) for domain, terms in DOMAIN_TERMS.items()}
+    domain_scores = {
+        domain: sum(term in lower for term in terms) for domain, terms in DOMAIN_TERMS.items()
+    }
     domain = max(domain_scores, key=domain_scores.get) if max(domain_scores.values()) else ""
 
     name = ""
@@ -61,13 +94,12 @@ def extract_resume(upload):
         r"(?i)\b(?:academic\s+)?year\s*[:\-]?\s*([1-4])\b|\b([1-4])(?:st|nd|rd|th)\s+year\b",
         text,
     )
-    branch_match = re.search(
-        r"(?im)^\s*(?:branch|department|major)\s*[:\-]\s*(.{2,80}?)\s*$", text
-    )
+    branch_match = re.search(r"(?im)^\s*(?:branch|department|major)\s*[:\-]\s*(.{2,80}?)\s*$", text)
     phone_match = re.search(r"(?<!\d)(?:\+?91[- ]?)?[6-9]\d{9}(?!\d)", text)
     github_match = re.search(r"https?://(?:www\.)?github\.com/[A-Za-z0-9_.-]+", text, re.I)
     interests = [
-        label for label, terms in {
+        label
+        for label, terms in {
             "AI": ["artificial intelligence", "machine learning"],
             "Analytics": ["analytics", "data analysis", "power bi"],
             "Research": ["research"],
@@ -78,19 +110,26 @@ def extract_resume(upload):
         if any(term in lower for term in terms)
     ]
     project_type = {
-        "AI / ML": "AI/ML Application", "Data Science": "Data Analysis",
-        "Web Development": "Web Application", "Mobile Development": "Mobile Application",
-        "Backend Development": "Backend Service", "Cybersecurity": "Security Tool",
+        "AI / ML": "AI/ML Application",
+        "Data Science": "Data Analysis",
+        "Web Development": "Web Application",
+        "Mobile Development": "Mobile Application",
+        "Backend Development": "Backend Service",
+        "Cybersecurity": "Security Tool",
     }.get(domain, "")
     experience = (
-        "Advanced" if re.search(r"(?i)\b(?:[2-9]|two|three)\+?\s*years?\b", lower)
-        else "Intermediate" if any(term in lower for term in ("internship", "intern", "freelance"))
+        "Advanced"
+        if re.search(r"(?i)\b(?:[2-9]|two|three)\+?\s*years?\b", lower)
+        else "Intermediate"
+        if any(term in lower for term in ("internship", "intern", "freelance"))
         else ""
     )
     return {
         "name": name,
         "branch": branch_match.group(1).strip().title() if branch_match else "",
-        "academic_year": next((part for part in year_match.groups() if part), "") if year_match else "",
+        "academic_year": next((part for part in year_match.groups() if part), "")
+        if year_match
+        else "",
         "skills": skills,
         "interests": interests,
         "domain": domain,
