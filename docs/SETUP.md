@@ -20,6 +20,12 @@ Open the forwarded **5173** port from the Ports panel. Keep it private. The Reac
 
 If startup says Docker is unavailable, wait for the container to finish initialization and rerun `bash scripts/start-data.sh`. If setup was interrupted, rerun `bash scripts/bootstrap.sh`.
 
+If Codespaces says **recovery mode due to a container error**, the normal environment has not been created. Pull the latest committed configuration with `git pull --ff-only`, then open the command palette (**Ctrl+Shift+P**) and select **Codespaces: Rebuild Container**. Wait for setup to complete before running the commands above. Rebuilding uses the existing Codespace. Do not run the application in the recovery container.
+
+The dev-container Dockerfile removes an unused Yarn APT source from the Python base image, and the Node feature avoids adding it again. This project uses npm. This prevents stale Yarn signing keys from blocking Docker installation while preserving package-signature verification. [Node feature options](https://github.com/devcontainers/features/tree/main/src/node)
+
+Forward **5173**, not **1573**. Adding a forwarded port does not start the application; `bash scripts/dev.sh` must still be running in the terminal.
+
 The codespace has a free-use quota for personal accounts, covering compute and storage. Without a paid spending setup, access is restricted after quota exhaustion until renewal. Stop the codespace when finished; delete unused codespaces to release storage. Check your account's remaining allowance before creation. [GitHub's included-use documentation](https://docs.github.com/en/codespaces/troubleshooting/troubleshooting-included-usage)
 
 Codespaces configuration is supplied; its initial account provisioning must be performed in your GitHub account. The application itself is tested in GitHub Actions.
