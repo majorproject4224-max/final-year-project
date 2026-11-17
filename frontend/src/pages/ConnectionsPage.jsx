@@ -10,8 +10,7 @@ export default function ConnectionsPage() {
   return (
     <>
       <PageTitle
-        eyebrow="YOUR CIRCLE"
-        title="Good things start with a hello."
+        title="Connections"
         action={
           <Link className="button primary" to="/students">
             Find students

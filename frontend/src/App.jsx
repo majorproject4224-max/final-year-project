@@ -1,4 +1,4 @@
-import { Component, useState } from 'react';
+import { Component, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -12,7 +12,7 @@ import {
   UserRound,
   LogOut,
   Menu,
-  Sparkles,
+  X,
 } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Avatar, ErrorBox } from './components/UI';
@@ -31,7 +31,7 @@ import SettingsPage from './pages/SettingsPage';
 const navigation = [
   ['/', 'Overview', LayoutDashboard],
   ['/students', 'Students', Users],
-  ['/projects', 'Explore projects', BriefcaseBusiness],
+  ['/projects', 'Projects', BriefcaseBusiness],
   ['/connections', 'Connections', HeartHandshake],
   ['/my-space', 'My space', FolderHeart],
   ['/events', 'Events', CalendarDays],
@@ -57,7 +57,22 @@ class ErrorBoundary extends Component {
 function Shell() {
   const { user, profile, loading, error, retry, logout } = useAuth(),
     [open, setOpen] = useState(false),
-    location = useLocation();
+    location = useLocation(),
+    menuButton = useRef(null);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+  useEffect(() => {
+    if (!open) return;
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') {
+        setOpen(false);
+        menuButton.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [open]);
   if (loading)
     return (
       <div className="boot-screen">
@@ -87,7 +102,7 @@ function Shell() {
           connec<span>T</span>
           <small>AI</small>
         </Link>
-        <button aria-label="Toggle navigation" aria-expanded={open} onClick={() => setOpen(!open)}>
+        <button ref={menuButton} aria-label="Toggle navigation" aria-controls="site-navigation" aria-expanded={open} onClick={() => setOpen(!open)}>
           <Menu size={21} />
         </button>
       </div>
@@ -98,12 +113,13 @@ function Shell() {
           onClick={() => setOpen(false)}
         />
       )}
-      <aside className={'sidebar ' + (open ? 'open' : '')}>
+      <aside id="site-navigation" className={'sidebar ' + (open ? 'open' : '')}>
+        <button className="nav-close subtle" aria-label="Close menu" onClick={() => { setOpen(false); menuButton.current?.focus(); }}><X size={19} /></button>
         <Link className="brand" to="/" onClick={() => setOpen(false)}>
           connec<span>T</span>
           <small>AI</small>
         </Link>
-        <p className="sidebar-caption">YOUR CAMPUS, CONNECTED</p>
+        <p className="sidebar-caption">Workspace</p>
         <nav aria-label="Main navigation">
           {navigation.map(([to, label, Icon]) => (
             <NavLink end={to === '/'} key={to} to={to} onClick={() => setOpen(false)}>
@@ -112,15 +128,7 @@ function Shell() {
             </NavLink>
           ))}
         </nav>
-        <div className="sidebar-note">
-          <Sparkles size={20} />
-          <strong>Find your people.</strong>
-          <p>Turn shared interests into something worth building.</p>
-          <Link to="/profile" onClick={() => setOpen(false)}>
-            {profile ? 'Refine your profile' : 'Complete your profile'} →
-          </Link>
-        </div>
-        <nav aria-label="Account navigation">
+        <nav className="account-nav" aria-label="Account navigation">
           <NavLink to="/profile" onClick={() => setOpen(false)}>
             <UserRound size={19} />
             My profile
@@ -143,17 +151,14 @@ function Shell() {
       </aside>
       <main id="main-content" className="main-content">
         <div className="topbar">
-          <span>Made for curious minds.</span>
+          <span>University workspace</span>
           <Link to="/profile">
             <Avatar name={user.name} />
             <span>{user.name.split(' ')[0]}</span>
           </Link>
         </div>
-        <Outlet />
-        <footer className="page-footer">
-          <span>connecT AI · A campus full of possibilities.</span>
-          <span>Built for learning, together.</span>
-        </footer>
+        <div className="page-content"><Outlet /></div>
+        <footer className="page-footer">connecT AI · University collaboration</footer>
       </main>
       <datalist id="project-types">
         {[

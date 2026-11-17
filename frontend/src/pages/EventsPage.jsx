@@ -31,8 +31,7 @@ export default function EventsPage() {
   return (
     <>
       <PageTitle
-        eyebrow="BEYOND THE CLASSROOM"
-        title="Show up. Meet up. Make things."
+        title="Events"
         action={
           <button className="primary" onClick={() => setShowForm(!showForm)}>
             {showForm ? 'Close form' : '+ Create an event'}

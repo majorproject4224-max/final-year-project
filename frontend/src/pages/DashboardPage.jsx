@@ -1,91 +1,37 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Plus, Users, BriefcaseBusiness } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../hooks/useData';
-import { DataState, StudentCard, ProjectCard } from '../components/UI';
+import { PageTitle, DataState, StudentCard, ProjectCard } from '../components/UI';
 export default function DashboardPage() {
   const { user, profile } = useAuth();
-  const [showStudents, setShowStudents] = useState(false),
-    [showProjects, setShowProjects] = useState(false);
+  const [view, setView] = useState('students');
+  const [expanded, setExpanded] = useState(false);
   const students = useData(profile ? '/recommendations/users/' : null);
   const projects = useData(profile ? '/recommendations/projects/' : null);
+  const state = view === 'students' ? students : projects;
   return (
     <>
-      <section className="welcome">
-        <p className="eyebrow">YOUR COLLABORATION DESK</p>
-        <h1>
-          Make your next
-          <br />
-          <em>connection count.</em>
-        </h1>
-        <p>Welcome, {user.name}. Your next project starts here.</p>
-        <div className="welcome-actions">
-          <Link className="button cream" to="/students">
-            Find collaborators ↗
-          </Link>
-          <Link className="welcome-link" to="/projects/new">
-            Start a project →
-          </Link>
+      <PageTitle title={`Welcome, ${user.name.split(' ')[0]}`} action={<Link className="button primary" to="/projects/new"><Plus size={17} />Create a project</Link>}>
+        Find your next teammate or a project to build together.
+      </PageTitle>
+      {!profile && <div className="notice">Add your skills and interests to get personalized recommendations. <Link to="/profile">Complete profile →</Link></div>}
+      <section className="recommendations-section">
+        <div className="section-title"><h2>Recommended for you</h2><Link to={view === 'students' ? '/students' : '/projects'}>View all {view} →</Link></div>
+        <div className="view-switch" role="group" aria-label="Recommendation type">
+          <button aria-pressed={view === 'students'} onClick={() => { setView('students'); setExpanded(false); }}><Users size={17} />Students</button>
+          <button aria-pressed={view === 'projects'} onClick={() => { setView('projects'); setExpanded(false); }}><BriefcaseBusiness size={17} />Projects</button>
         </div>
-        <span className="welcome-letter" aria-hidden="true">
-          c.
-        </span>
-      </section>
-      {!profile && (
-        <div className="notice">
-          Add your skills and interests to get personalized recommendations.{' '}
-          <Link to="/profile">Complete profile →</Link>
-        </div>
-      )}
-      <section className="section">
-        <div className="section-title">
-          <div>
-            <p className="eyebrow">PEOPLE TO BUILD WITH</p>
-            <h2>Recommended students</h2>
+        <p className="model-note">{state.data?.model_notice}</p>
+        {profile ? <DataState state={state}>
+          <div className="cards">
+            {state.data?.items.slice(0, expanded ? 12 : 4).map((item) => view === 'students'
+              ? <StudentCard key={item.user_id} student={item} onChanged={students.reload} />
+              : <ProjectCard key={item.id} project={item} onChanged={projects.reload} />)}
           </div>
-          <Link to="/students">Explore everyone →</Link>
-        </div>
-        <p className="model-note">{students.data?.model_notice}</p>
-        {profile ? (
-          <DataState state={students}>
-            <div className="cards">
-              {students.data?.items.slice(0, showStudents ? 12 : 4).map((student) => (
-                <StudentCard key={student.user_id} student={student} onChanged={students.reload} />
-              ))}
-            </div>
-            {students.data?.items.length > 4 && (
-              <button className="show-more" onClick={() => setShowStudents(!showStudents)}>
-                {showStudents ? 'Show fewer students' : 'Show more students'}
-              </button>
-            )}
-          </DataState>
-        ) : (
-          <p className="empty">Your recommendations will appear after you complete your profile.</p>
-        )}
-      </section>
-      <section className="section">
-        <div className="section-title">
-          <div>
-            <p className="eyebrow">IDEAS WITH ROOM FOR YOU</p>
-            <h2>Recommended projects</h2>
-          </div>
-          <Link to="/projects">Browse projects →</Link>
-        </div>
-        <p className="model-note">{projects.data?.model_notice}</p>
-        {profile && (
-          <DataState state={projects}>
-            <div className="cards">
-              {projects.data?.items.slice(0, showProjects ? 12 : 4).map((project) => (
-                <ProjectCard key={project.id} project={project} onChanged={projects.reload} />
-              ))}
-            </div>
-            {projects.data?.items.length > 4 && (
-              <button className="show-more" onClick={() => setShowProjects(!showProjects)}>
-                {showProjects ? 'Show fewer projects' : 'Show more projects'}
-              </button>
-            )}
-          </DataState>
-        )}
+          {state.data?.items.length > 4 && <button className="show-more" onClick={() => setExpanded(!expanded)}>{expanded ? 'Show fewer' : `Show more ${view}`}</button>}
+        </DataState> : <p className="empty">Your recommendations will appear after you complete your profile.</p>}
       </section>
     </>
   );

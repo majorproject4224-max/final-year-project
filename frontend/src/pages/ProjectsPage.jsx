@@ -14,8 +14,7 @@ export default function ProjectsPage() {
   return (
     <>
       <PageTitle
-        eyebrow="BUILD SOMETHING TOGETHER"
-        title="Big ideas need good teams."
+        title="Projects"
         action={
           <Link className="button primary" to="/projects/new">
             + Create a project
@@ -119,8 +118,7 @@ function ProjectForm({ initial, id }) {
   return (
     <>
       <PageTitle
-        eyebrow="FROM IDEA TO IMPACT"
-        title={id ? 'Refine your project.' : 'What will you build?'}
+        title={id ? 'Edit project' : 'Create a project'}
       >
         Tell future teammates what you have in mind.
       </PageTitle>

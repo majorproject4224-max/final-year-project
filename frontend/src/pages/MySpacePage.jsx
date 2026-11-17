@@ -12,8 +12,7 @@ export default function MySpacePage() {
   return (
     <>
       <PageTitle
-        eyebrow="YOUR WORK, TOGETHER"
-        title="A little space for big ideas."
+        title="My space"
         action={
           <Link className="button primary" to="/projects/new">
             + Create a project

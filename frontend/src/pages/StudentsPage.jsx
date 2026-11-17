@@ -21,7 +21,7 @@ export default function StudentsPage() {
   const state = useData('/students/?q=' + encodeURIComponent(search) + '&page=' + page);
   return (
     <>
-      <PageTitle eyebrow="THE CAMPUS COMMUNITY" title="Your next teammate is here.">
+      <PageTitle title="Students">
         Find people who share your curiosity, or bring a different skill to the table.
       </PageTitle>
       <form

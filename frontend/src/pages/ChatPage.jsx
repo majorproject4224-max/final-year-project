@@ -17,8 +17,7 @@ export default function ChatPage() {
   return (
     <>
       <PageTitle
-        eyebrow="KEEP THE CONVERSATION GOING"
-        title="A place to talk it through."
+        title="Messages"
         action={
           <Link className="button" to="/connections">
             Message a connection

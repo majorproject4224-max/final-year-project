@@ -2,6 +2,8 @@
 
 import json
 import os
+from io import BytesIO
+from docx import Document
 from pathlib import Path
 from urllib.request import Request, urlopen
 from playwright.sync_api import sync_playwright, expect
@@ -54,22 +56,51 @@ with sync_playwright() as p:
         page.get_by_label("Your name").fill("Maya Tester")
         page.get_by_label("Email", exact=True).fill("maya@browser.example")
         page.get_by_label("Password", exact=True).fill(PASSWORD)
-        page.get_by_role("button", name="Create account").click()
-        expect(page.get_by_role("heading", name="Make your next")).to_be_visible(timeout=15000)
+        page.get_by_role("button", name="Create account →", exact=True).click()
+        expect(page.get_by_role("heading", name="Welcome, Maya")).to_be_visible(timeout=15000)
         page.get_by_role("link", name="My profile", exact=True).click()
+        page.get_by_text("Import from Resume", exact=True).click()
+        resume = Document()
+        resume.add_paragraph("Maya Tester")
+        resume.add_paragraph("Branch: CSE")
+        resume.add_paragraph("Year: 3")
+        resume.add_paragraph("Skills: Python, Django, React. Machine learning research internship.")
+        resume_file = BytesIO()
+        resume.save(resume_file)
+        page.get_by_label("Choose Resume", exact=True).set_input_files({
+            "name": "demo-resume.docx",
+            "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "buffer": resume_file.getvalue(),
+        })
+        expect(page.get_by_role("heading", name="Review suggestions")).to_be_visible()
+        page.get_by_role("button", name="Use these suggestions").click()
+        expect(page.get_by_label("Skills, separated by commas")).to_have_value("Python, React, Django, Machine Learning")
+        page.get_by_text("Import from Resume", exact=True).click()
         page.get_by_label("Skills, separated by commas").fill("Python, Django, ML, React")
         page.get_by_label("Interests, separated by commas").fill("Research, AI, Open Source")
         page.get_by_label("Experience", exact=True).select_option("Intermediate")
         page.get_by_label("Preferred project type").fill("AI/ML Application")
         page.get_by_role("button", name="Save profile", exact=True).click()
         expect(page.get_by_role("status")).to_contain_text("Profile saved")
+        page.set_viewport_size({"width": 1280, "height": 720})
+        page.evaluate("document.fonts.ready")
+        page.screenshot(path=str(OUT / "profile-desktop.png"), full_page=True)
+        assert page.evaluate("document.fonts.check('14px Inter')"), "Inter font did not load"
+        assert page.locator(".sidebar").evaluate("el => el.scrollHeight <= el.clientHeight"), (
+            "Desktop sidebar should not need its own scrollbar at this viewport"
+        )
+        page.set_viewport_size({"width": 1440, "height": 1050})
         page.get_by_role("link", name="Overview", exact=True).click()
         expect(page.locator(".student-card").first).to_be_visible(timeout=15000)
-        expect(page.locator(".project-card").first).to_be_visible()
         expect(page.locator(".model-note").first).to_contain_text("synthetic")
+        expect(page.locator(".match-details .reasons").first).not_to_be_visible()
+        page.locator(".match-details summary").first.click()
+        expect(page.locator(".match-details .reasons").first).to_be_visible()
         if page.get_by_role("button", name="Dismiss notification").is_visible():
             page.get_by_role("button", name="Dismiss notification").click()
         page.screenshot(path=str(OUT / "dashboard-desktop.png"), full_page=True)
+        page.get_by_role("button", name="Projects", exact=True).click()
+        expect(page.locator(".project-card").first).to_be_visible()
         page.get_by_role("link", name="Students", exact=True).click()
         page.get_by_label("Search students").fill("Dev Tester")
         page.get_by_role("button", name="Search", exact=True).click()
@@ -79,7 +110,7 @@ with sync_playwright() as p:
         expect(card.get_by_role("button", name="Request sent")).to_be_visible()
         incoming = request("GET", "/connections/", token=token)["items"][0]
         request("PATCH", "/connections/" + incoming["id"] + "/", {"action": "accept"}, token)
-        page.get_by_role("link", name="Explore projects", exact=True).click()
+        page.get_by_role("link", name="Projects", exact=True).click()
         page.get_by_role("link", name="Create a project").click()
         page.get_by_label("Project title", exact=True).fill("Campus knowledge assistant")
         page.get_by_label("Description", exact=True).fill(
@@ -115,7 +146,7 @@ with sync_playwright() as p:
         other_page.get_by_label("Email", exact=True).fill("dev@browser.example")
         other_page.get_by_label("Password", exact=True).fill(PASSWORD)
         other_page.get_by_role("button", name="Sign in →", exact=True).click()
-        expect(other_page.get_by_role("heading", name="Make your next")).to_be_visible()
+        expect(other_page.get_by_role("heading", name="Welcome, Dev")).to_be_visible()
         other_page.goto(BASE + "/chat/" + conversation["id"])
         expect(other_page.locator(".chat-panel header")).to_contain_text("Live")
         expect(other_page.locator(".message")).to_contain_text("Ready to build together?")
@@ -144,7 +175,19 @@ with sync_playwright() as p:
         page.screenshot(path=str(OUT / "dashboard-mobile.png"), full_page=True)
         page.get_by_role("button", name="Toggle navigation").click()
         page.get_by_role("link", name="My space", exact=True).click()
-        expect(page.get_by_role("heading", name="A little space for big ideas.")).to_be_visible()
+        expect(page.get_by_role("heading", name="My space", exact=True)).to_be_visible()
+        page.get_by_role("button", name="Toggle navigation").click()
+        page.get_by_role("link", name="My profile", exact=True).click()
+        page.get_by_text("Import from Resume", exact=True).click()
+        expect(page.get_by_label("Choose Resume", exact=True)).to_be_visible()
+        assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth"), (
+            "Mobile profile horizontal overflow"
+        )
+        page.screenshot(path=str(OUT / "profile-mobile.png"), full_page=True)
+        page.get_by_role("button", name="Toggle navigation").click()
+        page.keyboard.press("Escape")
+        expect(page.get_by_role("button", name="Toggle navigation")).to_be_focused()
+        expect(page.get_by_role("link", name="My profile", exact=True)).not_to_be_visible()
         assert not errors, errors
         print(
             "Browser journey passed: registration, profile, ML recommendations, connections, project applications, teams, two-user live chat, read receipts, events and mobile navigation."

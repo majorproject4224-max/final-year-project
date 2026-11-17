@@ -26,13 +26,7 @@ export default function AuthPage({ register = false }) {
       <section className="auth-story">
         <LinkBrand />
         <p className="eyebrow">A CAMPUS FULL OF POSSIBILITIES</p>
-        <h1>
-          Good projects
-          <br />
-          start with
-          <br />
-          <em>good people.</em>
-        </h1>
+        <h1>Build something great <em>together.</em></h1>
         <p>
           Find your people. Share your skills.
           <br />
@@ -42,8 +36,7 @@ export default function AuthPage({ register = false }) {
       </section>
       <section className="auth-panel">
         <div className="auth-form">
-          <p className="eyebrow">YOUR NEXT CHAPTER</p>
-          <h2>{mode === 'login' ? 'Welcome back.' : 'Find your community.'}</h2>
+          <h2>{mode === 'login' ? 'Welcome back' : 'Create your account'}</h2>
           <div className="tabs">
             <button
               className={mode === 'login' ? 'active' : ''}
@@ -61,7 +54,7 @@ export default function AuthPage({ register = false }) {
                 setError('');
               }}
             >
-              Join campus
+              Create account
             </button>
           </div>
           <ErrorBox message={error} />
@@ -98,7 +91,6 @@ export default function AuthPage({ register = false }) {
           </form>
           <p className="fine-print">
             Made for respectful academic collaboration.
-            <br />A free backend may take a minute to wake up.
           </p>
         </div>
       </section>

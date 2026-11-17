@@ -7,7 +7,7 @@ export function PageTitle({ eyebrow, title, children, action }) {
   return (
     <header className="page-title">
       <div>
-        <p className="eyebrow">{eyebrow}</p>
+        {eyebrow && <p className="eyebrow">{eyebrow}</p>}
         <h1>{title}</h1>
         {children && <p className="subtitle">{children}</p>}
       </div>
@@ -71,7 +71,10 @@ export function Avatar({ name = 'Student', large = false }) {
   );
 }
 export function Explanations({ items = [] }) {
+  if (!items.length) return null;
   return (
+    <details className="match-details">
+      <summary>Why this match?</summary>
     <ul className="reasons">
       {items.map((reason, i) => (
         <li key={i}>
@@ -85,6 +88,7 @@ export function Explanations({ items = [] }) {
         </li>
       ))}
     </ul>
+    </details>
   );
 }
 export function ActionButton({ action, children, className = '', onDone, ...props }) {
@@ -126,8 +130,7 @@ export function StudentCard({ student, onChanged, inviteProject }) {
         </div>
         {student.compatibility_score != null && (
           <span className="score">
-            {student.compatibility_score}
-            <small>% match</small>
+            {student.compatibility_score}% <small>match</small>
           </span>
         )}
       </div>
@@ -197,8 +200,7 @@ export function ProjectCard({ project, onChanged }) {
         <span className="badge">{project.domain}</span>
         {project.compatibility_score != null && (
           <span className="score">
-            {project.compatibility_score}
-            <small>% match</small>
+            {project.compatibility_score}% <small>match</small>
           </span>
         )}
       </div>

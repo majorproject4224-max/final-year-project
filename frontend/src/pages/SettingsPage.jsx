@@ -30,7 +30,7 @@ export default function SettingsPage() {
   }
   return (
     <>
-      <PageTitle eyebrow="MAKE YOURSELF AT HOME" title="Account settings.">
+      <PageTitle title="Account settings">
         {user.email}
       </PageTitle>
       <form className="card form-grid form-width" onSubmit={submit}>
