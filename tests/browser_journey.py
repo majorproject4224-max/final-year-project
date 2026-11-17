@@ -53,6 +53,7 @@ with sync_playwright() as p:
         token = dev["tokens"]["access"]
         request("PUT", "/profiles/me/", PROFILE, token)
         page.goto(BASE + "/register")
+        page.screenshot(path=str(OUT / "register-desktop.png"), full_page=True)
         page.get_by_label("Your name").fill("Maya Tester")
         page.get_by_label("Email", exact=True).fill("maya@browser.example")
         page.get_by_label("Password", exact=True).fill(PASSWORD)
@@ -67,14 +68,18 @@ with sync_playwright() as p:
         resume.add_paragraph("Skills: Python, Django, React. Machine learning research internship.")
         resume_file = BytesIO()
         resume.save(resume_file)
-        page.get_by_label("Choose Resume", exact=True).set_input_files({
-            "name": "demo-resume.docx",
-            "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "buffer": resume_file.getvalue(),
-        })
+        page.get_by_label("Choose Resume", exact=True).set_input_files(
+            {
+                "name": "demo-resume.docx",
+                "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "buffer": resume_file.getvalue(),
+            }
+        )
         expect(page.get_by_role("heading", name="Review suggestions")).to_be_visible()
         page.get_by_role("button", name="Use these suggestions").click()
-        expect(page.get_by_label("Skills, separated by commas")).to_have_value("Python, React, Django, Machine Learning")
+        expect(page.get_by_label("Skills, separated by commas")).to_have_value(
+            "Python, React, Django, Machine Learning"
+        )
         page.get_by_text("Import from Resume", exact=True).click()
         page.get_by_label("Skills, separated by commas").fill("Python, Django, ML, React")
         page.get_by_label("Interests, separated by commas").fill("Research, AI, Open Source")
@@ -84,6 +89,8 @@ with sync_playwright() as p:
         expect(page.get_by_role("status")).to_contain_text("Profile saved")
         page.set_viewport_size({"width": 1280, "height": 720})
         page.evaluate("document.fonts.ready")
+        page.get_by_role("button", name="Dismiss notification").click()
+        page.evaluate("window.scrollTo(0, 0)")
         page.screenshot(path=str(OUT / "profile-desktop.png"), full_page=True)
         assert page.evaluate("document.fonts.check('14px Inter')"), "Inter font did not load"
         assert page.locator(".sidebar").evaluate("el => el.scrollHeight <= el.clientHeight"), (

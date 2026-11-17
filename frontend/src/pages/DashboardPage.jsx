@@ -13,25 +13,73 @@ export default function DashboardPage() {
   const state = view === 'students' ? students : projects;
   return (
     <>
-      <PageTitle title={`Welcome, ${user.name.split(' ')[0]}`} action={<Link className="button primary" to="/projects/new"><Plus size={17} />Create a project</Link>}>
+      <PageTitle
+        title={`Welcome, ${user.name.split(' ')[0]}`}
+        action={
+          <Link className="button primary" to="/projects/new">
+            <Plus size={17} />
+            Create a project
+          </Link>
+        }
+      >
         Find your next teammate or a project to build together.
       </PageTitle>
-      {!profile && <div className="notice">Add your skills and interests to get personalized recommendations. <Link to="/profile">Complete profile →</Link></div>}
+      {!profile && (
+        <div className="notice">
+          Add your skills and interests to get personalized recommendations.{' '}
+          <Link to="/profile">Complete profile →</Link>
+        </div>
+      )}
       <section className="recommendations-section">
-        <div className="section-title"><h2>Recommended for you</h2><Link to={view === 'students' ? '/students' : '/projects'}>View all {view} →</Link></div>
+        <div className="section-title">
+          <h2>Recommended for you</h2>
+          <Link to={view === 'students' ? '/students' : '/projects'}>View all {view} →</Link>
+        </div>
         <div className="view-switch" role="group" aria-label="Recommendation type">
-          <button aria-pressed={view === 'students'} onClick={() => { setView('students'); setExpanded(false); }}><Users size={17} />Students</button>
-          <button aria-pressed={view === 'projects'} onClick={() => { setView('projects'); setExpanded(false); }}><BriefcaseBusiness size={17} />Projects</button>
+          <button
+            aria-pressed={view === 'students'}
+            onClick={() => {
+              setView('students');
+              setExpanded(false);
+            }}
+          >
+            <Users size={17} />
+            Students
+          </button>
+          <button
+            aria-pressed={view === 'projects'}
+            onClick={() => {
+              setView('projects');
+              setExpanded(false);
+            }}
+          >
+            <BriefcaseBusiness size={17} />
+            Projects
+          </button>
         </div>
         <p className="model-note">{state.data?.model_notice}</p>
-        {profile ? <DataState state={state}>
-          <div className="cards">
-            {state.data?.items.slice(0, expanded ? 12 : 4).map((item) => view === 'students'
-              ? <StudentCard key={item.user_id} student={item} onChanged={students.reload} />
-              : <ProjectCard key={item.id} project={item} onChanged={projects.reload} />)}
-          </div>
-          {state.data?.items.length > 4 && <button className="show-more" onClick={() => setExpanded(!expanded)}>{expanded ? 'Show fewer' : `Show more ${view}`}</button>}
-        </DataState> : <p className="empty">Your recommendations will appear after you complete your profile.</p>}
+        {profile ? (
+          <DataState state={state}>
+            <div className="cards">
+              {state.data?.items
+                .slice(0, expanded ? 12 : 4)
+                .map((item) =>
+                  view === 'students' ? (
+                    <StudentCard key={item.user_id} student={item} onChanged={students.reload} />
+                  ) : (
+                    <ProjectCard key={item.id} project={item} onChanged={projects.reload} />
+                  ),
+                )}
+            </div>
+            {state.data?.items.length > 4 && (
+              <button className="show-more" onClick={() => setExpanded(!expanded)}>
+                {expanded ? 'Show fewer' : `Show more ${view}`}
+              </button>
+            )}
+          </DataState>
+        ) : (
+          <p className="empty">Your recommendations will appear after you complete your profile.</p>
+        )}
       </section>
     </>
   );

@@ -26,7 +26,9 @@ export default function AuthPage({ register = false }) {
       <section className="auth-story">
         <LinkBrand />
         <p className="eyebrow">A CAMPUS FULL OF POSSIBILITIES</p>
-        <h1>Build something great <em>together.</em></h1>
+        <h1>
+          Build something great <em>together.</em>
+        </h1>
         <p>
           Find your people. Share your skills.
           <br />
@@ -89,9 +91,7 @@ export default function AuthPage({ register = false }) {
               {busy ? 'Please wait…' : mode === 'login' ? 'Sign in →' : 'Create account →'}
             </button>
           </form>
-          <p className="fine-print">
-            Made for respectful academic collaboration.
-          </p>
+          <p className="fine-print">Made for respectful academic collaboration.</p>
         </div>
       </section>
     </main>

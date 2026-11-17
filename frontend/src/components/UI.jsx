@@ -75,19 +75,19 @@ export function Explanations({ items = [] }) {
   return (
     <details className="match-details">
       <summary>Why this match?</summary>
-    <ul className="reasons">
-      {items.map((reason, i) => (
-        <li key={i}>
-          {reason.items
-            ? `${{ shared_skills: 'Shared skills', shared_interests: 'Common interests', required_skills_matched: 'Required skills matched', skills_to_learn: 'Skills to learn' }[reason.feature] || reason.feature}: ${reason.items.join(', ')}`
-            : reason.feature === 'same_domain'
-              ? 'Same domain: ' + reason.value
-              : reason.feature === 'same_project_type'
-                ? 'Shared project preference: ' + reason.value
-                : reason.value}
-        </li>
-      ))}
-    </ul>
+      <ul className="reasons">
+        {items.map((reason, i) => (
+          <li key={i}>
+            {reason.items
+              ? `${{ shared_skills: 'Shared skills', shared_interests: 'Common interests', required_skills_matched: 'Required skills matched', skills_to_learn: 'Skills to learn' }[reason.feature] || reason.feature}: ${reason.items.join(', ')}`
+              : reason.feature === 'same_domain'
+                ? 'Same domain: ' + reason.value
+                : reason.feature === 'same_project_type'
+                  ? 'Shared project preference: ' + reason.value
+                  : reason.value}
+          </li>
+        ))}
+      </ul>
     </details>
   );
 }

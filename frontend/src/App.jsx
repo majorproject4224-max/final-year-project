@@ -102,7 +102,13 @@ function Shell() {
           connec<span>T</span>
           <small>AI</small>
         </Link>
-        <button ref={menuButton} aria-label="Toggle navigation" aria-controls="site-navigation" aria-expanded={open} onClick={() => setOpen(!open)}>
+        <button
+          ref={menuButton}
+          aria-label="Toggle navigation"
+          aria-controls="site-navigation"
+          aria-expanded={open}
+          onClick={() => setOpen(!open)}
+        >
           <Menu size={21} />
         </button>
       </div>
@@ -114,7 +120,16 @@ function Shell() {
         />
       )}
       <aside id="site-navigation" className={'sidebar ' + (open ? 'open' : '')}>
-        <button className="nav-close subtle" aria-label="Close menu" onClick={() => { setOpen(false); menuButton.current?.focus(); }}><X size={19} /></button>
+        <button
+          className="nav-close subtle"
+          aria-label="Close menu"
+          onClick={() => {
+            setOpen(false);
+            menuButton.current?.focus();
+          }}
+        >
+          <X size={19} />
+        </button>
         <Link className="brand" to="/" onClick={() => setOpen(false)}>
           connec<span>T</span>
           <small>AI</small>
@@ -157,7 +172,9 @@ function Shell() {
             <span>{user.name.split(' ')[0]}</span>
           </Link>
         </div>
-        <div className="page-content"><Outlet /></div>
+        <div className="page-content">
+          <Outlet />
+        </div>
         <footer className="page-footer">connecT AI · University collaboration</footer>
       </main>
       <datalist id="project-types">

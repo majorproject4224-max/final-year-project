@@ -30,9 +30,7 @@ export default function SettingsPage() {
   }
   return (
     <>
-      <PageTitle title="Account settings">
-        {user.email}
-      </PageTitle>
+      <PageTitle title="Account settings">{user.email}</PageTitle>
       <form className="card form-grid form-width" onSubmit={submit}>
         <h2 className="full">Change password</h2>
         <p className="full muted">Changing your password signs you out on all devices.</p>

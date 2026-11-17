@@ -117,9 +117,7 @@ function ProjectForm({ initial, id }) {
   }
   return (
     <>
-      <PageTitle
-        title={id ? 'Edit project' : 'Create a project'}
-      >
+      <PageTitle title={id ? 'Edit project' : 'Create a project'}>
         Tell future teammates what you have in mind.
       </PageTitle>
       <form className="card form-grid form-width" onSubmit={submit}>
