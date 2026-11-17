@@ -167,21 +167,35 @@ with sync_playwright() as p:
         # A retry must reuse the client identifier without duplicating the saved message.
         sketch = Image.new("RGB", (640, 320), "#eaf5f0")
         drawing = ImageDraw.Draw(sketch)
-        drawing.rounded_rectangle((40, 50, 600, 270), radius=20, fill="white", outline="#15795b", width=3)
+        drawing.rounded_rectangle(
+            (40, 50, 600, 270), radius=20, fill="white", outline="#15795b", width=3
+        )
         drawing.text((75, 85), "CAMPUS KNOWLEDGE ASSISTANT", fill="#173f32", font_size=24)
-        drawing.text((75, 140), "Students  >  Shared ideas  >  Project team", fill="#526c62", font_size=18)
-        drawing.text((75, 200), "First milestone: design the project dashboard", fill="#526c62", font_size=16)
+        drawing.text(
+            (75, 140), "Students  >  Shared ideas  >  Project team", fill="#526c62", font_size=18
+        )
+        drawing.text(
+            (75, 200), "First milestone: design the project dashboard", fill="#526c62", font_size=16
+        )
         sketch_file = BytesIO()
         sketch.save(sketch_file, format="PNG")
         notes = b"Milestone 1: build the dashboard.\nMilestone 2: review together.\n"
-        page.get_by_label("Attach files", exact=True).set_input_files([
-            {"name": "project-sketch.png", "mimeType": "image/png", "buffer": sketch_file.getvalue()},
-            {"name": "project-notes.txt", "mimeType": "text/plain", "buffer": notes},
-        ])
+        page.get_by_label("Attach files", exact=True).set_input_files(
+            [
+                {
+                    "name": "project-sketch.png",
+                    "mimeType": "image/png",
+                    "buffer": sketch_file.getvalue(),
+                },
+                {"name": "project-notes.txt", "mimeType": "text/plain", "buffer": notes},
+            ]
+        )
         expect(page.get_by_role("list", name="Files to send")).to_contain_text("project-sketch.png")
         expect(page.locator(".draft-attachments img")).to_be_visible()
         page.get_by_role("button", name="Remove project-notes.txt", exact=True).click()
-        expect(page.get_by_role("list", name="Files to send")).not_to_contain_text("project-notes.txt")
+        expect(page.get_by_role("list", name="Files to send")).not_to_contain_text(
+            "project-notes.txt"
+        )
         page.get_by_label("Attach files", exact=True).set_input_files(
             {"name": "project-notes.txt", "mimeType": "text/plain", "buffer": notes}
         )
@@ -202,9 +216,13 @@ with sync_playwright() as p:
         page.unroute("**/api/conversations/*/messages/", lose_upload_response)
         page.get_by_role("button", name="Send", exact=True).click()
         expect(page.get_by_role("list", name="Files to send")).to_have_count(0)
-        received = other_page.locator(".message").filter(has_text="Here is the project sketch and our notes.")
+        received = other_page.locator(".message").filter(
+            has_text="Here is the project sketch and our notes."
+        )
         expect(received).to_have_count(1)
-        expect(page.locator(".message").filter(has_text="Here is the project sketch and our notes.")).to_have_count(1)
+        expect(
+            page.locator(".message").filter(has_text="Here is the project sketch and our notes.")
+        ).to_have_count(1)
         image_preview = received.get_by_role("img", name="project-sketch.png", exact=True)
         expect(image_preview).to_be_visible(timeout=15000)
         expect(image_preview).to_have_js_property("naturalWidth", 640)
@@ -229,12 +247,16 @@ with sync_playwright() as p:
         page.reload()
         expect(page.locator(".chat-panel header")).to_contain_text("Live")
         expect(page.locator(".message").last).to_contain_text("project-outline.pdf")
-        page.locator(".message").filter(has_text="Here is the project sketch and our notes.").scroll_into_view_if_needed()
+        page.locator(".message").filter(
+            has_text="Here is the project sketch and our notes."
+        ).scroll_into_view_if_needed()
         expect(page.get_by_role("img", name="project-sketch.png", exact=True)).to_be_visible()
         page.screenshot(path=str(OUT / "chat-desktop.png"), full_page=True)
         page.set_viewport_size({"width": 390, "height": 844})
         expect(page.get_by_role("button", name="Add files or images")).to_be_visible()
-        assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth"), "Mobile chat horizontal overflow"
+        assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth"), (
+            "Mobile chat horizontal overflow"
+        )
         page.screenshot(path=str(OUT / "chat-mobile.png"), full_page=True)
         page.set_viewport_size({"width": 1440, "height": 1050})
         page.get_by_role("link", name="Events", exact=True).click()

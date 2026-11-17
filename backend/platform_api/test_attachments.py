@@ -27,10 +27,14 @@ class AttachmentValidationTests(SimpleTestCase):
 
     def test_unsupported_empty_corrupt_and_mislabelled_files_are_rejected(self):
         for name, raw in [
-            ("bad.svg", b"<svg/>"), ("bad.html", b"<script/>"),
-            ("program.exe", b"MZ"), ("empty.txt", b""),
-            ("bad.png", b"not an image"), ("bad.pdf", b"not a PDF"),
-            ("bad.docx", b"not a zip"), ("binary.txt", b"abc\x00def"),
+            ("bad.svg", b"<svg/>"),
+            ("bad.html", b"<script/>"),
+            ("program.exe", b"MZ"),
+            ("empty.txt", b""),
+            ("bad.png", b"not an image"),
+            ("bad.pdf", b"not a PDF"),
+            ("bad.docx", b"not a zip"),
+            ("binary.txt", b"abc\x00def"),
             ("non-utf8.csv", b"\xff\xfe"),
         ]:
             with self.subTest(name=name), self.assertRaises(ValidationError):
@@ -45,8 +49,13 @@ class AttachmentValidationTests(SimpleTestCase):
         with self.assertRaises(ValidationError):
             prepare_attachments([image_file() for _ in range(4)])
         with self.assertRaises(ValidationError):
-            prepare_attachments([SimpleUploadedFile("large.txt", b"a" * MAX_FILE_BYTES) for _ in range(3)])
-        with patch("platform_api.attachments.MAX_IMAGE_PIXELS", 100), self.assertRaises(ValidationError):
+            prepare_attachments(
+                [SimpleUploadedFile("large.txt", b"a" * MAX_FILE_BYTES) for _ in range(3)]
+            )
+        with (
+            patch("platform_api.attachments.MAX_IMAGE_PIXELS", 100),
+            self.assertRaises(ValidationError),
+        ):
             prepare_attachments([image_file()])
 
     def test_text_office_and_archive_checks_and_safe_filename(self):

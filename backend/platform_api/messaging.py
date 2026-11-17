@@ -67,7 +67,11 @@ def persist_message(conversation_id, sender_id, content, client_id, attachments=
     conversation_id, sender_id = object_id(conversation_id), object_id(sender_id)
     if not allowed_conversation(sender_id, conversation_id):
         raise PermissionDenied("Connect with this student before messaging.")
-    identity = {"conversation_id": conversation_id, "sender_id": sender_id, "client_id": str(client_id)}
+    identity = {
+        "conversation_id": conversation_id,
+        "sender_id": sender_id,
+        "client_id": str(client_id),
+    }
     duplicate = get_collection("messages").find_one(identity, {"attachments.data": 0})
     if duplicate:
         return message_data(duplicate)
@@ -107,11 +111,17 @@ def persist_message(conversation_id, sender_id, content, client_id, attachments=
                 if existing:
                     return existing
                 reserved = usage.update_one(
-                    {"_id": "chat_attachments", "bytes": {"$lte": settings.CHAT_ATTACHMENT_STORAGE_BYTES - size}},
-                    {"$inc": {"bytes": size}}, session=session
+                    {
+                        "_id": "chat_attachments",
+                        "bytes": {"$lte": settings.CHAT_ATTACHMENT_STORAGE_BYTES - size},
+                    },
+                    {"$inc": {"bytes": size}},
+                    session=session,
                 )
                 if not reserved.modified_count:
-                    raise ValidationError("Attachment storage is full. You can still send text messages.")
+                    raise ValidationError(
+                        "Attachment storage is full. You can still send text messages."
+                    )
                 get_collection("messages").insert_one(row, session=session)
                 return row
 
@@ -126,10 +136,12 @@ def persist_message(conversation_id, sender_id, content, client_id, attachments=
                 "conversation_id": conversation_id,
                 "sender_id": sender_id,
                 "client_id": str(client_id),
-            }, {"attachments.data": 0}
+            },
+            {"attachments.data": 0},
         )
     preview = row["content"] or (
-        row["attachments"][0]["name"] if len(row.get("attachments", [])) == 1
+        row["attachments"][0]["name"]
+        if len(row.get("attachments", [])) == 1
         else f"{len(row.get('attachments', []))} attachments"
     )
     get_collection("conversations").update_one(
@@ -220,7 +232,10 @@ class ConversationMessagesView(APIView):
         if before or after:
             query["_id"] = {"$lt" if before else "$gt": object_id(before or after)}
         rows = list(
-            get_collection("messages").find(query, {"attachments.data": 0}).sort("_id", 1 if after else -1).limit(51)
+            get_collection("messages")
+            .find(query, {"attachments.data": 0})
+            .sort("_id", 1 if after else -1)
+            .limit(51)
         )
         more = len(rows) > 50
         rows = rows[:50]
@@ -268,8 +283,11 @@ class MessageAttachmentView(APIView):
         if conversation is None:
             raise NotFound("Attachment not found.")
         row = get_collection("messages").find_one(
-            {"_id": object_id(message_id), "conversation_id": conversation["_id"],
-             "attachments.id": attachment_id},
+            {
+                "_id": object_id(message_id),
+                "conversation_id": conversation["_id"],
+                "attachments.id": attachment_id,
+            },
             {"attachments": {"$elemMatch": {"id": attachment_id}}},
         )
         if not row:

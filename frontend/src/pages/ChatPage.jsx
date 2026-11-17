@@ -4,7 +4,14 @@ import { api, WS_URL, getErrorMessage } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../hooks/useData';
 import { PageTitle, Avatar, ErrorBox } from '../components/UI';
-import { ATTACHMENT_ACCEPT, FILE_LIMIT, MESSAGE_LIMIT, AttachButton, DraftAttachments, MessageAttachment } from '../components/ChatAttachments';
+import {
+  ATTACHMENT_ACCEPT,
+  FILE_LIMIT,
+  MESSAGE_LIMIT,
+  AttachButton,
+  DraftAttachments,
+  MessageAttachment,
+} from '../components/ChatAttachments';
 
 export default function ChatPage() {
   const { id } = useParams(),
@@ -96,17 +103,34 @@ function Conversation({ id, name, onUpdate }) {
     const incoming = Array.from(selected || []);
     if (!incoming.length) return;
     const all = [...draftFiles.current.map(({ file }) => file), ...incoming];
-    if (all.length > 3) { setError('Attach up to 3 files per message.'); return; }
-    if (all.some((file) => !file.size || file.size > FILE_LIMIT) || all.reduce((sum, file) => sum + file.size, 0) > MESSAGE_LIMIT) {
-      setError('Files must not be empty, and must be at most 5 MB each / 10 MB total.'); return;
+    if (all.length > 3) {
+      setError('Attach up to 3 files per message.');
+      return;
     }
-    if (incoming.some((file) => !ATTACHMENT_ACCEPT.split(',').includes('.' + file.name.split('.').pop().toLowerCase()))) {
-      setError('Use JPG, PNG, WebP, PDF, DOCX, XLSX, PPTX, TXT, CSV or ZIP files.'); return;
+    if (
+      all.some((file) => !file.size || file.size > FILE_LIMIT) ||
+      all.reduce((sum, file) => sum + file.size, 0) > MESSAGE_LIMIT
+    ) {
+      setError('Files must not be empty, and must be at most 5 MB each / 10 MB total.');
+      return;
     }
-    draftFiles.current = [...draftFiles.current, ...incoming.map((file) => ({
-      id: crypto.randomUUID(), file,
-      preview: /\.(jpe?g|png|webp)$/i.test(file.name) ? URL.createObjectURL(file) : null,
-    }))];
+    if (
+      incoming.some(
+        (file) =>
+          !ATTACHMENT_ACCEPT.split(',').includes('.' + file.name.split('.').pop().toLowerCase()),
+      )
+    ) {
+      setError('Use JPG, PNG, WebP, PDF, DOCX, XLSX, PPTX, TXT, CSV or ZIP files.');
+      return;
+    }
+    draftFiles.current = [
+      ...draftFiles.current,
+      ...incoming.map((file) => ({
+        id: crypto.randomUUID(),
+        file,
+        preview: /\.(jpe?g|png|webp)$/i.test(file.name) ? URL.createObjectURL(file) : null,
+      })),
+    ];
     setFiles(draftFiles.current);
     setError('');
   }
@@ -116,9 +140,14 @@ function Conversation({ id, name, onUpdate }) {
     draftFiles.current = draftFiles.current.filter(({ id }) => id !== identifier);
     setFiles(draftFiles.current);
   }
-  useEffect(() => () => {
-    draftFiles.current.forEach(({ preview }) => { if (preview) URL.revokeObjectURL(preview); });
-  }, []);
+  useEffect(
+    () => () => {
+      draftFiles.current.forEach(({ preview }) => {
+        if (preview) URL.revokeObjectURL(preview);
+      });
+    },
+    [],
+  );
   function merge(rows) {
     const nearBottom =
       !viewport.current ||
@@ -258,7 +287,11 @@ function Conversation({ id, name, onUpdate }) {
     setError('');
     // Keep the same identifier on retry, so a lost response cannot duplicate a message.
     const fileKey = files.map(({ id }) => id).join(',');
-    if (!pending.current || pending.current.content !== text.trim() || pending.current.fileKey !== fileKey)
+    if (
+      !pending.current ||
+      pending.current.content !== text.trim() ||
+      pending.current.fileKey !== fileKey
+    )
       pending.current = { content: text.trim(), client_id: crypto.randomUUID(), fileKey };
     const payload = new FormData();
     payload.append('content', pending.current.content);
@@ -266,12 +299,16 @@ function Conversation({ id, name, onUpdate }) {
     files.forEach(({ file }) => payload.append('attachments', file));
     try {
       const { data } = await api.post(endpoint, payload, {
-        onUploadProgress: ({ loaded, total }) => { if (alive.current && total) setUploadProgress(Math.round(loaded / total * 100)); },
+        onUploadProgress: ({ loaded, total }) => {
+          if (alive.current && total) setUploadProgress(Math.round((loaded / total) * 100));
+        },
       });
       if (alive.current) {
         merge([data]);
         setText('');
-        draftFiles.current.forEach(({ preview }) => { if (preview) URL.revokeObjectURL(preview); });
+        draftFiles.current.forEach(({ preview }) => {
+          if (preview) URL.revokeObjectURL(preview);
+        });
         draftFiles.current = [];
         setFiles([]);
         pending.current = null;
@@ -301,10 +338,23 @@ function Conversation({ id, name, onUpdate }) {
     }
   }
   return (
-    <section className={'chat-panel' + (dragging ? ' dragging' : '')}
-      onDragOver={(event) => { if (event.dataTransfer.types.includes('Files')) { event.preventDefault(); setDragging(true); } }}
-      onDragLeave={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setDragging(false); }}
-      onDrop={(event) => { event.preventDefault(); setDragging(false); addFiles(event.dataTransfer.files); }}>
+    <section
+      className={'chat-panel' + (dragging ? ' dragging' : '')}
+      onDragOver={(event) => {
+        if (event.dataTransfer.types.includes('Files')) {
+          event.preventDefault();
+          setDragging(true);
+        }
+      }}
+      onDragLeave={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setDragging(false);
+      }}
+      onDrop={(event) => {
+        event.preventDefault();
+        setDragging(false);
+        addFiles(event.dataTransfer.files);
+      }}
+    >
       {dragging && <div className="chat-dropzone">Drop files to attach</div>}
       <header>
         <Avatar name={name} />
@@ -334,9 +384,18 @@ function Conversation({ id, name, onUpdate }) {
             className={'message ' + (message.sender_id === user.id ? 'mine' : '')}
             key={message.id}
           >
-            {message.attachments?.length > 0 && <div className="message-attachments">
-              {message.attachments.map((attachment) => <MessageAttachment key={attachment.id} conversationId={id} messageId={message.id} attachment={attachment} />)}
-            </div>}
+            {message.attachments?.length > 0 && (
+              <div className="message-attachments">
+                {message.attachments.map((attachment) => (
+                  <MessageAttachment
+                    key={attachment.id}
+                    conversationId={id}
+                    messageId={message.id}
+                    attachment={attachment}
+                  />
+                ))}
+              </div>
+            )}
             {message.content && <p>{message.content}</p>}
             <small>
               {new Date(message.created_at).toLocaleString([], {
@@ -351,29 +410,54 @@ function Conversation({ id, name, onUpdate }) {
           </div>
         ))}
       </div>
-      <form className="message-compose" onSubmit={send}
-        onPaste={(event) => { if (event.clipboardData.files.length) { event.preventDefault(); addFiles(event.clipboardData.files); } }}>
+      <form
+        className="message-compose"
+        onSubmit={send}
+        onPaste={(event) => {
+          if (event.clipboardData.files.length) {
+            event.preventDefault();
+            addFiles(event.clipboardData.files);
+          }
+        }}
+      >
         <DraftAttachments files={files} disabled={sending} onRemove={removeFile} />
         <div className="compose-controls">
-        <AttachButton inputRef={fileInput} disabled={sending || status === 'Unavailable'} onFiles={addFiles} />
-        <label className="sr-only" htmlFor="message">
-          Message
-        </label>
-        <input
-          id="message"
-          autoComplete="off"
-          maxLength={4000}
-          placeholder="Share an idea…"
-          value={text}
-          disabled={sending || status === 'Unavailable'}
-          onChange={(e) => setText(e.target.value)}
-        />
-        <button className="primary" disabled={sending || (!text.trim() && !files.length) || status === 'Unavailable'}>
-          {sending ? (files.length && uploadProgress < 100 ? `${uploadProgress}%` : 'Sending…') : 'Send'}
-        </button>
+          <AttachButton
+            inputRef={fileInput}
+            disabled={sending || status === 'Unavailable'}
+            onFiles={addFiles}
+          />
+          <label className="sr-only" htmlFor="message">
+            Message
+          </label>
+          <input
+            id="message"
+            autoComplete="off"
+            maxLength={4000}
+            placeholder="Share an idea…"
+            value={text}
+            disabled={sending || status === 'Unavailable'}
+            onChange={(e) => setText(e.target.value)}
+          />
+          <button
+            className="primary"
+            disabled={sending || (!text.trim() && !files.length) || status === 'Unavailable'}
+          >
+            {sending
+              ? files.length && uploadProgress < 100
+                ? `${uploadProgress}%`
+                : 'Sending…'
+              : 'Send'}
+          </button>
         </div>
-        <p className="compose-hint" id="attachment-help">Add images or documents · 3 files, 5 MB each · 10 MB total</p>
-        {sending && <span className="sr-only" role="status">Sending message{files.length ? ` with attachments: ${uploadProgress}% uploaded` : ''}</span>}
+        <p className="compose-hint" id="attachment-help">
+          Add images or documents · 3 files, 5 MB each · 10 MB total
+        </p>
+        {sending && (
+          <span className="sr-only" role="status">
+            Sending message{files.length ? ` with attachments: ${uploadProgress}% uploaded` : ''}
+          </span>
+        )}
       </form>
     </section>
   );

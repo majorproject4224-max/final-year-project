@@ -1395,9 +1395,19 @@ textarea::placeholder {
   font-weight: 600;
   pointer-events: none;
 }
-.spin { animation: attachment-spin 1s linear infinite; }
-@keyframes attachment-spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+.spin {
+  animation: attachment-spin 1s linear infinite;
+}
+@keyframes attachment-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+}
 .load-older {
   font-size: 12px;
   align-self: center;

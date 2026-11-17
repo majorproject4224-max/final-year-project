@@ -76,7 +76,9 @@ def clean_image(raw, expected_format):
                 if source.width * source.height > MAX_IMAGE_PIXELS:
                     raise ValueError("Choose an image with at most 12 million pixels.")
                 if getattr(source, "is_animated", False):
-                    raise ValueError("Please send a still image; animated images are not supported.")
+                    raise ValueError(
+                        "Please send a still image; animated images are not supported."
+                    )
                 source.load()
                 picture = ImageOps.exif_transpose(source).convert(
                     "RGB" if expected_format == "JPEG" else "RGBA"
@@ -86,8 +88,12 @@ def clean_image(raw, expected_format):
                 output = BytesIO()
                 picture.save(output, format=expected_format)
                 return output.getvalue(), picture.width, picture.height
-    except (UnidentifiedImageError, OSError, Image.DecompressionBombError,
-            Image.DecompressionBombWarning) as error:
+    except (
+        UnidentifiedImageError,
+        OSError,
+        Image.DecompressionBombError,
+        Image.DecompressionBombWarning,
+    ) as error:
         raise ValueError("This image is damaged or too large to process.") from error
 
 
@@ -102,7 +108,8 @@ def validate_document(raw, suffix):
         if "\x00" in decoded:
             raise ValueError("This file contains binary data, not text.")
     required_parts = {
-        ".docx": "word/document.xml", ".xlsx": "xl/workbook.xml",
+        ".docx": "word/document.xml",
+        ".xlsx": "xl/workbook.xml",
         ".pptx": "ppt/presentation.xml",
     }
     if suffix in {*required_parts, ".zip"}:
@@ -112,7 +119,8 @@ def validate_document(raw, suffix):
                 if len(archive.infolist()) > 2000:
                     raise ValueError("This archive contains too many files.")
                 if suffix in required_parts and not {
-                    "[Content_Types].xml", required_parts[suffix]
+                    "[Content_Types].xml",
+                    required_parts[suffix],
                 }.issubset(archive.namelist()):
                     raise ValueError("The document contents do not match its filename.")
         except BadZipFile as error:
@@ -127,11 +135,15 @@ def prepare_attachments(files):
         name = safe_filename(upload.name)
         suffix = PurePosixPath(name).suffix.lower()
         if suffix not in IMAGE_FORMATS and suffix not in DOCUMENT_TYPES:
-            raise ValidationError("Use JPG, PNG, WebP, PDF, DOCX, XLSX, PPTX, TXT, CSV or ZIP files.")
+            raise ValidationError(
+                "Use JPG, PNG, WebP, PDF, DOCX, XLSX, PPTX, TXT, CSV or ZIP files."
+            )
         raw = upload.read(MAX_FILE_BYTES + 1)
         original_total += len(raw)
         if not raw or len(raw) > MAX_FILE_BYTES or original_total > MAX_MESSAGE_BYTES:
-            raise ValidationError("Files must not be empty, and must be at most 5 MB each / 10 MB total.")
+            raise ValidationError(
+                "Files must not be empty, and must be at most 5 MB each / 10 MB total."
+            )
         row = {"id": str(ObjectId()), "name": name, "is_image": suffix in IMAGE_FORMATS}
         try:
             if row["is_image"]:

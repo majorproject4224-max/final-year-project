@@ -23,7 +23,12 @@ from .community import (
     FeedbackView,
     InteractionsView,
 )
-from .messaging import ConversationsView, ConversationMessagesView, MessageAttachmentView, WebSocketTicketView
+from .messaging import (
+    ConversationsView,
+    ConversationMessagesView,
+    MessageAttachmentView,
+    WebSocketTicketView,
+)
 from .recommendations import (
     UserRecommendationsView,
     ProjectRecommendationsView,
