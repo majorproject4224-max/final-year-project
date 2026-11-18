@@ -35,7 +35,20 @@ export default function AuthPage({ register = false }) {
           <br />
           Build something that matters.
         </p>
-        <div className="auth-features"><span><Users size={18} />Find your people</span><span><BriefcaseBusiness size={18} />Build together</span><span><CalendarDays size={18} />Make a difference</span></div>
+        <div className="auth-features">
+          <span>
+            <Users size={18} />
+            Find your people
+          </span>
+          <span>
+            <BriefcaseBusiness size={18} />
+            Build together
+          </span>
+          <span>
+            <CalendarDays size={18} />
+            Make a difference
+          </span>
+        </div>
         <div className="auth-note">connecT AI · Connect and collaborate</div>
       </section>
       <section className="auth-panel">

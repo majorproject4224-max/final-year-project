@@ -16,19 +16,26 @@ export default function DashboardPage() {
   const viewLabel = view === 'students' ? 'people' : 'projects';
   return (
     <>
-      <div className="dashboard-welcome"><PageTitle
-        eyebrow="YOUR COMMUNITY"
-        title={`Welcome, ${user.name.split(' ')[0]}`}
-        action={
-          <div className="welcome-actions"><Link className="button primary" to="/projects/new">
-            <Plus size={17} />
-            Create a project
-          </Link>
-          <Link className="button" to="/events"><CalendarDays size={17} />Explore activities</Link></div>
-        }
-      >
-        Meet people, build projects and take part in community activities.
-      </PageTitle></div>
+      <div className="dashboard-welcome">
+        <PageTitle
+          eyebrow="YOUR COMMUNITY"
+          title={`Welcome, ${user.name.split(' ')[0]}`}
+          action={
+            <div className="welcome-actions">
+              <Link className="button primary" to="/projects/new">
+                <Plus size={17} />
+                Create a project
+              </Link>
+              <Link className="button" to="/events">
+                <CalendarDays size={17} />
+                Explore activities
+              </Link>
+            </div>
+          }
+        >
+          Meet people, build projects and take part in community activities.
+        </PageTitle>
+      </div>
       {!profile && (
         <div className="notice">
           Add your skills and interests to get personalized recommendations.{' '}
