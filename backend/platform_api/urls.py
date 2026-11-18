@@ -16,10 +16,14 @@ from .projects import (
     InvitationsView,
     InvitationDetailView,
 )
-from .community import (
+from .activities import (
     EventsView,
     EventDetailView,
     EventAttendanceView,
+    EventParticipantsView,
+    ActivityRecommendationsView,
+)
+from .community import (
     FeedbackView,
     InteractionsView,
 )
@@ -58,6 +62,8 @@ urlpatterns = [
     path("events/", EventsView.as_view()),
     path("events/<str:event_id>/", EventDetailView.as_view()),
     path("events/<str:event_id>/attendance/", EventAttendanceView.as_view()),
+    path("events/<str:event_id>/participants/", EventParticipantsView.as_view()),
+    path("recommendations/activities/", ActivityRecommendationsView.as_view()),
     path("feedback/", FeedbackView.as_view()),
     path("interactions/", InteractionsView.as_view()),
     path("conversations/", ConversationsView.as_view()),

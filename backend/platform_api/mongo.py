@@ -37,7 +37,7 @@ def ensure_indexes():
                 {"unique": True, "partialFilterExpression": {"client_id": {"$exists": True}}},
             ),
         ],
-        "events": [("starts_at", {})],
+        "events": [("starts_at", {}), ([("interest_tags", 1), ("starts_at", 1)], {}), ("organizer_id", {})],
         "feedback": [
             ([("project_id", 1), ("from_user_id", 1), ("to_user_id", 1)], {"unique": True})
         ],

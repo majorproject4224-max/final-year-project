@@ -24,7 +24,7 @@ import ConnectionsPage from './pages/ConnectionsPage';
 import ProjectsPage, { ProjectFormPage } from './pages/ProjectsPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import MySpacePage from './pages/MySpacePage';
-import EventsPage from './pages/EventsPage';
+import EventsPage, { ActivityDetailPage } from './pages/EventsPage';
 import ChatPage from './pages/ChatPage';
 import SettingsPage from './pages/SettingsPage';
 
@@ -157,7 +157,7 @@ function Shell() {
           <Avatar name={user.name} />
           <div>
             <strong>{user.name}</strong>
-            <small>{profile?.branch || 'Student account'}</small>
+            <small>{profile?.organization_name || profile?.branch || 'Community member'}</small>
           </div>
           <button className="subtle" aria-label="Sign out" onClick={logout}>
             <LogOut size={18} />
@@ -213,6 +213,7 @@ export default function App() {
             <Route path="/projects/:id/edit" element={<ProjectFormPage />} />
             <Route path="/my-space" element={<MySpacePage />} />
             <Route path="/events" element={<EventsPage />} />
+            <Route path="/events/:id" element={<ActivityDetailPage />} />
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/chat/:id" element={<ChatPage />} />
             <Route path="/settings" element={<SettingsPage />} />

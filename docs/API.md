@@ -19,7 +19,7 @@ Lists generally return `{items, page, page_size, total}`. Page size defaults to 
 | GET | students/ | q, domain, page, page_size |
 | GET | students/{user_id}/ | Public profile and viewer's connection status |
 
-Profile PUT fields: name, branch, academic_year (1–4), skills (array), interests (array), domain, experience, preferred_project_type, projects_completed, availability_hours (1–40), bio, city, phone, github URL, share_contact. Skills/interests are normalized. Phone is hidden unless the viewer owns the profile or is an accepted connection and sharing is enabled. Email/password/session data is not returned by student endpoints.
+Profile PUT requires name and nonempty interests (array). Optional fields: branch, academic_year (1–4 or null), skills (array, may be empty), domain (default Other), experience (default Beginner), preferred_project_type, projects_completed, availability_hours (1–40), bio, city, phone, github URL, share_contact, organization_name and activity_location_preference (any/local). Local activity preference requires a city. Skills/interests are normalized. Academic details are optional for non-student community members. Organization/club names are self-described public text, not verification badges. Phone is hidden unless the viewer owns the profile or is an accepted connection and sharing is enabled. Email/password/session data is not returned by student endpoints.
 
 ## Connections
 
@@ -63,13 +63,21 @@ PATCH status transitions are Open → In Progress/Cancelled, In Progress → Ope
 
 Recommendation items contain compatibility_score and explanations. Only scores meeting the classifier’s 50% decision threshold are returned; this threshold is a product filter, not a claim of calibrated probability. The response includes model_notice when a model was used. Empty results contain a detail explaining missing information or candidates. Scores from the current synthetic model are labeled accordingly. Saving/ignoring does not retrain anything.
 
-## Events
+## Events and community activities
 
 | Method | Endpoint | Meaning |
 |---|---|---|
-| GET / POST | events/ | Upcoming list / title, description, location, starts_at |
-| DELETE | events/{id}/ | Organizer only |
-| POST / DELETE | events/{id}/attendance/ | Attend / leave |
+| GET / POST | events/ | Upcoming list / create as any signed-in user, no organization required |
+| GET / PATCH / DELETE | events/{id}/ | Details / organizer edit / organizer deletion |
+| POST / DELETE | events/{id}/attendance/ | Join with atomic capacity check / leave |
+| GET | events/{id}/participants/ | Organizer-only paginated names and IDs; no email/contact details |
+| GET | recommendations/activities/ | Up to six interest-matched activities, reasons, matching_method; no ML probability |
+
+Activity fields: title, description, location, starts_at (future ISO timestamp), category (Volunteer drive, Workshop, Meetup, Sports, Arts & culture, Other), interest_tags (normalized array), city, mode (In person/Online), organization_name (optional), participant_limit (1–500, default 50). The browser requires tags and a city for in-person activities. Older API clients may omit tags/city; untagged events remain browsable but are not recommended. Legacy records without a capacity use a 500-person ceiling. Explicit empty interest_tags are invalid.
+
+List filters: q (title/description/interests/city), category, scope=all|joined|organizing and pagination. Organizing includes past activities; other scopes show upcoming ones. A join retry cannot duplicate a registration. Concurrent joins cannot exceed capacity; edits cannot reduce capacity below current attendance or edit an activity that has started. Names of participants are visible only to the organizer. Organizer edits retain existing registrations; deletion removes the event and embedded registrations. Activity changes do not send notifications.
+
+Activity suggestions require at least one shared normalized interest tag. They exclude own, joined, full and past activities. Local preference includes exact matching city names (case/outer-whitespace insensitive) and online activities; this is not geographic distance matching. Among up to 500 upcoming eligible records, order by shared-interest count, same city, start time and ID. Return six. These are transparent content matches, separate from the saved K-Means/Random Forest models; no fabricated percentage or semantic understanding of arbitrary related words is claimed. The shared suggested tags in profile/activity forms help users describe interests consistently.
 
 ## Messaging
 

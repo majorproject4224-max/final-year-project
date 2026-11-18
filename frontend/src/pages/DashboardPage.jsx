@@ -4,12 +4,14 @@ import { Plus, Users, BriefcaseBusiness } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../hooks/useData';
 import { PageTitle, DataState, StudentCard, ProjectCard } from '../components/UI';
+import { ActivityCard } from '../components/Activities';
 export default function DashboardPage() {
   const { user, profile } = useAuth();
   const [view, setView] = useState('students');
   const [expanded, setExpanded] = useState(false);
   const students = useData(profile ? '/recommendations/users/' : null);
   const projects = useData(profile ? '/recommendations/projects/' : null);
+  const activities = useData('/recommendations/activities/');
   const state = view === 'students' ? students : projects;
   return (
     <>
@@ -80,6 +82,12 @@ export default function DashboardPage() {
         ) : (
           <p className="empty">Your recommendations will appear after you complete your profile.</p>
         )}
+      </section>
+      <section className="activities-section" aria-labelledby="activities-title">
+        <div className="section-title"><h2 id="activities-title">Activities for you</h2><Link to="/events">Browse all activities →</Link></div>
+        <p className="muted">Discover drives, workshops and meetups that share your interests.</p>
+        <DataState state={activities}><div className="card-grid">{activities.data?.items.map((activity) => <ActivityCard key={activity.id} activity={activity} onChanged={activities.reload} />)}</div></DataState>
+        <p className="muted activity-preference-link">Suggestions use shared interests and your location preference. <Link to="/profile">Update interests →</Link></p>
       </section>
     </>
   );

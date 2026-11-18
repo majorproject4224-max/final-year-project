@@ -125,7 +125,7 @@ export function StudentCard({ student, onChanged, inviteProject }) {
             {student.name}
           </Link>
           <p className="muted">
-            {student.domain} · Year {student.academic_year}
+            {student.organization_name || student.domain}{student.academic_year ? ` · Year ${student.academic_year}` : ''}
           </p>
         </div>
         {student.compatibility_score != null && (

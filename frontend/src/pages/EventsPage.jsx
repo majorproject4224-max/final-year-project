@@ -1,138 +1,66 @@
 import { useState } from 'react';
-import { api, getErrorMessage } from '../api';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../hooks/useData';
-import { PageTitle, DataState, Pagination, ErrorBox, ActionButton } from '../components/UI';
+import { PageTitle, DataState, Pagination, ErrorBox, ActionButton, Tags } from '../components/UI';
+import { ACTIVITY_CATEGORIES, ActivityCard, ActivityForm, ActivityAttendance } from '../components/Activities';
+
 export default function EventsPage() {
-  const { user, notify } = useAuth(),
-    [page, setPage] = useState(1),
-    state = useData('/events/?page=' + page);
-  const [showForm, setShowForm] = useState(false),
-    [form, setForm] = useState({ title: '', description: '', location: '', starts_at: '' }),
-    [busy, setBusy] = useState(false),
-    [error, setError] = useState('');
-  const change = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-  async function submit(e) {
-    e.preventDefault();
-    setBusy(true);
-    setError('');
-    try {
-      await api.post('/events/', { ...form, starts_at: new Date(form.starts_at).toISOString() });
-      setShowForm(false);
-      setForm({ title: '', description: '', location: '', starts_at: '' });
-      await state.reload();
-      notify('Event created.');
-    } catch (e) {
-      setError(getErrorMessage(e));
-    } finally {
-      setBusy(false);
-    }
-  }
-  return (
-    <>
-      <PageTitle
-        title="Events"
-        action={
-          <button className="primary" onClick={() => setShowForm(!showForm)}>
-            {showForm ? 'Close form' : '+ Create an event'}
-          </button>
-        }
-      >
-        Workshops, meetups and opportunities to learn together.
-      </PageTitle>
-      {showForm && (
-        <form className="card form-grid form-width" onSubmit={submit}>
-          <h2 className="full">Bring people together</h2>
-          <label className="full">
-            Event title
-            <input required maxLength={120} name="title" value={form.title} onChange={change} />
-          </label>
-          <label className="full">
-            Description
-            <textarea
-              required
-              maxLength={2000}
-              name="description"
-              value={form.description}
-              onChange={change}
-            />
-          </label>
-          <label>
-            Location or meeting link
-            <input
-              required
-              maxLength={160}
-              name="location"
-              value={form.location}
-              onChange={change}
-            />
-          </label>
-          <label>
-            Date and time
-            <input
-              required
-              type="datetime-local"
-              name="starts_at"
-              value={form.starts_at}
-              onChange={change}
-            />
-          </label>
-          <div className="full">
-            <ErrorBox message={error} />
-            <button className="primary" disabled={busy}>
-              Create event
-            </button>
-          </div>
-        </form>
-      )}
-      <DataState state={state} empty="The campus calendar is open. Create the next gathering.">
-        <div className="card-grid">
-          {state.data?.items.map((event) => (
-            <article className="card event-card" key={event.id}>
-              <div className="event-date">
-                <strong>{new Date(event.starts_at).getDate()}</strong>
-                <span>
-                  {new Date(event.starts_at).toLocaleDateString(undefined, { month: 'short' })}
-                </span>
-              </div>
-              <h2>{event.title}</h2>
-              <p className="preserve-lines">{event.description}</p>
-              <p className="muted">
-                {new Date(event.starts_at).toLocaleString()}
-                <br />
-                {event.location}
-              </p>
-              <p>{event.attendee_count} attending</p>
-              <div className="card-actions">
-                <ActionButton
-                  className={event.is_attending ? '' : 'primary'}
-                  action={() =>
-                    event.is_attending
-                      ? api.delete('/events/' + event.id + '/attendance/')
-                      : api.post('/events/' + event.id + '/attendance/')
-                  }
-                  onDone={state.reload}
-                >
-                  {event.is_attending ? 'Leave event' : "I'll be there"}
-                </ActionButton>
-                {event.organizer_id === user.id && (
-                  <ActionButton
-                    className="subtle danger"
-                    action={async () => {
-                      if (window.confirm('Delete this event?'))
-                        await api.delete('/events/' + event.id + '/');
-                    }}
-                    onDone={state.reload}
-                  >
-                    Delete
-                  </ActionButton>
-                )}
-              </div>
-            </article>
-          ))}
-        </div>
-        <Pagination data={state.data} page={page} setPage={setPage} />
-      </DataState>
-    </>
-  );
+  const [page, setPage] = useState(1), [category, setCategory] = useState(''), [scope, setScope] = useState('all');
+  const [query, setQuery] = useState(''), [search, setSearch] = useState(''), [showForm, setShowForm] = useState(false);
+  const state = useData(`/events/?page=${page}&category=${encodeURIComponent(category)}&scope=${scope}&q=${encodeURIComponent(search)}`);
+  const navigate = useNavigate();
+  return <>
+    <PageTitle title="Events & activities" action={<button className="primary" onClick={() => setShowForm(!showForm)}>{showForm ? 'Close form' : '+ Create an activity'}</button>}>
+      Volunteer, learn or meet people. Organize as yourself, a club or an organization.
+    </PageTitle>
+    {showForm && <ActivityForm onCancel={() => setShowForm(false)} onSaved={(activity) => navigate(`/events/${activity.id}`)} />}
+    <div className="activity-filters">
+      <form className="search-bar" onSubmit={(e) => { e.preventDefault(); setSearch(query); setPage(1); }}>
+        <input aria-label="Search activities" placeholder="Search activities, interests or cities…" value={query} onChange={(e) => setQuery(e.target.value)} /><button>Search</button>
+      </form>
+      <label>Category<select value={category} onChange={(e) => { setCategory(e.target.value); setPage(1); }}><option value="">All categories</option>{ACTIVITY_CATEGORIES.map((item) => <option key={item}>{item}</option>)}</select></label>
+      <label>Show<select value={scope} onChange={(e) => { setScope(e.target.value); setPage(1); }}><option value="all">All upcoming</option><option value="joined">I'm attending</option><option value="organizing">I'm organizing</option></select></label>
+    </div>
+    <DataState state={state} empty="No activities here yet. Create one or try another filter.">
+      <div className="card-grid">{state.data?.items.map((activity) => <ActivityCard key={activity.id} activity={activity} onChanged={state.reload} />)}</div>
+      <Pagination data={state.data} page={page} setPage={setPage} />
+    </DataState>
+  </>;
+}
+
+export function ActivityDetailPage() {
+  const { id } = useParams(), { user } = useAuth(), navigate = useNavigate();
+  const state = useData(`/events/${id}/`), activity = state.data;
+  const owner = activity?.organizer_id === user.id;
+  const [editing, setEditing] = useState(false), [page, setPage] = useState(1);
+  const participants = useData(owner ? `/events/${id}/participants/?page=${page}` : null);
+  async function reload() { await Promise.all([state.reload(), participants.reload()]); }
+  if (state.loading) return <div className="empty">Loading activity…</div>;
+  if (state.error) return <ErrorBox message={state.error} retry={state.reload} />;
+  if (!activity) return null;
+  return <>
+    <Link className="back-link" to="/events">← All events & activities</Link>
+    <PageTitle title={activity.title} eyebrow={activity.category}>Organized by {activity.organizer_name}{activity.organization_name && ` · ${activity.organization_name}`}</PageTitle>
+    {editing ? <ActivityForm activity={activity} onCancel={() => setEditing(false)} onSaved={() => { setEditing(false); reload(); }} /> : <div className="two-column">
+      <section className="card activity-detail">
+        <h2>About this activity</h2><p className="preserve-lines">{activity.description}</p>
+        <Tags values={activity.interest_tags} />
+        <dl className="facts">
+          <div><dt>When</dt><dd>{new Date(activity.starts_at).toLocaleString()}</dd></div>
+          <div><dt>Format</dt><dd>{activity.mode}</dd></div>
+          {activity.city && <div><dt>City</dt><dd>{activity.city}</dd></div>}
+          <div><dt>Location / meeting</dt><dd className="preserve-lines">{activity.location}</dd></div>
+          <div><dt>Participants</dt><dd>{activity.attendee_count} attending · {activity.spots_remaining} places left</dd></div>
+        </dl>
+        <div className="activity-buttons"><ActivityAttendance activity={activity} onChanged={reload} />{owner && <><button onClick={() => setEditing(true)} disabled={activity.has_started}>Edit activity</button><ActionButton action={async () => {
+          if (window.confirm('Delete this activity? Its registrations will also be removed.')) { await api.delete(`/events/${id}/`); navigate('/events'); }
+        }}>Delete activity</ActionButton></>}</div>
+      </section>
+      <aside className="card">
+        {owner ? <><h2>Participants</h2><p className="muted">Only you can see this list.</p><DataState state={participants} empty="No one has joined yet."><ul className="participant-list">{participants.data?.items.map((person) => <li key={person.user_id}>{person.name}</li>)}</ul><Pagination data={participants.data} page={page} setPage={setPage} /></DataState></> : <><h2>You're welcome here</h2><p>Read the activity details before joining. You can leave if your plans change.</p>{activity.is_attending && <p className="notice">You have a place in this activity.</p>}</>}
+      </aside>
+    </div>}
+  </>;
 }

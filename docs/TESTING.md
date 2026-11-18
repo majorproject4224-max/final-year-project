@@ -1,5 +1,7 @@
 # Verification
 
+Community activity checks cover individual profiles without academic/technical fields, organization-optional publishing, organizer-only editing/deletion/participant lists, concurrent last-place joins, retry deduplication, leaving/rejoining, shrinking capacity, expired activities, legacy records, interest normalization, location preferences, exclusion rules and independence from ML artifacts. Browser checks cover publishing, a second community account saving interests, dashboard explanations, joining/leaving, organizer edits and desktop/mobile screenshots. See `docs/ACTIVITIES.md` for a two-account demonstration.
+
 The automated workflow is [Project checks](https://github.com/majorproject4224-max/final-year-project/actions/workflows/ci.yml). It runs in GitHub's cloud environment. Application dependencies and the application are not required on the office laptop.
 
 ## What is tested

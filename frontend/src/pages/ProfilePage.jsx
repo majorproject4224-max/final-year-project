@@ -4,16 +4,17 @@ import { api, getErrorMessage } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { PageTitle, ErrorBox } from '../components/UI';
 import { DOMAINS, EXPERIENCE, SelectField, splitTags } from '../components/ProfileFields';
+import { InterestSuggestions } from '../components/Activities';
 
 export default function ProfilePage() {
   const { user, profile, setProfile, setUser, notify } = useAuth();
   const [form, setForm] = useState({
     name: user.name,
-    branch: 'CSE',
-    academic_year: 3,
-    domain: 'AI / ML',
+    branch: '',
+    academic_year: '',
+    domain: 'Other',
     experience: 'Beginner',
-    preferred_project_type: 'Web Application',
+    preferred_project_type: '',
     projects_completed: 0,
     availability_hours: 8,
     bio: '',
@@ -21,6 +22,8 @@ export default function ProfilePage() {
     phone: '',
     github: '',
     share_contact: false,
+    organization_name: '',
+    activity_location_preference: 'any',
     ...profile,
     skills: profile?.skills?.join(', ') || '',
     interests: profile?.interests?.join(', ') || '',
@@ -42,6 +45,7 @@ export default function ProfilePage() {
     try {
       const { data } = await api.put('/profiles/me/', {
         ...form,
+        academic_year: form.academic_year === '' || form.academic_year == null ? null : Number(form.academic_year),
         skills: splitTags(form.skills),
         interests: splitTags(form.interests),
       });
@@ -104,7 +108,7 @@ export default function ProfilePage() {
   return (
     <div className="profile-page">
       <PageTitle title={profile ? 'My profile' : 'Create your profile'}>
-        Add your skills and interests to find relevant people and projects.
+        Share your interests to find people, projects and community activities.
       </PageTitle>
       <details className="resume-panel">
         <summary>
@@ -160,7 +164,7 @@ export default function ProfilePage() {
         <section className="profile-section" aria-labelledby="basic-details-title">
           <div className="form-section-heading">
             <h2 id="basic-details-title">Basic details</h2>
-            <p>Introduce yourself to your campus.</p>
+            <p>Introduce yourself. College details are optional for community members.</p>
           </div>
           <div className="form-grid">
             <label>
@@ -175,18 +179,17 @@ export default function ProfilePage() {
               />
             </label>
             <label>
-              Branch
-              <input name="branch" required maxLength={100} value={form.branch} onChange={change} />
+              Branch (optional)
+              <input name="branch" maxLength={100} value={form.branch} onChange={change} />
             </label>
             <label>
-              Academic year
+              Academic year (optional)
               <input
                 name="academic_year"
                 type="number"
                 min="1"
                 max="4"
-                required
-                value={form.academic_year}
+                value={form.academic_year ?? ''}
                 onChange={change}
               />
             </label>
@@ -200,6 +203,9 @@ export default function ProfilePage() {
                 autoComplete="address-level2"
               />
             </label>
+            <label>Organization or club (optional)
+              <input name="organization_name" maxLength={120} value={form.organization_name} onChange={change} placeholder="Leave blank if you participate as an individual" />
+            </label>
             <label className="full">
               Bio
               <textarea
@@ -207,7 +213,7 @@ export default function ProfilePage() {
                 maxLength={1000}
                 value={form.bio}
                 onChange={change}
-                placeholder="What would you like to build?"
+                placeholder="What do you enjoy, and what would you like to do together?"
               />
             </label>
           </div>
@@ -222,12 +228,11 @@ export default function ProfilePage() {
               Skills, separated by commas
               <input
                 name="skills"
-                required
                 value={form.skills}
                 onChange={change}
                 placeholder="Python, React, machine learning"
               />
-              <small>Add the technologies you know or are learning.</small>
+              <small>Optional. Add things you know or are learning, from gardening to programming.</small>
             </label>
             <label className="full">
               Interests, separated by commas
@@ -238,6 +243,12 @@ export default function ProfilePage() {
                 onChange={change}
                 placeholder="Research, sustainability, education"
               />
+            </label>
+            <div className="full"><InterestSuggestions value={form.interests} onChange={(interests) => setForm({ ...form, interests })} /></div>
+            <label className="full">Activity location preference
+              <select name="activity_location_preference" value={form.activity_location_preference} onChange={change}>
+                <option value="any">Any location</option><option value="local">My city and online</option>
+              </select><small>Nearby suggestions use the city you enter above. Interests must still match.</small>
             </label>
             <SelectField
               label="Technical domain"
@@ -265,7 +276,6 @@ export default function ProfilePage() {
               Preferred project type
               <input
                 name="preferred_project_type"
-                required
                 maxLength={80}
                 value={form.preferred_project_type}
                 onChange={change}

@@ -4,75 +4,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .common import now, object_id, page_result
 from .mongo import get_collection
-from .serializers import EventSerializer, FeedbackSerializer, InteractionSerializer
+from .serializers import FeedbackSerializer, InteractionSerializer
 
 
-def event_data(event, viewer):
-    return {
-        "id": str(event["_id"]),
-        "title": event["title"],
-        "description": event["description"],
-        "location": event["location"],
-        "starts_at": event["starts_at"],
-        "organizer_id": str(event["organizer_id"]),
-        "attendee_count": len(event.get("attendee_ids", [])),
-        "is_attending": viewer in event.get("attendee_ids", []),
-    }
-
-
-class EventsView(APIView):
-    def get(self, request):
-        viewer = ObjectId(request.user.id)
-        return Response(
-            page_result(
-                get_collection("events"),
-                {"starts_at": {"$gte": now()}},
-                request,
-                lambda e: event_data(e, viewer),
-                [("starts_at", 1)],
-            )
-        )
-
-    def post(self, request):
-        serializer = EventSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        if serializer.validated_data["starts_at"] <= now():
-            raise ValidationError("Choose a future date and time.")
-        event = {
-            **serializer.validated_data,
-            "organizer_id": ObjectId(request.user.id),
-            "attendee_ids": [],
-            "created_at": now(),
-        }
-        event["_id"] = get_collection("events").insert_one(event).inserted_id
-        return Response(event_data(event, ObjectId(request.user.id)), status=201)
-
-
-class EventDetailView(APIView):
-    def delete(self, request, event_id):
-        result = get_collection("events").delete_one(
-            {"_id": object_id(event_id), "organizer_id": ObjectId(request.user.id)}
-        )
-        if not result.deleted_count:
-            raise NotFound("Event not found or you are not its organizer.")
-        return Response(status=204)
-
-
-class EventAttendanceView(APIView):
-    def post(self, request, event_id):
-        result = get_collection("events").update_one(
-            {"_id": object_id(event_id), "starts_at": {"$gt": now()}},
-            {"$addToSet": {"attendee_ids": ObjectId(request.user.id)}},
-        )
-        if not result.matched_count:
-            raise NotFound("Upcoming event not found.")
-        return Response({"status": "attending"})
-
-    def delete(self, request, event_id):
-        get_collection("events").update_one(
-            {"_id": object_id(event_id)}, {"$pull": {"attendee_ids": ObjectId(request.user.id)}}
-        )
-        return Response(status=204)
 
 
 class FeedbackView(APIView):

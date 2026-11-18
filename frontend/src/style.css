@@ -895,6 +895,30 @@ textarea::placeholder {
   gap: 10px;
   flex-wrap: wrap;
 }
+.activities-section { margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--line); }
+.activity-preference-link { margin-top: 16px; font-size: 12px; }
+.activity-form { max-width: 880px; margin-bottom: 28px; }
+.activity-buttons, .interest-suggestions { display: flex; flex-wrap: wrap; gap: 8px; }
+.interest-suggestions { margin-top: 10px; }
+.interest-suggestions button { min-height: 32px; padding: 5px 10px; font-size: 12px; border-radius: 20px; }
+.interest-suggestions button[aria-pressed='true'] { background: var(--cream); color: var(--dark); border-color: var(--green); }
+.activity-filters { display: grid; grid-template-columns: minmax(0, 2fr) minmax(140px, 1fr) minmax(140px, 1fr); align-items: end; gap: 14px; margin-bottom: 24px; }
+.activity-filters .search-bar { margin: 0; }
+.activity-filters label { display: grid; gap: 6px; font-size: 12px; color: var(--muted); }
+.activity-card { display: flex; flex-direction: column; min-width: 0; }
+.activity-category { color: var(--green); font-size: 12px; font-weight: 600; margin-bottom: 10px; }
+.activity-card h3 { font-size: 18px; margin: 0; }
+.activity-description { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.activity-meta { display: grid; gap: 8px; margin: 4px 0 16px; color: var(--muted); font-size: 13px; }
+.activity-meta span { display: flex; align-items: center; gap: 8px; }
+.activity-meta svg { flex-shrink: 0; }
+.activity-card .card-actions { margin-top: auto; padding-top: 18px; }
+.activity-reasons { margin-top: 12px; padding: 10px 12px; background: var(--cream); border-radius: 6px; font-size: 12px; color: var(--dark); }
+.activity-reasons p { margin: 0; }
+.activity-detail .facts { margin: 24px 0; }
+.participant-list { padding: 0; list-style: none; }
+.participant-list li { padding: 10px 0; border-bottom: 1px solid var(--line); }
+@media (max-width: 760px) { .activity-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } .activity-filters .search-bar { grid-column: 1 / -1; } }
 .event-date {
   display: inline-flex;
   flex-direction: column;
