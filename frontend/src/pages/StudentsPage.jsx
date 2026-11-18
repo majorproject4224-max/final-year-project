@@ -65,7 +65,14 @@ export function StudentDetailPage() {
         ← All students
       </Link>
       <PageTitle eyebrow="COMMUNITY PROFILE" title={student.name}>
-        {[student.organization_name, student.branch, student.academic_year ? `Year ${student.academic_year}` : '', student.city || 'Campus community'].filter(Boolean).join(' · ')}
+        {[
+          student.organization_name,
+          student.branch,
+          student.academic_year ? `Year ${student.academic_year}` : '',
+          student.city || 'Campus community',
+        ]
+          .filter(Boolean)
+          .join(' · ')}
       </PageTitle>
       <div className="two-column">
         <section className="card">

@@ -84,10 +84,22 @@ export default function DashboardPage() {
         )}
       </section>
       <section className="activities-section" aria-labelledby="activities-title">
-        <div className="section-title"><h2 id="activities-title">Activities for you</h2><Link to="/events">Browse all activities →</Link></div>
+        <div className="section-title">
+          <h2 id="activities-title">Activities for you</h2>
+          <Link to="/events">Browse all activities →</Link>
+        </div>
         <p className="muted">Discover drives, workshops and meetups that share your interests.</p>
-        <DataState state={activities}><div className="card-grid">{activities.data?.items.map((activity) => <ActivityCard key={activity.id} activity={activity} onChanged={activities.reload} />)}</div></DataState>
-        <p className="muted activity-preference-link">Suggestions use shared interests and your location preference. <Link to="/profile">Update interests →</Link></p>
+        <DataState state={activities}>
+          <div className="card-grid">
+            {activities.data?.items.map((activity) => (
+              <ActivityCard key={activity.id} activity={activity} onChanged={activities.reload} />
+            ))}
+          </div>
+        </DataState>
+        <p className="muted activity-preference-link">
+          Suggestions use shared interests and your location preference.{' '}
+          <Link to="/profile">Update interests →</Link>
+        </p>
       </section>
     </>
   );

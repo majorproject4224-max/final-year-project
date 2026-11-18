@@ -262,7 +262,9 @@ with sync_playwright() as p:
         page.get_by_role("link", name="Events", exact=True).click()
         page.get_by_role("button", name="Create an activity").click()
         page.get_by_label("Activity title").fill("Sunday tree plantation")
-        page.get_by_label("Description", exact=True).fill("Plant trees together. Beginners are welcome; bring water and a hat.")
+        page.get_by_label("Description", exact=True).fill(
+            "Plant trees together. Beginners are welcome; bring water and a hat."
+        )
         page.get_by_role("button", name="Gardening", exact=True).click()
         page.get_by_role("button", name="Environmental conservation", exact=True).click()
         page.get_by_label("City", exact=True).fill("Delhi")
@@ -274,7 +276,9 @@ with sync_playwright() as p:
         activity_url = page.url
         expect(page.get_by_text("Organized by Maya Tester", exact=True)).to_be_visible()
         # An individual needs only a name and interests, without college or technical skills.
-        member_context = browser.new_context(viewport={"width": 1440, "height": 1050})
+        member_context = browser.new_context(
+            viewport={"width": 1440, "height": 1050}, reduced_motion="reduce"
+        )
         member_page = member_context.new_page()
         member_page.goto(BASE + "/register")
         member_page.get_by_label("Your name").fill("Community Volunteer")
@@ -290,14 +294,23 @@ with sync_playwright() as p:
         member_page.get_by_role("button", name="Save profile", exact=True).click()
         expect(member_page.get_by_role("status")).to_contain_text("Profile saved")
         member_page.get_by_role("link", name="Overview", exact=True).click()
-        activity_card = member_page.locator(".activity-card").filter(has_text="Sunday tree plantation")
+        activity_card = member_page.locator(".activity-card").filter(
+            has_text="Sunday tree plantation"
+        )
         expect(activity_card).to_be_visible()
-        expect(activity_card).to_contain_text("Matches your interests: environmental conservation, gardening")
+        expect(activity_card).to_contain_text(
+            "Matches your interests: environmental conservation, gardening"
+        )
         expect(activity_card).to_contain_text("In your city: Delhi")
         expect(activity_card.locator(".score")).to_have_count(0)
+        if member_page.get_by_role("button", name="Dismiss notification").is_visible():
+            member_page.get_by_role("button", name="Dismiss notification").click()
         member_page.screenshot(path=str(OUT / "activities-dashboard.png"), full_page=True)
         member_page.set_viewport_size({"width": 390, "height": 844})
-        assert member_page.evaluate("document.documentElement.scrollWidth <= window.innerWidth"), "Activities overflow on mobile"
+        expect(member_page.locator(".sidebar")).not_to_be_in_viewport()
+        assert member_page.evaluate("document.documentElement.scrollWidth <= window.innerWidth"), (
+            "Activities overflow on mobile"
+        )
         member_page.screenshot(path=str(OUT / "activities-mobile.png"), full_page=True)
         activity_card.get_by_role("button", name="Join activity", exact=True).click()
         expect(activity_card).to_have_count(0)
@@ -309,7 +322,9 @@ with sync_playwright() as p:
         page.get_by_role("button", name="Edit activity", exact=True).click()
         page.get_by_label("Organization or club (optional)").fill("Campus garden club")
         page.get_by_role("button", name="Save changes", exact=True).click()
-        expect(page.get_by_text("Organized by Maya Tester · Campus garden club", exact=True)).to_be_visible()
+        expect(
+            page.get_by_text("Organized by Maya Tester · Campus garden club", exact=True)
+        ).to_be_visible()
         page.screenshot(path=str(OUT / "activity-organizer.png"), full_page=True)
         member_page.get_by_role("button", name="Leave activity").click()
         expect(member_page.get_by_role("button", name="Join activity", exact=True)).to_be_visible()

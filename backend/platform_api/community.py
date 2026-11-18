@@ -7,8 +7,6 @@ from .mongo import get_collection
 from .serializers import FeedbackSerializer, InteractionSerializer
 
 
-
-
 class FeedbackView(APIView):
     def post(self, request):
         serializer = FeedbackSerializer(data=request.data)

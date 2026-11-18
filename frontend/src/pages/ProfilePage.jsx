@@ -45,7 +45,10 @@ export default function ProfilePage() {
     try {
       const { data } = await api.put('/profiles/me/', {
         ...form,
-        academic_year: form.academic_year === '' || form.academic_year == null ? null : Number(form.academic_year),
+        academic_year:
+          form.academic_year === '' || form.academic_year == null
+            ? null
+            : Number(form.academic_year),
         skills: splitTags(form.skills),
         interests: splitTags(form.interests),
       });
@@ -203,8 +206,15 @@ export default function ProfilePage() {
                 autoComplete="address-level2"
               />
             </label>
-            <label>Organization or club (optional)
-              <input name="organization_name" maxLength={120} value={form.organization_name} onChange={change} placeholder="Leave blank if you participate as an individual" />
+            <label>
+              Organization or club (optional)
+              <input
+                name="organization_name"
+                maxLength={120}
+                value={form.organization_name}
+                onChange={change}
+                placeholder="Leave blank if you participate as an individual"
+              />
             </label>
             <label className="full">
               Bio
@@ -232,7 +242,9 @@ export default function ProfilePage() {
                 onChange={change}
                 placeholder="Python, React, machine learning"
               />
-              <small>Optional. Add things you know or are learning, from gardening to programming.</small>
+              <small>
+                Optional. Add things you know or are learning, from gardening to programming.
+              </small>
             </label>
             <label className="full">
               Interests, separated by commas
@@ -244,11 +256,25 @@ export default function ProfilePage() {
                 placeholder="Research, sustainability, education"
               />
             </label>
-            <div className="full"><InterestSuggestions value={form.interests} onChange={(interests) => setForm({ ...form, interests })} /></div>
-            <label className="full">Activity location preference
-              <select name="activity_location_preference" value={form.activity_location_preference} onChange={change}>
-                <option value="any">Any location</option><option value="local">My city and online</option>
-              </select><small>Nearby suggestions use the city you enter above. Interests must still match.</small>
+            <div className="full">
+              <InterestSuggestions
+                value={form.interests}
+                onChange={(interests) => setForm({ ...form, interests })}
+              />
+            </div>
+            <label className="full">
+              Activity location preference
+              <select
+                name="activity_location_preference"
+                value={form.activity_location_preference}
+                onChange={change}
+              >
+                <option value="any">Any location</option>
+                <option value="local">My city and online</option>
+              </select>
+              <small>
+                Nearby suggestions use the city you enter above. Interests must still match.
+              </small>
             </label>
             <SelectField
               label="Technical domain"

@@ -62,7 +62,9 @@ class NormalizedItemsField(serializers.ListField):
 class ProfileSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=80)
     branch = serializers.CharField(max_length=100, allow_blank=True, default="")
-    academic_year = serializers.IntegerField(min_value=1, max_value=4, allow_null=True, default=None)
+    academic_year = serializers.IntegerField(
+        min_value=1, max_value=4, allow_null=True, default=None
+    )
     skills = NormalizedItemsField(default=list)
     interests = NormalizedItemsField(allow_empty=False)
     domain = serializers.ChoiceField(choices=DOMAINS, default="Other")
@@ -80,7 +82,9 @@ class ProfileSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         if attrs["activity_location_preference"] == "local" and not attrs["city"]:
-            raise serializers.ValidationError({"city": "Add your city to use nearby activity suggestions."})
+            raise serializers.ValidationError(
+                {"city": "Add your city to use nearby activity suggestions."}
+            )
         return attrs
 
 
