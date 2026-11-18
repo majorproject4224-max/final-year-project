@@ -141,10 +141,10 @@ class StudentDetailView(APIView):
     def get(self, request, user_id):
         target = object_id(user_id)
         if not get_collection("users").find_one({"_id": target, "is_active": True}):
-            raise NotFound("Student not found.")
+            raise NotFound("Person not found.")
         profile = get_collection("profiles").find_one({"user_id": target})
         if profile is None:
-            raise NotFound("This student has not completed their profile.")
+            raise NotFound("This person has not completed their profile.")
         return Response(profile_data(profile, request.user.id))
 
 
@@ -178,9 +178,9 @@ class ConnectionsView(APIView):
         target = object_id(serializer.validated_data["user_id"])
         user_id = ObjectId(request.user.id)
         if target == user_id:
-            raise ValidationError("Choose another student.")
+            raise ValidationError("Choose another person.")
         if not get_collection("users").find_one({"_id": target, "is_active": True}):
-            raise NotFound("Student not found.")
+            raise NotFound("Person not found.")
         row = {
             "pair_key": pair_key(user_id, target),
             "requester_id": user_id,

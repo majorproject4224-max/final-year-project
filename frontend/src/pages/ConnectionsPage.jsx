@@ -13,7 +13,7 @@ export default function ConnectionsPage() {
         title="Connections"
         action={
           <Link className="button primary" to="/students">
-            Find students
+            Find people
           </Link>
         }
       >
@@ -21,7 +21,7 @@ export default function ConnectionsPage() {
       </PageTitle>
       <DataState
         state={state}
-        empty="Your circle starts with one connection. Find a student and say hello."
+        empty="Your circle starts with one connection. Find someone and say hello."
       >
         <section className="card list">
           {state.data?.items.map((person) => (

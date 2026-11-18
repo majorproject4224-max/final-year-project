@@ -59,7 +59,7 @@ export function Tags({ values = [] }) {
     </div>
   );
 }
-export function Avatar({ name = 'Student', large = false }) {
+export function Avatar({ name = 'Member', large = false }) {
   return (
     <span className={`avatar ${large ? 'large' : ''}`} aria-hidden="true">
       {name

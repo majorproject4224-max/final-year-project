@@ -13,6 +13,7 @@ export default function DashboardPage() {
   const projects = useData(profile ? '/recommendations/projects/' : null);
   const activities = useData('/recommendations/activities/');
   const state = view === 'students' ? students : projects;
+  const viewLabel = view === 'students' ? 'people' : 'projects';
   return (
     <>
       <PageTitle
@@ -24,7 +25,7 @@ export default function DashboardPage() {
           </Link>
         }
       >
-        Find your next teammate or a project to build together.
+        Meet people, build projects and take part in community activities.
       </PageTitle>
       {!profile && (
         <div className="notice">
@@ -35,7 +36,7 @@ export default function DashboardPage() {
       <section className="recommendations-section">
         <div className="section-title">
           <h2>Recommended for you</h2>
-          <Link to={view === 'students' ? '/students' : '/projects'}>View all {view} →</Link>
+          <Link to={view === 'students' ? '/students' : '/projects'}>View all {viewLabel} →</Link>
         </div>
         <div className="view-switch" role="group" aria-label="Recommendation type">
           <button
@@ -46,7 +47,7 @@ export default function DashboardPage() {
             }}
           >
             <Users size={17} />
-            Students
+            People
           </button>
           <button
             aria-pressed={view === 'projects'}
@@ -75,7 +76,7 @@ export default function DashboardPage() {
             </div>
             {state.data?.items.length > 4 && (
               <button className="show-more" onClick={() => setExpanded(!expanded)}>
-                {expanded ? 'Show fewer' : `Show more ${view}`}
+                {expanded ? 'Show fewer' : `Show more ${viewLabel}`}
               </button>
             )}
           </DataState>

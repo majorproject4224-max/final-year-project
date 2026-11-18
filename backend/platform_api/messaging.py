@@ -66,7 +66,7 @@ def publish(conversation_id, event):
 def persist_message(conversation_id, sender_id, content, client_id, attachments=None):
     conversation_id, sender_id = object_id(conversation_id), object_id(sender_id)
     if not allowed_conversation(sender_id, conversation_id):
-        raise PermissionDenied("Connect with this student before messaging.")
+        raise PermissionDenied("Connect with this person before messaging.")
     identity = {
         "conversation_id": conversation_id,
         "sender_id": sender_id,
@@ -177,7 +177,7 @@ class ConversationsView(APIView):
                 {
                     "id": str(conversation["_id"]),
                     "participant_id": str(other),
-                    "participant_name": user["name"] if user else "Student",
+                    "participant_name": user["name"] if user else "Member",
                     "last_message": conversation.get("last_message", ""),
                     "updated_at": conversation["updated_at"],
                     "unread_count": unread,

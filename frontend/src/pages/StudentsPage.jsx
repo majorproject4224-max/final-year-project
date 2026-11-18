@@ -21,7 +21,7 @@ export default function StudentsPage() {
   const state = useData('/students/?q=' + encodeURIComponent(search) + '&page=' + page);
   return (
     <>
-      <PageTitle title="Students">
+      <PageTitle title="People">
         Find people who share your curiosity, or bring a different skill to the table.
       </PageTitle>
       <form
@@ -33,14 +33,14 @@ export default function StudentsPage() {
         }}
       >
         <input
-          aria-label="Search students"
+          aria-label="Search people"
           placeholder="Search names, skills or interests…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
         <button className="primary">Search</button>
       </form>
-      <DataState state={state} empty="No students match your search yet.">
+      <DataState state={state} empty="No people match your search yet.">
         <div className="card-grid">
           {state.data?.items.map((student) => (
             <StudentCard key={student.user_id} student={student} onChanged={state.reload} />
@@ -62,14 +62,14 @@ export function StudentDetailPage() {
   return (
     <>
       <Link className="back-link" to="/students">
-        ← All students
+        ← All people
       </Link>
       <PageTitle eyebrow="COMMUNITY PROFILE" title={student.name}>
         {[
           student.organization_name,
           student.branch,
           student.academic_year ? `Year ${student.academic_year}` : '',
-          student.city || 'Campus community',
+          student.city || 'Community member',
         ]
           .filter(Boolean)
           .join(' · ')}
@@ -79,7 +79,7 @@ export function StudentDetailPage() {
           <Avatar name={student.name} large />
           <h2>About {student.name.split(' ')[0]}</h2>
           <p className="preserve-lines">
-            {student.bio || 'This student is still writing their story.'}
+            {student.bio || 'This person has not added a bio yet.'}
           </p>
           <h3>Skills</h3>
           <Tags values={student.skills} />

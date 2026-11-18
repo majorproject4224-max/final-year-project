@@ -54,7 +54,7 @@ class UserRecommendationsView(APIView):
             return Response(
                 {
                     "items": [],
-                    "detail": "No new students to recommend yet. Browse Students to find existing connections.",
+                    "detail": "No new people to recommend yet. Browse People to find existing connections.",
                 }
             )
         indices, cluster = candidate_indices(source, candidates)
@@ -63,7 +63,7 @@ class UserRecommendationsView(APIView):
             return Response(
                 {
                     "items": [],
-                    "detail": "Your profile needs skills represented in the current model. You can still browse students.",
+                    "detail": "No people suggestions match your profile yet. You can still browse People or discover activities below.",
                 }
             )
         scores = probabilities(source, candidates)
@@ -165,7 +165,7 @@ class ProjectTeammateRecommendationsView(APIView):
             .limit(2000)
         )
         if not candidates:
-            return Response({"items": [], "detail": "No eligible student profiles yet."})
+            return Response({"items": [], "detail": "No eligible profiles yet."})
         indices, _ = candidate_indices(
             {
                 "skills": project["required_skills"],
@@ -176,7 +176,7 @@ class ProjectTeammateRecommendationsView(APIView):
         candidates = [candidates[i] for i in indices]
         if not candidates:
             return Response(
-                {"items": [], "detail": "No model-supported teammates yet. Browse Students."}
+                {"items": [], "detail": "No teammate suggestions yet. Browse People to find collaborators."}
             )
         bundle = load_models()
         vectors = [project_features(c, project) for c in candidates]

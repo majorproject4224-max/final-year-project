@@ -30,7 +30,7 @@ def project_data(project, viewer=None, details=False):
         {
             "id": str(project["_id"]),
             "owner_id": str(project["owner_id"]),
-            "owner_name": owner["name"] if owner else "Student",
+            "owner_name": owner["name"] if owner else "Member",
             "team_member_count": len(project["team_members"]),
             "is_member": viewer in project["team_members"],
         }
@@ -139,7 +139,7 @@ class ProjectApplicationView(APIView):
             return {
                 "id": str(item["_id"]),
                 "user_id": str(item["user_id"]),
-                "name": user["name"] if user else "Student",
+                "name": user["name"] if user else "Member",
                 "status": item["status"],
                 "created_at": item["created_at"],
             }
@@ -254,7 +254,7 @@ class InvitationsView(APIView):
                 "id": str(item["_id"]),
                 "project_id": str(item["project_id"]),
                 "project_title": project["title"] if project else "Unavailable project",
-                "recipient_name": recipient["name"] if recipient else "Student",
+                "recipient_name": recipient["name"] if recipient else "Member",
                 "status": item["status"],
                 "direction": "received" if item["recipient_id"] == actor else "sent",
             }
@@ -274,11 +274,11 @@ class InvitationsView(APIView):
             if project["status"] != "Open" or len(project["team_members"]) >= project["team_size"]:
                 raise Conflict("The project is not recruiting.")
             if recipient in project["team_members"]:
-                raise ValidationError("This student is already a member.")
+                raise ValidationError("This person is already a member.")
             if not get_collection("users").find_one(
                 {"_id": recipient, "is_active": True}, session=session
             ):
-                raise NotFound("Student not found.")
+                raise NotFound("Person not found.")
             get_collection("projects").update_one(
                 {"_id": project_id}, {"$set": {"updated_at": now()}}, session=session
             )
@@ -300,7 +300,7 @@ class InvitationsView(APIView):
         try:
             identifier = run_transaction(operation)
         except DuplicateKeyError:
-            raise Conflict("An invitation already exists for this student and project.")
+            raise Conflict("An invitation already exists for this person and project.")
         return Response({"id": str(identifier), "status": "Pending"}, status=201)
 
 

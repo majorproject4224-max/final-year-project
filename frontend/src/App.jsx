@@ -30,7 +30,7 @@ import SettingsPage from './pages/SettingsPage';
 
 const navigation = [
   ['/', 'Overview', LayoutDashboard],
-  ['/students', 'Students', Users],
+  ['/students', 'People', Users],
   ['/projects', 'Projects', BriefcaseBusiness],
   ['/connections', 'Connections', HeartHandshake],
   ['/my-space', 'My space', FolderHeart],
@@ -80,14 +80,14 @@ function Shell() {
           connec<span>T</span>
           <small>AI</small>
         </div>
-        <p>Getting your campus ready…</p>
+        <p>Getting your workspace ready…</p>
         <small>A free backend may take about a minute to wake up.</small>
       </div>
     );
   if (error)
     return (
       <div className="boot-screen">
-        <h1>We couldn't reach your campus.</h1>
+        <h1>We couldn't load your workspace.</h1>
         <ErrorBox message={error} retry={retry} />
       </div>
     );
@@ -166,7 +166,7 @@ function Shell() {
       </aside>
       <main id="main-content" className="main-content">
         <div className="topbar">
-          <span>University workspace</span>
+          <span>Community workspace</span>
           <Link to="/profile">
             <Avatar name={user.name} />
             <span>{user.name.split(' ')[0]}</span>
@@ -175,7 +175,7 @@ function Shell() {
         <div className="page-content">
           <Outlet />
         </div>
-        <footer className="page-footer">connecT AI · University collaboration</footer>
+        <footer className="page-footer">connecT AI · Connect and collaborate</footer>
       </main>
       <datalist id="project-types">
         {[

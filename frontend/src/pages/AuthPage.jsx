@@ -25,7 +25,7 @@ export default function AuthPage({ register = false }) {
     <main className="auth-page">
       <section className="auth-story">
         <LinkBrand />
-        <p className="eyebrow">A CAMPUS FULL OF POSSIBILITIES</p>
+        <p className="eyebrow">A PLACE TO CONNECT</p>
         <h1>
           Build something great <em>together.</em>
         </h1>
@@ -34,7 +34,7 @@ export default function AuthPage({ register = false }) {
           <br />
           Build something that matters.
         </p>
-        <div className="auth-note">connecT AI · University collaboration</div>
+        <div className="auth-note">connecT AI · Connect and collaborate</div>
       </section>
       <section className="auth-panel">
         <div className="auth-form">
@@ -91,7 +91,7 @@ export default function AuthPage({ register = false }) {
               {busy ? 'Please wait…' : mode === 'login' ? 'Sign in →' : 'Create account →'}
             </button>
           </form>
-          <p className="fine-print">Made for respectful academic collaboration.</p>
+          <p className="fine-print">For people, projects and community activities.</p>
         </div>
       </section>
     </main>
