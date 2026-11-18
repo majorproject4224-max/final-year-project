@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Users, BriefcaseBusiness } from 'lucide-react';
+import { Plus, Users, BriefcaseBusiness, CalendarDays } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../hooks/useData';
 import { PageTitle, DataState, StudentCard, ProjectCard } from '../components/UI';
@@ -16,17 +16,19 @@ export default function DashboardPage() {
   const viewLabel = view === 'students' ? 'people' : 'projects';
   return (
     <>
-      <PageTitle
+      <div className="dashboard-welcome"><PageTitle
+        eyebrow="YOUR COMMUNITY"
         title={`Welcome, ${user.name.split(' ')[0]}`}
         action={
-          <Link className="button primary" to="/projects/new">
+          <div className="welcome-actions"><Link className="button primary" to="/projects/new">
             <Plus size={17} />
             Create a project
           </Link>
+          <Link className="button" to="/events"><CalendarDays size={17} />Explore activities</Link></div>
         }
       >
         Meet people, build projects and take part in community activities.
-      </PageTitle>
+      </PageTitle></div>
       {!profile && (
         <div className="notice">
           Add your skills and interests to get personalized recommendations.{' '}

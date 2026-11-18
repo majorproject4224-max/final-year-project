@@ -10,6 +10,8 @@ Students create profiles, connect, form project teams, chat and discover persona
 
 ## Start here
 
+- **Presentation:** [Five fictional Indian-name accounts, projects and a demonstration walkthrough](docs/PRESENTATION.md).
+
 - **Office laptop / no local installations:** [Use GitHub Codespaces in your browser](docs/SETUP.md#browser-only-development).
 - **Personal laptop:** [Windows setup and run instructions](docs/SETUP.md#personal-windows-laptop).
 - **Free hosting:** [Vercel + Render + MongoDB Atlas deployment guide](docs/DEPLOYMENT.md). Deployment requires the owner's approval; no hosting accounts or resources are created by this repository.

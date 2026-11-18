@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ErrorBox } from '../components/UI';
 import { getErrorMessage } from '../api';
+import { Users, BriefcaseBusiness, CalendarDays } from 'lucide-react';
 export default function AuthPage({ register = false }) {
   const { user, authenticate } = useAuth();
   const [mode, setMode] = useState(register ? 'register' : 'login');
@@ -34,6 +35,7 @@ export default function AuthPage({ register = false }) {
           <br />
           Build something that matters.
         </p>
+        <div className="auth-features"><span><Users size={18} />Find your people</span><span><BriefcaseBusiness size={18} />Build together</span><span><CalendarDays size={18} />Make a difference</span></div>
         <div className="auth-note">connecT AI · Connect and collaborate</div>
       </section>
       <section className="auth-panel">

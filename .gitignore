@@ -1,4 +1,5 @@
 .env
+.presentation-private/
 .env.*
 !.env.example
 !frontend/.env.example

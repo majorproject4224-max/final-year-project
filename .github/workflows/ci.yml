@@ -88,6 +88,7 @@ jobs:
           npm ci --prefix frontend
           python backend/manage.py setup_db
           python backend/manage.py seed_demo
+          python backend/manage.py prepare_presentation --apply --replace-legacy-demo --password-env DEMO_PASSWORD
       - name: Test complete browser journeys
         env:
           E2E_PASSWORD: cloud-test-fixture-only-4224!
@@ -99,6 +100,7 @@ jobs:
             sleep 2
           done
           python tests/browser_journey.py
+          python tests/presentation_browser.py
       - name: Save browser evidence
         if: always()
         uses: actions/upload-artifact@v4
