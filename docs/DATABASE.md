@@ -31,3 +31,12 @@ bash scripts/dev.sh
 MongoDB and Redis remain running. The tool accepts the project's local Docker deployment only. It refuses a nonempty destination and never overwrites its records. A verified empty source namespace is removed after all its collections have moved. The backup, old environment file and verification receipt stay under ignored `.presentation-private/database-rename-*` folders. Refresh the Connections view after completion.
 
 The native backup uses [`mongodump`](https://www.mongodb.com/docs/database-tools/mongodump/); collection moves use MongoDB's [`renameCollection`](https://www.mongodb.com/docs/manual/reference/command/renamecollection/) command. [`mongorestore`](https://www.mongodb.com/docs/database-tools/mongorestore/) can recover the compressed archive. Never commit the private backup or environment file.
+
+## Verified Codespace maintenance - 19 November 2026
+
+- All 30 backend checks passed in 27.094 seconds against the original MongoDB storage.
+- The database rename verified complete BSON contents, record IDs and indexes across all 14 application collections.
+- Six accounts, five profiles, five projects, two events, the existing connection, conversation and message were preserved. Password hashes were unchanged.
+- A private compressed database backup and verification receipt were retained. The active database is `connect_ai`.
+
+The Codespace container initially had an open-file limit of 1,024 and logged `Too many open files`. The MongoDB service in `docker-compose.yml` now sets both soft and hard `nofile` limits to 64,000, following [MongoDB resource-limit guidance](https://www.mongodb.com/docs/v8.0/reference/ulimit/). This setting applies only to that Docker container. The original database volume is retained; no hardware-security workaround is enabled.
