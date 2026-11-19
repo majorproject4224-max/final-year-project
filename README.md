@@ -31,6 +31,8 @@ Name, authentication and contact details are operational account fields, never M
 
 Data/derived tables © Stack Exchange, Inc., under [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/); individual contents under DbCL 1.0. See [dataset provenance, checksum and preprocessing](dataset/README.md).
 
+Inspect the [cleaned Excel dataset](dataset/processed/survey2024_profiles.xlsx) or [CSV export](dataset/processed/survey2024_profiles.csv). Original anonymous response IDs and split membership are retained for reproducibility.
+
 ## Architecture
 
 ```mermaid
@@ -116,6 +118,8 @@ These are **artificial stress tests on held-out inputs**, not claims about addit
 ## Website evidence
 
 Screenshots below come from browser checks of the real application using **fictional UI test accounts**. Those accounts are never model-training or evaluation data.
+
+[Verified cloud checks](docs/VERIFICATION.md): 11 unit checks, 25 backend tests, the React production build and three complete browser journeys passed.
 
 ![Reciprocal learning dashboard](docs/screenshots/survey-dashboard.png)
 ![Dataset-aligned profile form](docs/screenshots/survey-profile.png)

@@ -21,7 +21,7 @@ def finish(fig, name):
 
 
 def table_figure(title, columns, rows, name, highlight=None):
-    width = max(16, 132 // len(columns))
+    width = max(14, 100 // len(columns))
     wrapped = [[textwrap.fill(str(value), width=width, break_long_words=True) for value in row] for row in rows]
     heights = [1] + [max(value.count("\n") + 1 for value in row) for row in wrapped]
     fig, ax = plt.subplots(figsize=(13, max(3.5, sum(heights) * 0.4 + 1.8)))
