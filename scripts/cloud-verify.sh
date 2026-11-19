@@ -23,7 +23,7 @@ $PY -m unittest discover -s tests -v > test-results/unit.log 2>&1
 RUN_MONGO_TESTS=1 $PY backend/manage.py test platform_api config --verbosity 2 > test-results/backend.log 2>&1
 npm run build --prefix frontend > test-results/build.log 2>&1
 $PY backend/manage.py setup_db
-DEMO_PASSWORD="$E2E_PASSWORD" $PY backend/manage.py prepare_presentation --apply --password-env DEMO_PASSWORD
+PRESENTATION_PASSWORD="$E2E_PASSWORD" $PY backend/manage.py prepare_presentation --apply --password-env PRESENTATION_PASSWORD
 $PY -m uvicorn config.asgi:application --app-dir backend --host 127.0.0.1 --port 8001 > test-results/backend-server.log 2>&1 &
 backend_pid=$!
 DEV_API_TARGET=http://127.0.0.1:8001 node frontend/node_modules/vite/bin/vite.js frontend --host 127.0.0.1 --port 5174 > test-results/frontend-server.log 2>&1 &

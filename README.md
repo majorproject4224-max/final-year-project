@@ -113,7 +113,7 @@ These are **artificial stress tests on held-out inputs**, not claims about addit
 ![Executed irregular-input checks](docs/evidence/survey2024/09-irregular-input-checks.png)
 ![Natural missingness results](docs/evidence/survey2024/10-natural-missingness.png)
 
-[Complete measured results and figures](docs/RESULTS.md) · [machine-readable metrics](ml/evaluation/survey2024/metrics.json) · [methodology and metric explanations](docs/ML_METHODOLOGY.md) · [teacher demonstration walkthrough](docs/TEACHER_DEMO.md)
+[Complete measured results and figures](docs/RESULTS.md) · [machine-readable metrics](ml/evaluation/survey2024/metrics.json) · [methodology and metric explanations](docs/ML_METHODOLOGY.md) · [teacher presentation walkthrough](docs/TEACHER_GUIDE.md)
 
 ## Website evidence
 
@@ -158,16 +158,16 @@ Open forwarded **port 5173**. The checked-in verified model is ready for inferen
 
 The unchanged 159 MB CSV is stored under ignored `dataset/raw/`; checksums pin the exact original release. The export creates inspectable cleaned CSV and Excel files. The app never imports anonymous survey rows as registered people.
 
-For an existing demonstration database, preview then apply the idempotent upgrade of marked fictional profiles:
+For an existing presentation database, preview then apply the idempotent upgrade of marked fictional profiles:
 
 ```bash
-.venv/bin/python backend/manage.py migrate_survey_profiles
-.venv/bin/python backend/manage.py migrate_survey_profiles --apply
+PRESENTATION_DATA_ENABLED=1 .venv/bin/python backend/manage.py migrate_survey_profiles
+PRESENTATION_DATA_ENABLED=1 .venv/bin/python backend/manage.py migrate_survey_profiles --apply
 ```
 
 It backs up those profiles privately, preserves accounts/connections/messages, and leaves real users to complete their own new technology fields.
 
-[Setup](docs/SETUP.md) · [testing](docs/TESTING.md) · [deployment planning](docs/DEPLOYMENT.md). Hosting/database choices still require the owner's review before deployment.
+[Setup](docs/SETUP.md) · [visual database browser](docs/DATABASE.md) · [testing](docs/TESTING.md) · [deployment planning](docs/DEPLOYMENT.md). Hosting/database choices still require the owner's review before deployment.
 
 ## Implemented system
 
@@ -179,7 +179,7 @@ Training runs separately from the application. Requests load saved model and pre
 
 ### Presentation accounts
 
-| Name | Sign-in email | Demonstration |
+| Name | Sign-in email | Presentation |
 |---|---|---|
 | Aarav Sharma | aarav@connect.example | Technology discovery, project applications and chat |
 | Priya Verma | priya@connect.example | Aarav's existing connection and StudyCircle AI owner |

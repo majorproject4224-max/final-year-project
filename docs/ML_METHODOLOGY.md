@@ -6,7 +6,7 @@ This document replaces the synthetic-pair experiment. The official title remains
 
 We ask: based on technologies someone has used, what languages might they want to use next, and which people offer a reciprocal learning opportunity?
 
-The original Stack Overflow Developer Survey 2024 contains actual self-reported `LanguageWantToWorkWith` answers. Each selected language is 1; each unselected language in an answered multi-select response is 0. This means selected/not selected, not compatible/incompatible. An entirely unanswered target is excluded. We do not create person-pair labels, pretend people know one another, or train on application/demo accounts.
+The original Stack Overflow Developer Survey 2024 contains actual self-reported `LanguageWantToWorkWith` answers. Each selected language is 1; each unselected language in an answered multi-select response is 0. This means selected/not selected, not compatible/incompatible. An entirely unanswered target is excluded. We do not create person-pair labels, pretend people know one another, or train on application/presentation accounts.
 
 The survey question includes continuing technologies already used; desired does not necessarily mean new learning. People can explicitly enter their own interests, which are never overwritten by model output.
 

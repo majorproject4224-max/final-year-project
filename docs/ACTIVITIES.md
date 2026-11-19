@@ -2,9 +2,9 @@
 
 Anyone with a connecT account can organize and join an activity. A student, individual, club or NGO uses the same account flow. An organization name is optional; it is self-described, not verified. Branch and academic year are optional, and no technical skill is required to save an interest-based profile.
 
-## Demonstrate with two accounts
+## Show with two accounts
 
-1. As the organizer, open Events → Create an activity. Choose Volunteer drive, enter a tree-plantation title, future date, location, city and a participant limit. Select Gardening and Environmental conservation. Leave the organization field blank to demonstrate individual organizing.
+1. As the organizer, open Events → Create an activity. Choose Volunteer drive, enter a tree-plantation title, future date, location, city and a participant limit. Select Gardening and Environmental conservation. Leave the organization field blank to show individual organizing.
 2. As the participant, open My profile. Select Gardening and Environmental conservation, add the same city, optionally choose My city and online, and save. College details and skills can be left empty.
 3. Open Overview. Activities for you shows the drive with explanations based on shared interests and city. No compatibility percentage is displayed.
 4. Join from the dashboard or details page. The activity disappears from suggestions and appears under Events → Show → I'm attending.

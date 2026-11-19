@@ -77,7 +77,7 @@ with sync_playwright() as p:
         resume.save(resume_file)
         page.get_by_label("Choose Resume", exact=True).set_input_files(
             {
-                "name": "demo-resume.docx",
+                "name": "sample-resume.docx",
                 "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                 "buffer": resume_file.getvalue(),
             }

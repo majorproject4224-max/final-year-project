@@ -1,4 +1,4 @@
-# Teacher demonstration: evidence before claims
+# Teacher presentation: evidence before claims
 
 Use GitHub Codespaces. Nothing needs installing on the office laptop. Keep the official title **ConnectAI: AI/ML-Based Social Connection Recommendation Platform**.
 
@@ -50,7 +50,7 @@ Use **How it works** in the app and the README result table:
 
 Do not say “84% of friendships are successful.” We did not measure friendship outcomes.
 
-## 6. Demonstrate behavior with imperfect input
+## 6. Show behavior with imperfect input
 
 Use a disposable test account, not another person's profile.
 
@@ -66,7 +66,7 @@ Open a recommended person's explanation: “You want to use; they have used” a
 
 Explain that reciprocal learning discovery can find complementary partners as well as similar ones. The score combines observed comparisons and a learned preference signal with documented weights. The published model metrics evaluate desired-language predictions; the people score ranks profile matches.
 
-Then demonstrate connection acceptance, chat/file sharing, a project application and an individually organized drive. Project scores are observed technology coverage; activity suggestions are explicit-interest matching.
+Then show connection acceptance, chat/file sharing, a project application and an individually organized drive. Project scores are observed technology coverage; activity suggestions are explicit-interest matching.
 
 ## 8. Be ready for these questions
 

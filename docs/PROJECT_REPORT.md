@@ -30,7 +30,7 @@ The data contains naturally missing values. Missing technology lists remain empt
 
 K-Means groups L2-normalized technology vectors. Validation silhouette selects k=2 among seven tested values. Weak separation is reported rather than presented as meaningful fixed social categories.
 
-A multi-output Random Forest predicts 16 desired-language indicators. Training/validation select tree count, depth, minimum leaf size and decision threshold. The held-out test set is used only after those choices. No synthetic compatibility labels, registered accounts or demonstration fixtures enter training.
+A multi-output Random Forest predicts 16 desired-language indicators. Training/validation select tree count, depth, minimum leaf size and decision threshold. The held-out test set is used only after those choices. No synthetic compatibility labels, registered accounts or presentation fixtures enter training.
 
 People ranking combines observed forward/reverse learning overlaps, shared technologies and predicted preference affinity. Its weights are transparent design choices. Project recommendations use observed requirement coverage, and community activities use explicit interests/location. These latter systems are not advertised as supervised ML.
 
@@ -48,4 +48,4 @@ The survey records self-reported technology use and interest. The supervised out
 
 ## Implemented delivery
 
-The working application includes accounts and profiles, explainable people recommendations, connection acceptance, project applications and teams, community activities, and private real-time chat with file sharing. Model training, preprocessing artifacts, evaluation figures, the cleaned CSV/Excel export and cloud verification evidence are included in the repository. Five fictional Indian-name profiles support demonstrations and are excluded from ML training. The application runs in GitHub Codespaces; deployment is reserved for the project owner's explicit instruction.
+The working application includes accounts and profiles, explainable people recommendations, connection acceptance, project applications and teams, community activities, and private real-time chat with file sharing. Model training, preprocessing artifacts, evaluation figures, the cleaned CSV/Excel export and cloud verification evidence are included in the repository. Five fictional Indian-name profiles support presentations and are excluded from ML training. The application runs in GitHub Codespaces; deployment is reserved for the project owner's explicit instruction.

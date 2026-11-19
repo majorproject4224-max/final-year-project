@@ -7,7 +7,7 @@ bash scripts/start-data.sh
 bash scripts/cloud-verify.sh
 ```
 
-The verification script uses a new database ending in `_test`, Redis database 15 and separate app ports 8001/5174. It does not reset the demonstration database. It runs preprocessing/model/resume checks, MongoDB/Redis API and permission tests, the production frontend build, full browser journeys, the presentation walkthrough, and the new survey/missing-field evidence checks. It stops the servers it started. Test output/screenshots are in ignored `test-results/`.
+The verification script uses a new database ending in `_test`, Redis database 15 and separate app ports 8001/5174. It does not reset the presentation database. It runs preprocessing/model/resume checks, MongoDB/Redis API and permission tests, the production frontend build, full browser journeys, the presentation walkthrough, and the new survey/missing-field evidence checks. It stops the servers it started. Test output/screenshots are in ignored `test-results/`.
 
 For a fresh Codespace, install the browser-test tool there once:
 

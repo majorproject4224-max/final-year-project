@@ -33,4 +33,4 @@ The raw file remains unchanged in ignored `dataset/raw/stackoverflow2024/`. The 
 
 The original survey has 65,437 rows/114 columns. There are real unanswered fields. 9,685 missing desired-language answers are excluded instead of becoming invented negative labels. The eligible cohort has 55,752 rows. See [audit JSON](../ml/evaluation/survey2024/data_audit.json), [preprocessing examples](../ml/evaluation/survey2024/preprocessing_examples.json) and [Excel examples](../docs/evidence/survey2024/preprocessing_examples.xlsx).
 
-The former generated students/projects and pair-label datasets are retired from the supported tree. They remain in Git history solely as earlier prototype work. Fictional presentation accounts live separately in backend test/demo fixtures and are never read by this ML pipeline.
+The former generated students/projects and pair-label datasets are retired from the supported tree. They remain in Git history solely as earlier prototype work. Fictional presentation accounts live separately in backend test/presentation fixtures and are never read by this ML pipeline.

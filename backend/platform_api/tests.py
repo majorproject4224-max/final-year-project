@@ -274,7 +274,7 @@ class PlatformTests(SimpleTestCase):
             "/api/events/",
             {
                 "title": "Showcase",
-                "description": "Demo day",
+                "description": "Project showcase",
                 "location": "Campus",
                 "starts_at": (now() + timedelta(days=5)).isoformat(),
             },

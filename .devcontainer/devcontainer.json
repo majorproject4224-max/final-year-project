@@ -24,7 +24,8 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "ms-python.python"
+        "ms-python.python",
+        "mongodb.mongodb-vscode"
       ]
     }
   }

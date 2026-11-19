@@ -3,9 +3,10 @@ from pathlib import Path
 from datetime import datetime, timezone
 from bson import json_util
 from django.conf import settings
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from platform_api.mongo import get_collection
 from platform_api.presentation_data import SOURCE, build_fixtures, fixture_id
+from platform_api.presentation_guard import require_presentation_database
 from ml.survey import PROFILE_FIELDS
 
 
@@ -16,8 +17,7 @@ class Command(BaseCommand):
         parser.add_argument("--apply", action="store_true")
 
     def handle(self, *args, **options):
-        if not settings.DEBUG or not settings.MONGODB_DATABASE.endswith(("_demo", "_test")):
-            raise CommandError("Only explicitly named development/demo databases are supported.")
+        require_presentation_database()
         people, _, _ = build_fixtures()
         updates, backup = [], []
         for person in people:

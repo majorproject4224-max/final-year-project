@@ -1,7 +1,7 @@
 """One preprocessing contract for real survey training and live profile inference.
 
 Missing answers stay missing. No field is inferred from a person's name, college,
-gender, location, previous synthetic domain or demonstration account.
+gender, location, previous synthetic domain or presentation account.
 """
 
 import hashlib

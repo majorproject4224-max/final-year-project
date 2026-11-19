@@ -15,6 +15,6 @@ Source revision at collection: `dc3e94c6c5ceaaab91ca8f22057e3e45557192ad`. Model
 - Presentation checks passed: real ML match, project match, ready connection, two-account live chat, activities and mobile layout.
 - Survey UI, reciprocal explanations, measured results, mobile layout, null fields and invalid-number rejection passed.
 
-Checks use a separate disposable MongoDB database, Redis database 15 and ports 8001/5174. The existing demonstration database is not reset. Browser screenshots use fictional fixtures; statistical evaluation uses the verified real survey. Passing application tests does not establish social-outcome prediction quality.
+Checks use a separate disposable MongoDB database, Redis database 15 and ports 8001/5174. The existing presentation database is not reset. Browser screenshots use fictional fixtures; statistical evaluation uses the verified real survey. Passing application tests does not establish social-outcome prediction quality.
 
 Reproduce with `bash scripts/cloud-verify.sh`, then `.venv/bin/python scripts/collect-evidence.py`. See [testing instructions](TESTING.md).

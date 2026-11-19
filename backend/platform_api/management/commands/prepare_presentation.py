@@ -13,6 +13,7 @@ from django.core.management.base import BaseCommand, CommandError
 from platform_api.common import now, pair_key
 from platform_api.mongo import get_collection, ensure_indexes, run_transaction
 from platform_api.presentation_data import SOURCE, build_fixtures, fixture_id
+from platform_api.presentation_guard import require_presentation_database
 from platform_api.services.recommendations import load_models
 from ml.discovery import recommend_people, project_match
 
@@ -134,14 +135,11 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--apply", action="store_true")
-        parser.add_argument("--replace-legacy-demo", action="store_true")
+        parser.add_argument("--replace-legacy-records", action="store_true")
         parser.add_argument("--password-env", default="PRESENTATION_PASSWORD")
 
     def handle(self, *args, **options):
-        if not settings.DEBUG or not settings.MONGODB_DATABASE.endswith(("_demo", "_test")):
-            raise CommandError(
-                "Presentation preparation requires DEBUG and a database ending in _demo or _test."
-            )
+        require_presentation_database()
         people, projects, activities = build_fixtures()
         scores = check_matches(people, projects)
         preflight(people, projects, activities)
@@ -161,7 +159,7 @@ class Command(BaseCommand):
         )
         if not options["apply"]:
             self.stdout.write(
-                "Preview only. Use --apply --replace-legacy-demo to replace the identified legacy demo records."
+                "Preview only. Use --apply --replace-legacy-records to replace the identified legacy records."
             )
             return
         ensure_indexes()
@@ -185,7 +183,7 @@ class Command(BaseCommand):
             preflight(people, projects, activities, session)
             legacy, deletion, detachment = cleanup_plan(session)
             backup_path = None
-            if legacy and options["replace_legacy_demo"]:
+            if legacy and options["replace_legacy_records"]:
                 snapshot = {}
                 for name, query in deletion.items():
                     queries = [query]

@@ -45,7 +45,7 @@ npm ci --prefix frontend
 Copy-Item .env.example .env
 ```
 
-Do not overwrite an existing `.env`. Its development defaults use a local database named `connect_ai_demo`. The example secret is for local development only.
+Do not overwrite an existing `.env`. Its development defaults use a local database named `connect_ai`. The example secret is for local development only.
 
 Start MongoDB and Redis:
 
@@ -88,34 +88,36 @@ bash scripts/start-data.sh
 bash scripts/dev.sh
 ```
 
-### Optional fictional demonstration data
+### Optional fictional presentation data
 
-A new database is empty. Recommendations need other profiles/projects. Either create your own test accounts or seed clearly marked fictional records. This command is restricted to debug mode and databases ending in `_demo` or `_test`.
+A new database is empty. Recommendations need other profiles/projects. Either create accounts through registration or add the clearly marked fictional presentation records. This command requires debug mode and a disposable `_test` database or the explicit `PRESENTATION_DATA_ENABLED=1` opt-in. The opt-in defaults to disabled.
 
 In PowerShell, enter a private password without printing it:
 
 ```powershell
-$env:DEMO_PASSWORD = Read-Host 'Choose a password for fictional demo accounts' -MaskInput
-.\.venv\Scripts\python.exe backend/manage.py prepare_presentation --apply --password-env DEMO_PASSWORD
-Remove-Item Env:DEMO_PASSWORD
+$env:PRESENTATION_PASSWORD = Read-Host 'Choose a password for fictional presentation accounts' -MaskInput
+$env:PRESENTATION_DATA_ENABLED = '1'
+.\.venv\Scripts\python.exe backend/manage.py prepare_presentation --apply --password-env PRESENTATION_PASSWORD
+Remove-Item Env:PRESENTATION_PASSWORD
+Remove-Item Env:PRESENTATION_DATA_ENABLED
 ```
 
-`-MaskInput` requires PowerShell 7. In Windows PowerShell 5.1, set `DEMO_PASSWORD` in your uncommitted `.env` instead, run the command, then remove that line.
+`-MaskInput` requires PowerShell 7. In Windows PowerShell 5.1, set `PRESENTATION_PASSWORD` in your uncommitted `.env` instead, run the command, then remove that line.
 
 In Codespaces/Linux:
 
 ```bash
-read -rs -p "Choose a demo password: " DEMO_PASSWORD
-export DEMO_PASSWORD
-.venv/bin/python backend/manage.py prepare_presentation --apply --password-env DEMO_PASSWORD
-unset DEMO_PASSWORD
+read -rs -p "Choose a presentation password: " PRESENTATION_PASSWORD
+export PRESENTATION_PASSWORD
+PRESENTATION_DATA_ENABLED=1 .venv/bin/python backend/manage.py prepare_presentation --apply --password-env PRESENTATION_PASSWORD
+unset PRESENTATION_PASSWORD
 ```
 
 Use at least 8 characters and avoid common passwords. The five fictional Indian-name accounts and five projects are listed in [PRESENTATION.md](PRESENTATION.md). Re-running does not overwrite existing profiles or passwords. Do not seed these accounts into a public production database.
 
 ### Without Docker on a personal laptop
 
-Use an Atlas free database as described in the deployment guide. Put its connection string in your local `.env`, allow your personal IP, and run `setup_db`. For a single-process local demo you can leave `REDIS_URL=` empty with `DJANGO_DEBUG=1`; Channels then uses an in-memory layer. Deployed chat requires Redis-compatible shared storage.
+Use an Atlas free database as described in the deployment guide. Put its connection string in your local `.env`, allow your personal IP, and run `setup_db`. For a single-process local session you can leave `REDIS_URL=` empty with `DJANGO_DEBUG=1`; Channels then uses an in-memory layer. Deployed chat requires Redis-compatible shared storage.
 
 ### Model and dependency files
 
@@ -141,4 +143,4 @@ Keep model and scikit-learn versions aligned. Training with another version requ
 | Chat unavailable | Connection must be accepted; Redis must run if configured; use port 5173 |
 | Site cannot contact backend | Start both terminals; remove production frontend env values while using the local proxy |
 | Frontend refuses host in Codespaces | Rebuild the dev container with this repository's Vite configuration |
-| Old prototype data fails indexes | Use a fresh demo database; preserve the old database and review any duplicates before migration |
+| Old prototype data fails indexes | Use a fresh development database; preserve the old database and review any duplicates before migration |

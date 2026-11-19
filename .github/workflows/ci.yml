@@ -80,13 +80,13 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - name: Prepare browser checks
         env:
-          DEMO_PASSWORD: cloud-test-fixture-only-4224!
+          PRESENTATION_PASSWORD: cloud-test-fixture-only-4224!
         run: |
           pip install playwright==1.65.2
           python -m playwright install --with-deps chromium
           npm ci --prefix frontend
           python backend/manage.py setup_db
-          python backend/manage.py prepare_presentation --apply --password-env DEMO_PASSWORD
+          python backend/manage.py prepare_presentation --apply --password-env PRESENTATION_PASSWORD
       - name: Test complete browser journeys
         env:
           E2E_PASSWORD: cloud-test-fixture-only-4224!

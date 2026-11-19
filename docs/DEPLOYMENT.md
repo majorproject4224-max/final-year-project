@@ -19,7 +19,7 @@ Atlas provides a Free cluster with resource and regional limits; it is a replica
 
 **PythonAnywhere Free is unsuitable for this MongoDB requirement.** PythonAnywhere says external MongoDB connectivity needs a paid account. [PythonAnywhere MongoDB documentation](https://help.pythonanywhere.com/pages/MongoDB/)
 
-This setup is intended for a small demonstration. Free hosting is not a promise of unlimited capacity or permanent uptime.
+This setup is intended for a small presentation. Free hosting is not a promise of unlimited capacity or permanent uptime.
 
 ## 1. MongoDB Atlas
 
@@ -98,7 +98,7 @@ Vite embeds these in the browser bundle. Never put MongoDB credentials, Redis cr
 - Accept a connection and chat from two browsers, checking live delivery and history after reload.
 - Check people discovery, project skill coverage, reciprocal explanations, empty profiles and the real-data model notice.
 - Check the mobile layout and direct route refresh.
-- Check service memory and usage during this small demo. No production load test has been performed.
+- Check service memory and usage during this small installation. No production load test has been performed.
 
 The app stores no permanent uploads on Render disk. Resumes are parsed for suggestions; the user explicitly saves reviewed profile fields. Chat images/documents are stored as bounded binary attachments in MongoDB, with authenticated downloads and a default 100 MiB total attachment budget (`CHAT_ATTACHMENT_STORAGE_MB`). This consumes database capacity; the budget is not a replacement for monitoring the provider's total storage limit. No paid file-storage service is required. A future larger deployment needs object storage, malware scanning and a retention policy. The trained bundle is part of the deployed Git checkout.
 

@@ -1,4 +1,4 @@
-"""Five curated fictional profiles for demonstrations, never training/evaluation observations."""
+"""Five curated fictional profiles for presentations, never training/evaluation observations."""
 
 from datetime import timedelta
 from hashlib import sha256

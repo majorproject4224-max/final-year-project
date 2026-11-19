@@ -70,7 +70,7 @@ class PresentationTests(SimpleTestCase):
             {
                 "conversation_id": conversation,
                 "sender_id": old_id,
-                "content": "Old demonstration",
+                "content": "Old presentation",
                 "attachments": [{"size": 3, "data": b"abc"}],
             }
         )
@@ -80,7 +80,7 @@ class PresentationTests(SimpleTestCase):
             self.assertIn("Preview only", preview)
             self.assertEqual(get_collection("users").count_documents({}), 2)
             self.assertFalse((Path(directory) / ".presentation-private").exists())
-            self.prepare(apply=True, replace_legacy_demo=True)
+            self.prepare(apply=True, replace_legacy_records=True)
             self.assertIsNone(get_collection("users").find_one({"_id": old_id}))
             self.assertIsNone(get_collection("projects").find_one({"_id": old_project}))
             self.assertIsNotNone(get_collection("users").find_one({"_id": personal_id}))
@@ -106,7 +106,7 @@ class PresentationTests(SimpleTestCase):
             old_hash = get_collection("users").find_one({"_id": fixture_id("aarav")})[
                 "password_hash"
             ]
-            self.prepare(apply=True, replace_legacy_demo=True)
+            self.prepare(apply=True, replace_legacy_records=True)
             self.assertEqual(
                 get_collection("users").find_one({"_id": fixture_id("aarav")})["password_hash"],
                 old_hash,
@@ -148,7 +148,7 @@ class PresentationTests(SimpleTestCase):
             {"_id": ObjectId(personal["id"])}, {"$set": {"email": "demo77@example.invalid"}}
         )
         with TemporaryDirectory() as directory, override_settings(PROJECT_ROOT=Path(directory)):
-            self.prepare(apply=True, replace_legacy_demo=True)
+            self.prepare(apply=True, replace_legacy_records=True)
             self.assertIsNotNone(
                 get_collection("users").find_one({"_id": ObjectId(personal["id"])})
             )
@@ -156,9 +156,9 @@ class PresentationTests(SimpleTestCase):
                 {"_id": fixture_id("aarav")}, {"$unset": {"data_source": ""}}
             )
             with self.assertRaises(CommandError):
-                self.prepare(apply=True, replace_legacy_demo=True)
+                self.prepare(apply=True, replace_legacy_records=True)
 
     def test_production_guard(self):
         with override_settings(MONGODB_DATABASE="connect_ai_production"):
             with self.assertRaises(CommandError):
-                self.prepare(apply=True, replace_legacy_demo=True)
+                self.prepare(apply=True, replace_legacy_records=True)

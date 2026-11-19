@@ -75,7 +75,7 @@ A thin view delegates complex behavior to a focused service. A service can be a 
 8. **Honesty:** the simple continue-current-languages baseline has slightly better F1 than the forest. The forest has lower probability error. Neither proves people will collaborate successfully.
 9. **Discovery:** real current/desired overlaps explain what each person could learn from the other. A transparent ranking combines these comparisons with predicted preferences. It is not a probability of friendship.
 
-Read [TEACHER_DEMO.md](TEACHER_DEMO.md) for the presentation sequence, [ML_METHODOLOGY.md](ML_METHODOLOGY.md) for formulas, and [RESULTS.md](RESULTS.md) for measured results.
+Read [TEACHER_GUIDE.md](TEACHER_GUIDE.md) for the presentation sequence, [ML_METHODOLOGY.md](ML_METHODOLOGY.md) for formulas, and [RESULTS.md](RESULTS.md) for measured results.
 
 ## Suggested reading order
 
