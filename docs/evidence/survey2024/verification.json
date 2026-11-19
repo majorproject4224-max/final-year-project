@@ -1,0 +1,25 @@
+{
+  "verified_at_utc": "2026-11-19T15:25:36.466087+00:00",
+  "source_commit": "dc3e94c6c5ceaaab91ca8f22057e3e45557192ad",
+  "environment": "GitHub Codespaces; isolated disposable MongoDB database and Redis database 15",
+  "checks": {
+    "unit": {
+      "tests": 11,
+      "seconds": 1.616,
+      "status": "passed"
+    },
+    "backend": {
+      "tests": 25,
+      "seconds": 28.848,
+      "status": "passed"
+    }
+  },
+  "production_build": "passed",
+  "browser_journeys": {
+    "browser": "Browser journey passed: registration, profile, ML recommendations, connections, project applications, teams, two-user live chat, image/file uploads, private previews/downloads, retry deduplication, persistent attachment history, read receipts, events and mobile navigation.",
+    "presentation-browser": "Presentation checks passed: real ML match, project match, ready connection, two-account live chat, activities and mobile layout.",
+    "survey-browser": "Survey UI, reciprocal explanations, measured results, mobile layout, null fields and invalid-number rejection passed."
+  },
+  "model_sha256": "06a19c12016c3c92281d206aa65a296eeb8569de495068b0a5260914a84908b8",
+  "screenshot_accounts": "Fictional UI fixtures; never training data"
+}
