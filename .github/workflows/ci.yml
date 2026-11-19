@@ -1,7 +1,7 @@
 name: Project checks
 on:
   push:
-    branches: [main, complete-platform]
+    branches: [main, complete-platform, 'codex/**']
   pull_request:
   workflow_dispatch:
 permissions:
@@ -12,7 +12,7 @@ concurrency:
 jobs:
   backend:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     env:
       DJANGO_DEBUG: "1"
       DJANGO_SECRET_KEY: ci-only-not-used-in-any-deployment
@@ -53,11 +53,10 @@ jobs:
         run: |
           bash -n scripts/bootstrap.sh scripts/start-data.sh scripts/dev.sh scripts/render-start.sh
           docker compose config --quiet
-      - name: Generate explicitly synthetic data and train offline
+      - name: Verify original survey and train offline
         run: |
-          python dataset/generate_synthetic_datasets.py
-          python ml/train.py
-          pip freeze > backend/requirements-lock.txt
+          pip install -r ml/requirements-training.txt
+          python -m ml.train --download
       - name: Validate backend and ML
         run: |
           python backend/manage.py check
@@ -68,11 +67,11 @@ jobs:
         with:
           name: trained-model-and-datasets
           path: |
-            dataset/*.csv
-            dataset/*.xlsx
-            ml/models/recommender.joblib
-            ml/evaluation/metrics.json
-            backend/requirements-lock.txt
+            dataset/raw/stackoverflow2024/source.json
+            dataset/survey_profile_options.json
+            ml/models/survey-recommender.joblib
+            ml/evaluation/survey2024/
+            docs/evidence/survey2024/
           retention-days: 7
       - uses: actions/setup-node@v4
         with:
@@ -87,8 +86,7 @@ jobs:
           python -m playwright install --with-deps chromium
           npm ci --prefix frontend
           python backend/manage.py setup_db
-          python backend/manage.py seed_demo
-          python backend/manage.py prepare_presentation --apply --replace-legacy-demo --password-env DEMO_PASSWORD
+          python backend/manage.py prepare_presentation --apply --password-env DEMO_PASSWORD
       - name: Test complete browser journeys
         env:
           E2E_PASSWORD: cloud-test-fixture-only-4224!
@@ -101,6 +99,7 @@ jobs:
           done
           python tests/browser_journey.py
           python tests/presentation_browser.py
+          python tests/survey_browser.py
       - name: Save browser evidence
         if: always()
         uses: actions/upload-artifact@v4

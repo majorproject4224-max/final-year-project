@@ -6,8 +6,8 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 from playwright.sync_api import sync_playwright, expect
 
-BASE = "http://127.0.0.1:5173"
-API = "http://127.0.0.1:8000/api"
+BASE = os.getenv("E2E_BASE_URL", "http://127.0.0.1:5173")
+API = os.getenv("E2E_API_URL", "http://127.0.0.1:8000/api")
 OUT = Path("test-results")
 PASSWORD = os.environ["E2E_PASSWORD"]
 

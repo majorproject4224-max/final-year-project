@@ -65,19 +65,20 @@ A thin view delegates complex behavior to a focused service. A service can be a 
 
 ## Machine learning basics to explain
 
-1. **Features:** measured similarities from normalized profiles.
-2. **Label:** the target 0/1 judgment, with an explicit source.
-3. **K-Means:** finds similar profile vectors without compatibility labels.
-4. **Random Forest:** learns feature/label patterns to rank pairs.
-5. **Train/test split:** hold out people, not just individual pair rows.
-6. **Leakage:** the test set must not secretly influence classifier training.
-7. **Evaluation:** compare to simple baselines and examine false positives/negatives.
-8. **Limitations:** synthetic data proves the pipeline works, not that real teams succeed.
+1. **Inputs:** technologies respondents actually used and coding years, from the real Stack Overflow 2024 survey.
+2. **Targets:** each respondent's recorded desired languages. A 1 means that language was selected; it does not mean a friendship succeeded.
+3. **K-Means:** groups normalized current-technology vectors. Validation selected two groups; their low silhouette indicates overlap, not clear social categories.
+4. **Random Forest:** many decision trees vote on each of 16 desired-language targets. It is trained offline and saved, not retrained for every request.
+5. **Split:** identical normalized input profiles stay together in train, validation or test. The vocabulary and missing-year median are learned only from training data.
+6. **Missing values:** empty technology lists stay empty; absent coding years use the training median plus a missing flag. Missing targets are excluded, not converted into negative labels.
+7. **Evaluation:** precision, recall and F1 describe language-label predictions. MSE/RMSE compare predicted probabilities with recorded 0/1 labels. Accuracy is per language decision, not per person's successful recommendation.
+8. **Honesty:** the simple continue-current-languages baseline has slightly better F1 than the forest. The forest has lower probability error. Neither proves people will collaborate successfully.
+9. **Discovery:** real current/desired overlaps explain what each person could learn from the other. A transparent ranking combines these comparisons with predicted preferences. It is not a probability of friendship.
 
-For the viva, explain a single prediction using actual shared/missing skills, then show where its feature values came from. Do not say the model “knows” whether two people will work well together.
+Read [TEACHER_DEMO.md](TEACHER_DEMO.md) for the presentation sequence, [ML_METHODOLOGY.md](ML_METHODOLOGY.md) for formulas, and [RESULTS.md](RESULTS.md) for measured results.
 
 ## Suggested reading order
 
-`README.md` → `docs/ARCHITECTURE.md` → serializers → account/profile endpoints → membership service → `ml/features.py` → `ml/train.py` → recommendation service → messaging → React pages.
+README → architecture → serializers → profile API → `ml/survey.py` → `ml/train_survey.py` → `ml/discovery.py` → recommendation API → React dashboard.
 
-Learn and demonstrate one vertical slice at a time: screen → API → validation → database/service → response. That is enough to understand the project progressively without learning every library at once.
+Follow one vertical slice: screen → API → validation → database/service → response.

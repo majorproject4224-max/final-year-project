@@ -1,10 +1,11 @@
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, override_settings
 from rest_framework.test import APIClient
 from unittest.mock import patch
 from pymongo.errors import ServerSelectionTimeoutError
 
 
 class HealthEndpointTests(SimpleTestCase):
+    @override_settings(FRONTEND_URL="http://127.0.0.1:5173/")
     def test_backend_root_redirects_to_react_frontend(self):
         response = APIClient().get("/")
 

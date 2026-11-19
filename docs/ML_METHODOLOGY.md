@@ -1,161 +1,100 @@
-# ML methodology and dataset card
+# Real-data ML methodology
 
-## Purpose and boundaries
+This document replaces the synthetic-pair experiment. The official title remains **ConnectAI: AI/ML-Based Social Connection Recommendation Platform**.
 
-The system helps students discover potential connections, projects and teammates. It combines **unsupervised candidate discovery** with **supervised ranking**. Neither model establishes whether two real people will collaborate well.
+## Question and defensible target
 
-The current development dataset contains 420 fictional student profiles, 84 project scenarios, 6,000 student pairs and 6,000 student–project pairs. Every row records synthetic provenance. No real university data, scraped student profiles or private résumé data is included.
+We ask: based on technologies someone has used, what languages might they want to use next, and which people offer a reciprocal learning opportunity?
 
-## Reproducible data design
+The original Stack Overflow Developer Survey 2024 contains actual self-reported `LanguageWantToWorkWith` answers. Each selected language is 1; each unselected language in an answered multi-select response is 0. This means selected/not selected, not compatible/incompatible. An entirely unanswered target is excluded. We do not create person-pair labels, pretend people know one another, or train on application/demo accounts.
 
-`dataset/generate_synthetic_datasets.py` uses random seed 4224. Attributes are sampled from seven documented, overlapping technical skill pools. One third of profiles mix skills and interests from another pool. The project set varies twelve curated campus/project scenarios across experience and time requirements.
+The survey question includes continuing technologies already used; desired does not necessarily mean new learning. People can explicitly enter their own interests, which are never overwritten by model output.
 
-This is structured synthetic scenario generation, not random compatibility labels. Names are “Demo Student …”. All four tables are exported to both CSV and formatted Excel with a header, filter and frozen top row.
+## Source and field selection
 
-Tables:
+The publisher's original release contains 65,437 responses and 114 columns. We use current languages, databases, web frameworks, cloud platforms, coding years and desired languages because they directly describe technical activity/preferences. Names, contact information, gender, salary, country and application-domain labels are not features. See [source/license/checksum](../dataset/README.md) and [exact field mapping](../README.md#original-dataset-and-profile-attributes).
 
-- `students`: user ID, fictional name, branch/year, skills, interests, domain, experience, completed-project count, preferred type, hours and source.
-- `projects`: ID/title, domain, required skills/interests/experience, team size, type, hours and source.
-- `matching_data`: two student IDs, six auditable comparison features, rubric score, compatibility label and label source.
-- `project_matches`: student/project IDs, six comparisons, rubric score, label and source.
+55,752 responses have an observed desired-language answer and some current technology input. Missing-target and no-current-technology exclusion counts overlap. There are 1,105 repeated normalized input rows; these are grouped, not split across evaluation partitions.
 
-Academic year and completed-project count are stored for profile context; they are not automatically added as classifier features without evidence that they predict useful outcomes. Previous collaboration/history is absent from the synthetic feature set because no such evidence exists.
+## Preprocessing, in order
 
-## Label source
+1. Verify the raw CSV against the publisher's Git LFS SHA-256; preserve unchanged bytes.
+2. Validate required columns and unique/nonmissing respondent IDs. CSV and Excel reading share this validation.
+3. Treat actual nulls and missing markers as unanswered. Never manufacture source corruption.
+4. Split multi-select fields at semicolons; trim whitespace, casefold, deduplicate, normalize documented aliases. Preserve punctuation in C++, C#, HTML/CSS and Node.js.
+5. Parse YearsCode. `Less than 1 year` becomes 0.5; `More than 50 years` becomes 51, a documented approximation. Invalid/non-finite/out-of-range values become missing in ingestion. The API rejects invalid user numbers.
+6. Exclude missing target answers. Do not substitute arbitrary negative targets.
+7. Hash normalized input profiles into groups. Split groups approximately 60/20/20 into training/validation/test using seed 42 (then 43 for the remaining split). Exact respondent counts are in [results](RESULTS.md).
+8. Fit a binary technology vocabulary and coding-years median **on training data only**. Use the learned encoder unchanged at validation, test and inference. Unknown technologies are ignored by the learned vocabulary and exposed in profile-quality information.
+9. Keep an explicit missing flag for each input field. Empty categorical lists mean unknown, not proven absence of skill. Numeric missingness gets the training median plus an indicator.
+10. Select up to 16 frequent desired-language labels with at least 100 positive training examples. This is a fixed, training-only scope rule. Other target languages are outside this evaluation.
 
-Student-pair rubric:
+`ml/survey.py` is the shared contract. No synthetic-data generator is part of the supported pipeline.
 
-```text
-score = .30 × skill Jaccard
-      + .25 × interest Jaccard
-      + .10 × same domain
-      + .10 × experience compatibility
-      + .10 × same preferred project type
-      + .15 × availability compatibility
+## K-Means: unsupervised learning
 
-label = 1 only if score ≥ .48,
-                  skill Jaccard ≥ .15,
-                  and interest Jaccard > 0
-```
+K-Means repeatedly assigns each vector to a nearby centre and updates centres to reduce within-group squared distance. Here it receives L2-normalized binary current-technology vectors. Coding years and missing flags are excluded from clustering so they do not create artificial experience/missingness groups. Cluster numbers have no predefined domain labels.
 
-Student–project rubric:
+We fit k = 2, 3, 4, 5, 6, 8 and 10 on training rows using k-means++, n_init=10, max_iter=300, random_state=42. We choose the highest validation silhouette on a fixed-seed sample of up to 1,500 rows; ties prefer smaller k. Inertia is plotted as an elbow diagnostic, not claimed as a second independent selection rule.
 
-```text
-score = .45 × required-skill coverage
-      + .15 × interest Jaccard
-      + .10 × same domain
-      + .10 × experience fit
-      + .10 × project-type match
-      + .10 × availability fit
+Selected k=2; validation silhouette 0.0668; test silhouette 0.0633. This is **weak separation**, not evidence of clear expert categories. Discovery searches nearby groups and permits observed reciprocal/technology overlaps across groups. A future experiment may compare better representations on a new evaluation split.
 
-label = 1 only if score ≥ .58,
-                  skill coverage ≥ .50,
-                  and availability fit ≥ .50
-```
+## Random Forest: supervised learning
 
-The labels are deterministic judgments under these explicit development assumptions. They are **not observed collaboration outcomes**. The Random Forest learns these labels; the inference service does not calculate a rubric percentage and present it as ML.
+A decision tree asks feature questions and reaches a leaf containing observed answers. A forest fits many randomized trees and averages their estimated probabilities. Our multi-output classifier predicts whether each supported language was selected in a respondent's actual desired-language answer.
 
-## Preprocessing and features
+Inputs: current technology indicators, coding years and missing flags. Targets: actual desired-language selections. Desired-language fields are never passed as RF input, preventing direct target leakage.
 
-Shared functions in `ml/features.py` are used during data preparation, training and API inference.
+We compare 80/160 trees, depth 12/20, and minimum leaf sizes 5/15 in the five declared combinations. Each candidate uses `max_features=sqrt` and seed 42. A global threshold is chosen from 0.25, 0.35, 0.45, 0.50, 0.55, 0.65 using validation micro F1. Selected: 160 trees, depth 20, leaf size 5, threshold 0.35. No test performance determines selection.
 
-1. Pandas loads Excel or CSV; required columns and duplicate IDs are validated.
-2. Empty/missing values are handled explicitly. Required profile attributes and numeric bounds are validated.
-3. Tag normalization uses Unicode normalization, trimming, case folding, repeated-space cleanup, alias mapping, deduplication and sorting.
-4. Aliases include ML → machine learning and JS → javascript. Aliases are a documented vocabulary map, not model cluster labels. Different technologies such as SQL and MySQL remain distinct unless explicitly mapped.
-5. Pair references, binary labels, provenance and duplicate/reversed student pairs are checked.
-6. Training recomputes features from raw profiles rather than trusting the pair table's feature/audit columns.
-7. The supervised pipeline contains a median imputer fitted only to training features. Numeric comparisons already lie in [0,1]; Random Forest does not require scaling.
-8. TF-IDF normalizes clustering vectors; no arbitrary numeric scaling is added.
+The measured learning curve refits preprocessing/model using 10%, 25%, 50% and 100% of training groups. Validation remains fixed. Random Forest has no epochs or gradient-descent loss; we do not invent such charts.
 
-For sets A and B, Jaccard = |A ∩ B| / |A ∪ B|, with empty comparisons returning zero.
+## Basic evaluation vocabulary
 
-| Student–student feature | Definition |
+| Quantity | Meaning in this experiment |
 |---|---|
-| skill_similarity | Jaccard of normalized skill sets |
-| interest_similarity | Jaccard of normalized interest sets |
-| domain_similarity | 1 for equal nonempty normalized domains |
-| experience_compatibility | 1 − absolute experience-rank gap / 2 |
-| project_type_match | 1 for equal nonempty normalized preferred types |
-| availability_compatibility | smaller weekly availability / larger availability |
+| TP | Language was selected; model predicts selected |
+| TN | Language was not selected; model predicts not selected |
+| FP | Model predicts selected, but respondent did not select it |
+| FN | Respondent selected it, but model misses it |
+| Correct / wrong | TP+TN / FP+FN, across person-language decisions |
+| Accuracy | Correct / all binary decisions; many negatives can inflate it |
+| Precision | TP / (TP+FP): how often a predicted selection is right |
+| Recall | TP / (TP+FN): how many actual selections were found |
+| F1 | Harmonic mean of precision and recall; micro aggregates decisions |
+| Macro F1 | Average F1 across target languages, including less common ones |
+| Exact-profile accuracy | All 16 language decisions right for the same respondent |
+| MSE | Mean squared difference between probability and actual 0/1 answer |
+| RMSE | Square root of probability MSE; lower is better |
+| Silhouette | Cluster cohesion/separation, roughly −1 to 1; near zero indicates overlap |
+| Inertia | Within-cluster squared distance; decreases as k increases |
 
-| Student–project feature | Definition |
-|---|---|
-| skill_coverage | matched required skills / number of required skills |
-| interest_similarity | student/project interest Jaccard |
-| domain_similarity | equal nonempty normalized domains |
-| experience_fit | 1 − max(0, required rank − student rank) / 2 |
-| project_type_match | preferred type equals offered type |
-| availability_fit | min(1, student hours / requested hours) |
+MSE/RMSE are valid here because they compare **probabilities to binary outcomes**, not arbitrary class numbers. RF probabilities are estimates, not proven calibrated probabilities. We do not reinterpret them as social-success confidence.
 
-Coverage is directional: possessing two of a project's four required skills gives 0.5 regardless of unrelated extra skills. Experience uses Beginner=0, Intermediate=1, Advanced=2. The profile form collects hours to avoid inventing availability.
+Compare both baselines: training-label prevalence and predicting continuation of current languages. RF test micro F1=0.6963 versus continuation=0.7048; RF probability MSE=0.1154 versus continuation=0.1593. The forest does not beat every baseline on every metric.
 
-## K-Means
+## Incomplete and irregular records
 
-Clustering uses TF-IDF over whole normalized skill and interest tags such as `skill_machine_learning`. A saved vectorizer preserves the training vocabulary and transformation. Domain category labels are not given to K-Means.
+Naturally incomplete test records are evaluated separately from complete records. These groups have different label distributions, so this comparison alone does not show that missingness causes a metric change.
 
-For k from 2 to 10, train K-Means with seed 42 and n_init=10. Record silhouette and inertia. Select the highest silhouette. These are internal clustering diagnostics, not an external accuracy score.
+A separate stress experiment masks 0%, 10%, 30%, 50% and 100% of input fields, keeping test labels unchanged. At each rate we report coverage, abstentions and performance only on supported rows. This avoids hiding the cost of refusing predictions. At 100% masking, all 11,175 profiles abstain; no accuracy/F1 is claimed for zero predictions.
 
-At inference, use the nearest two clusters and expand candidates when tags overlap, allowing multidisciplinary matches. Rank at most 200 candidates from a bounded pool of 2,000 database records. The UI returns up to 12 candidates meeting the classifier’s 0.5 decision threshold, rather than recommending a model-predicted negative. An empty result points to manual browsing. This is suitable for a demonstration, not an exhaustive large-campus index. Unknown-only profile vocabulary produces an honest empty result.
+Constructed parser tests cover nulls, duplicate/case variants, aliases, negative years, nonnumeric values, infinity, missing schemas and unknown technology names. They are clearly labelled tests, not original survey rows. API validation rejects malformed inputs, while offline ingestion records invalid values as missing for an audit.
 
-## Random Forest
+## Live reciprocal discovery and explanations
 
-There are two classifiers: student–student and student–project. The latter is also used for project-owner teammate recommendations, comparing each candidate **to the actual project requirements**.
+An example: A has used Python and wants JavaScript; B has used JavaScript and wants Python. Explanations show both intersections. Having used a technology does not establish proficiency or teaching ability; users discuss that themselves.
 
-Each uses 180 trees, maximum depth 10, minimum leaf size 3, balanced class weights, seed 42 and one CPU thread. Hyperparameters are fixed before evaluation. This model handles nonlinear feature combinations and bounded structured data, and its feature importances aid inspection. They do not establish causation.
+Discovery score = 100 × (0.35 × A-interest coverage by B + 0.25 × B-interest coverage by A + 0.25 × current-technology Jaccard similarity + 0.15 × learned preference affinity).
 
-## Evaluation design
+These weights are transparent product choices, **not labels used to train RF** and not statistically optimized social-ranking results. Learned affinity averages A's predicted preference for B's listed languages, with unsupported targets contributing zero. This creates an explicit scope limitation. Candidate retrieval uses K-Means and expands for observed comparisons. Existing connections, ignored people and inactive accounts are excluded.
 
-Randomly splitting pair rows can put the same student in training and testing. We instead partition student IDs first (75%/25%), then keep only pairs whose endpoints both belong to the corresponding partition. Cross-partition pairs are excluded.
+Explanations come from current profiles. Model-predicted interests are labelled separately from stated interests. Missing/unsupported source technology profiles receive no ML score. Candidate profiles without supported current technologies are omitted. The UI shows input completeness, which is not model confidence.
 
-For student–project classification, both student IDs and project IDs are separately disjoint. The held-out set is not used to fit the Random Forest or its imputer. Both labels must be present or training stops.
+Project suggestions use observed requirement coverage. Activity suggestions use separate community interests/location. Neither is falsely presented as a supervised outcome model.
 
-Report accuracy, precision, recall, F1, confusion matrices, training/test counts, class prevalence and two baselines: always-majority and a skill-similarity/coverage threshold. Accuracy alone is misleading for imbalanced labels.
+## Reproducibility and limitations
 
-Ranking precision/recall/NDCG at 5 is calculated only within held-out labeled candidates per query, for queries with at least two candidates and a positive label. Precision divides by the number actually retrieved if fewer than five exist. This is **not a full-catalog, end-to-end retrieval evaluation**.
+Run `python -m ml.train --download` in Codespaces. The bundle persists the fitted encoder, clusters, classifier, targets, threshold, provenance and dependency versions. Report JSON stores parameter trials, split sizes, source audit, test/baseline metrics, curves and robustness results. A local split manifest records IDs/groups; source-derived rows are available as CSV/Excel through `python -m ml.export_data`.
 
-K-Means and TF-IDF are fitted on the full unlabeled profile table for descriptive clustering. Their output is not a supervised feature. Consequently the reported classifier holdout metrics remain independent of clustering, but do not evaluate the full candidate-generation pipeline on unseen people. A future external evaluation must fit candidate-generation artifacts only on its training population.
-
-A single fixed entity split is used; cross-validation and confidence intervals are not claimed. Future work should use repeated entity/group-disjoint splits when real labels are sufficient. Related synthetic project scenarios may appear on both sides despite disjoint IDs, limiting generalization claims.
-
-## Offline training and inference
-
-```bash
-python dataset/generate_synthetic_datasets.py
-python ml/train.py
-# Or train from equivalent CSV tables:
-python ml/train.py --format csv
-```
-
-Outputs:
-
-- `ml/models/recommender.joblib`: vectorizer, K-Means, two RF pipelines, feature lists and metadata.
-- `ml/evaluation/metrics.json`: actual measured metrics, versions and input-file hashes.
-
-The bundle is generated in GitHub Actions and committed for deployment. Input hashes identify the exact training workbooks. Spreadsheet container timestamps may vary between regeneration runs even when rows and seeds match, so reproducibility means identical data values and metrics under the pinned environment, not necessarily byte-identical XLSX files.
-
-The API loads artifacts once per process and checks schema and scikit-learn version. Missing/incompatible artifacts return HTTP 503. It never trains on a recommendation request or invents fallback percentages. Only trusted, repository-generated Joblib files should be loaded.
-
-## Explanations and cold start
-
-Reasons list actual shared skills/interests, required skills matched/missing, domain/type agreement and sufficient hours. These are **feature comparisons**, not SHAP explanations or claims that a specific reason caused the score.
-
-New students can receive content-based recommendations without interaction history after completing skills/interests. An incomplete profile or unsupported vocabulary produces guidance to add information or browse manually.
-
-## Replacing synthetic labels
-
-The app records genuine saved/ignored/view interactions, applications, membership decisions and feedback from verified shared completed projects. A click, ignored card or accepted invitation is not automatically a positive/negative compatibility label.
-
-Before training on real data: obtain consent, define a stable outcome and observation window, remove direct identifiers from exported training data, distinguish unobserved outcomes from negatives, review class balance, use temporal/entity separation and retain provenance. Start with explicitly consented completed-project collaboration ratings, with a documented threshold and human review. Train offline and compare to baselines before publishing an updated artifact. No online retraining occurs now.
-
-## Limitations
-
-- All current labels come from an explicit synthetic rubric. Perfect scores can reflect learning its simple rules.
-- The generator's technical pools influence apparent cluster structure. The resulting seven groups are not evidence of seven natural groups at a university.
-- Sparse held-out positives and reused scenario families restrict conclusions.
-- Shared technical interests do not measure communication, reliability, teamwork or inclusion.
-- Match scores are uncalibrated model outputs, not established success probabilities.
-- Vocabulary coverage and candidate caps can omit relevant students.
-- No real-user study, fairness study, probability calibration, longitudinal evaluation or production load test has been performed.
-
-These limitations belong in the viva/report, next to the metrics.
+This is one fixed grouped holdout, not repeated cross-validation or a causal user study. The self-selected survey is not representative of all students/community members. We cannot evaluate successful social connections from it. The whole ranking needs consented real interaction outcomes, user feedback and a separate evaluation protocol before stronger claims.

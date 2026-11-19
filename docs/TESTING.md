@@ -1,50 +1,35 @@
-# Verification
+# Verification in Codespaces
 
-Community activity checks cover individual profiles without academic/technical fields, organization-optional publishing, organizer-only editing/deletion/participant lists, concurrent last-place joins, retry deduplication, leaving/rejoining, shrinking capacity, expired activities, legacy records, interest normalization, location preferences, exclusion rules and independence from ML artifacts. Browser checks cover publishing, a second community account saving interests, dashboard explanations, joining/leaving, organizer edits and desktop/mobile screenshots. See `docs/ACTIVITIES.md` for a two-account demonstration.
-
-The automated workflow is [Project checks](https://github.com/majorproject4224-max/final-year-project/actions/workflows/ci.yml). It runs in GitHub's cloud environment. Application dependencies and the application are not required on the office laptop.
-
-## What is tested
-
-- Django system checks and public health/readiness behavior.
-- Registration, weak/duplicate credentials, JWT rotation/reuse, logout and password-change revocation.
-- Profile validation, contact visibility, anonymous access, pagination and malformed JSON.
-- Project ownership, applications, completed-project feedback, invitations and concurrent approvals for the last slot.
-- Multiple conversations per student, duplicate-safe message retries, history/read state, outsider access, removed connections, WebSocket origin validation and one-use tickets.
-- Chat attachment format/size/count checks, image re-encoding, private download permissions, shared storage budget and no partial messages on failure. Two-browser checks cover live images/documents, download contents, image viewer, lost-upload-response retries, history after reload and mobile chat layout.
-- All three recommendation types, cold start, missing artifacts, ordered scores and no classifier training during API requests.
-- Excel/CSV loading, normalization, duplicate/reference validation, entity-disjoint splits, shared feature calculations, saved K-Means/RF inference and résumé parsing.
-- React production build.
-- Chromium journey through registration/profile, recommendations, connections, project application/team formation, two-user live chat, read receipts, events and mobile navigation.
-
-These are functional checks. They are not a real-user study, penetration test, accessibility certification or production load test.
-
-## Local or Codespaces commands
-
-Only on a personal laptop or in Codespaces. Set `MONGODB_DATABASE=connect_ai_test`, `RUN_MONGO_TESTS=1`, `DJANGO_DEBUG=1`, `API_THROTTLING_ENABLED=0`, and a disposable MongoDB replica-set URI plus Redis URL. Database tests **drop that test database** before each case and refuse other database suffixes.
+No application dependencies or tests need to run on the office laptop.
 
 ```bash
-python dataset/generate_synthetic_datasets.py
-python ml/train.py
-python backend/manage.py check
-python backend/manage.py test platform_api config --verbosity 2
-python -m unittest discover -s tests -v
-npm ci --prefix frontend
-npm run build --prefix frontend
+bash scripts/start-data.sh
+bash scripts/cloud-verify.sh
 ```
 
-Use the virtual-environment Python path from SETUP if it is not activated.
+The verification script uses a new database ending in `_test`, Redis database 15 and separate app ports 8001/5174. It does not reset the demonstration database. It runs preprocessing/model/resume checks, MongoDB/Redis API and permission tests, the production frontend build, full browser journeys, the presentation walkthrough, and the new survey/missing-field evidence checks. It stops the servers it started. Test output/screenshots are in ignored `test-results/`.
 
-The browser journey additionally needs Playwright/Chromium in the test environment, seeded fictional data and running backend/frontend processes. The exact setup is in `.github/workflows/ci.yml`; it includes clearly disposable CI-only credentials. Never use those credentials on a public deployment.
+Browser checks need Playwright in the Codespace (already included in the existing verification environment). For a fresh Codespace, use the same official package/browser setup as `.github/workflows/ci.yml`.
 
-## Verified package checkpoint
+## Coverage
 
-[Run 44099277272](https://github.com/majorproject4224-max/final-year-project/actions/runs/44099277272) passed on 2026-11-17: 12 Django/API/Channels tests, 10 ML/resume tests, the React production build, the complete browser journey, and the same 10 model/preprocessing tests against the committed artifacts on Windows. Later source formatting does not change these test expectations; check the latest workflow for the final commit.
+- Original-column validation; CSV/Excel parity; missing labels excluded.
+- Nulls, duplicate technology names, aliases, punctuation and invalid numeric values.
+- Training-only vocabulary/median; duplicate input groups cannot cross splits.
+- Saved model checksum/provenance, shared encoder and finite predictions.
+- Empty and unseen profiles abstain; reciprocal explanations use actual intersections.
+- Authentication, refresh/logout, ownership, project capacity, invites and feedback.
+- Activities, individual organizers, joining/location filters and separate interests.
+- Chat permission checks, WebSockets, attachment validation and privacy.
+- Profile field mapping, actual metrics page, empty-profile UI and responsive layouts.
 
-## Evidence and troubleshooting
+Constructed unit-test and browser fixtures are explicitly fictional. They are not fed into the model training script. Statistical tests are separate from application tests; a passing app test does not establish social recommendation quality.
 
-Each successful backend test stage uploads `trained-model-and-datasets`: generated tables, bundle, metrics and the Linux dependency lock. Browser runs upload `browser-checks`: screenshots, trace and server logs. A failed browser run saves `failure.png` before exiting. Artifacts expire after seven days; selected demonstration screenshots and the trained artifacts are committed separately.
+The committed model is checked by the unit tests. To reproduce statistical training in the cloud:
 
-The first cloud passes uncovered missing test-package initialization, an incorrect authentication status code and accessible form-label wiring; fixes were made before final verification. The current workflow result is the authoritative status for the checked-out commit.
+```bash
+.venv/bin/python -m pip install -r ml/requirements-training.txt
+.venv/bin/python -m ml.train --download
+```
 
-Model metrics and their exact provenance are in [RESULTS.md](RESULTS.md). No results should be copied from an older experiment or described as real-world accuracy.
+CI independently downloads the checksum-pinned original data and trains offline. Its generated reports are workflow artifacts; it does not silently rewrite published README metrics.

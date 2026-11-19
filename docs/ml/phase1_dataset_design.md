@@ -1,7 +1,7 @@
-# Dataset design
+# Dataset design decision
 
-The original Phase 1 dataset design has been superseded by the implemented, provenance-tracked four-table dataset.
+The former synthetic student/pair datasets are retired and removed from the active tree. Their generation and metrics remain only in Git history.
 
-See [ML methodology and dataset card](../ML_METHODOLOGY.md), [actual results](../RESULTS.md) and [the reproducible generator](../../dataset/generate_synthetic_datasets.py).
+The active source is the original Stack Overflow Developer Survey 2024. See [dataset provenance](../../dataset/README.md), [methodology](../ML_METHODOLOGY.md) and [measured results](../RESULTS.md).
 
-The active artifacts are `students`, `projects`, `matching_data` and `project_matches`, each in CSV and Excel. The active model is `ml/models/recommender.joblib`. Earlier separate clustering/classifier artifacts remain only in Git history.
+The supervised target is a respondent's recorded desired programming languages. There are no observed friendship or project-success labels in this source. We therefore do not train or report a supervised compatibility classifier.

@@ -96,7 +96,7 @@ In PowerShell, enter a private password without printing it:
 
 ```powershell
 $env:DEMO_PASSWORD = Read-Host 'Choose a password for fictional demo accounts' -MaskInput
-.\.venv\Scripts\python.exe backend/manage.py seed_demo
+.\.venv\Scripts\python.exe backend/manage.py prepare_presentation --apply --password-env DEMO_PASSWORD
 Remove-Item Env:DEMO_PASSWORD
 ```
 
@@ -107,11 +107,11 @@ In Codespaces/Linux:
 ```bash
 read -rs -p "Choose a demo password: " DEMO_PASSWORD
 export DEMO_PASSWORD
-.venv/bin/python backend/manage.py seed_demo
+.venv/bin/python backend/manage.py prepare_presentation --apply --password-env DEMO_PASSWORD
 unset DEMO_PASSWORD
 ```
 
-Use at least 8 characters and avoid common passwords. Accounts are `demo1@example.invalid` through `demo21@example.invalid`. The command adds 12 fictional projects. Re-running does not overwrite existing profiles or passwords. Do not seed these accounts into a public production database.
+Use at least 8 characters and avoid common passwords. The five fictional Indian-name accounts and five projects are listed in [PRESENTATION.md](PRESENTATION.md). Re-running does not overwrite existing profiles or passwords. Do not seed these accounts into a public production database.
 
 ### Without Docker on a personal laptop
 
@@ -121,11 +121,11 @@ Use an Atlas free database as described in the deployment guide. Put its connect
 
 `backend/requirements.txt` pins application packages and works across operating systems. `backend/requirements-lock.txt` records the full **Linux/Python 3.12** cloud environment for Render. Do not install that Linux lock file directly on Windows (`uvloop` is Unix-only).
 
-The checked-in `ml/models/recommender.joblib` is ready for inference. Regeneration is optional:
+The checked-in `ml/models/survey-recommender.joblib` is ready for inference. Regeneration is optional:
 
 ```powershell
-.\.venv\Scripts\python.exe dataset/generate_synthetic_datasets.py
-.\.venv\Scripts\python.exe ml/train.py
+.\.venv\Scripts\python.exe -m pip install -r ml/requirements-training.txt
+.\.venv\Scripts\python.exe -m ml.train --download
 ```
 
 Keep model and scikit-learn versions aligned. Training with another version requires rebuilding the artifact and rerunning checks.
@@ -136,7 +136,7 @@ Keep model and scikit-learn versions aligned. Training with another version requ
 |---|---|
 | Database unavailable | Docker/Atlas is running, URI is correct, Atlas access list includes your IP |
 | Transactions require a replica set | Run the replica-set initialization above; a standalone MongoDB is insufficient |
-| Recommendations empty | Complete profile; create/seed other students and open projects; unknown skills may be outside the training vocabulary |
+| Recommendations empty | Complete profile; create/seed other students and open projects; unknown technologies may be outside the survey training vocabulary |
 | Recommendations temporarily unavailable | Model bundle exists and scikit-learn matches its metadata |
 | Chat unavailable | Connection must be accepted; Redis must run if configured; use port 5173 |
 | Site cannot contact backend | Start both terminals; remove production frontend env values while using the local proxy |

@@ -10,11 +10,11 @@ flowchart LR
   Services --> Mongo[("MongoDB: permanent records")]
   Channels --> Mongo
   API --> ML["Recommendation inference service"]
-  ML --> Artifacts["Saved TF-IDF, K-Means and Random Forest"]
+  ML --> Artifacts["Saved survey encoder, K-Means and preference Random Forest"]
   API --> Redis[("Redis-compatible channel layer and cache")]
   Channels <--> Redis
   Training["Offline Pandas / scikit-learn training"] --> Artifacts
-  Dataset["Reviewed Excel / CSV data"] --> Training
+  Dataset["Verified original Stack Overflow 2024 survey"] --> Training
 ```
 
 The API and Channels share one Django/ASGI application. ML inference is an internal Python service. There is no second ML server and no training inside request handlers.
@@ -42,7 +42,7 @@ This preserves the existing document architecture while making MongoDB transacti
 | `attachments.py` | Bounded multipart uploads, file validation, image sanitization and metadata |
 | `recommendations.py` | Three authenticated recommendation endpoints |
 | `services/recommendations.py` | Model loading, candidate generation and inference |
-| `ml/features.py` | Normalization, pair features and actual comparison explanations |
+| `ml/survey.py`, `ml/discovery.py` | Shared survey encoder, reciprocal comparisons and explanations |
 | `ml/train.py` | Offline training, evaluation and persistence |
 
 One Django domain app is split into meaningful modules rather than many near-empty apps. Views do input/output handling; shared membership and ML logic lives in services. Small serializers remain explicit.
@@ -69,7 +69,7 @@ erDiagram
 | Collection | Main fields / invariant |
 |---|---|
 | users | `_id, name, email, password_hash, is_active`; unique normalized email |
-| profiles | unique `user_id`; normalized skills/interests arrays, academic/domain/experience details, hours, privacy setting |
+| profiles | unique `user_id`; languages, databases, frameworks, platforms, coding years, wanted languages; separate community/contact settings |
 | connections | unique scalar `pair_key`, requester/recipient IDs, Pending/Accepted |
 | projects | owner ID, member-ID array, requirements, status, capacity and timestamps |
 | applications | unique project/user pair, decision and timestamps |

@@ -21,14 +21,17 @@ def finish(fig, name):
 
 
 def table_figure(title, columns, rows, name, highlight=None):
-    fig, ax = plt.subplots(figsize=(13, max(3.5, len(rows) * 0.54 + 1.4)))
+    width = max(16, 132 // len(columns))
+    wrapped = [[textwrap.fill(str(value), width=width, break_long_words=True) for value in row] for row in rows]
+    heights = [1] + [max(value.count("\n") + 1 for value in row) for row in wrapped]
+    fig, ax = plt.subplots(figsize=(13, max(3.5, sum(heights) * 0.4 + 1.8)))
     ax.axis("off")
     ax.set_title(title, fontsize=16, loc="left", pad=22, weight="bold")
-    table = ax.table(cellText=rows, colLabels=columns, loc="center", cellLoc="left")
+    table = ax.table(cellText=wrapped, colLabels=columns, loc="center", cellLoc="left")
     table.auto_set_font_size(False)
     table.set_fontsize(10)
-    table.scale(1, 2.0)
     for (r, c), cell in table.get_celld().items():
+        cell.set_height(0.85 * heights[r] / sum(heights))
         cell.set_edgecolor("#e2e8f0")
         if r == 0:
             cell.set_facecolor(BLUE)

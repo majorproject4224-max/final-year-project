@@ -58,14 +58,17 @@ def recommend_people(bundle, source, candidates):
     if not encoder.supported(source):
         return [], {"profile_quality": quality, "detail": "Add technologies you have used in My profile. Empty or unsupported profiles do not receive ML scores."}
     source_vector = encoder.cluster_matrix([source])
-    nearest = np.argsort(bundle["clusters"].transform(source_vector)[0])[:2]
+    group_count = min(2, max(1, bundle["clusters"].n_clusters - 1))
+    nearest = np.argsort(bundle["clusters"].transform(source_vector)[0])[:group_count]
     estimates = preference_estimates(bundle, source)
     results = []
+    matrix = encoder.cluster_matrix(candidates) if candidates else None
+    cluster_ids = bundle["clusters"].predict(matrix) if candidates else []
     for index, candidate in enumerate(candidates):
-        if not encoder.supported(candidate):
+        if not matrix[index].nnz:
             continue
         comparison = compare_people(source, candidate, estimates)
-        cluster = int(bundle["clusters"].predict(encoder.cluster_matrix([candidate]))[0])
+        cluster = int(cluster_ids[index])
         # Explicit reciprocal links can cross clusters; unlike similar-only discovery.
         if cluster not in nearest and not comparison["observed_overlap"]:
             continue

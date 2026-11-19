@@ -2,141 +2,173 @@
 
 **AI/ML-Based Social Connection Recommendation Platform**
 
-[![Project checks](https://github.com/majorproject4224-max/final-year-project/actions/workflows/ci.yml/badge.svg)](https://github.com/majorproject4224-max/final-year-project/actions/workflows/ci.yml)
+ConnectAI helps people discover technology learning partners, form project teams, message accepted connections, and organize community activities. The frontend is React; the backend is Django REST Framework and Channels; MongoDB stores application records.
 
-ConnectAI helps people discover potential collaborators, build project teams and take part in community activities. It brings profiles, skills, interests, connection requests, projects, private messaging and personalized suggestions into one platform.
+The revised ML system uses **original Stack Overflow Developer Survey 2024 responses**, downloaded from the publisher and verified by SHA-256. It does **not** train on generated students, fictional accounts or hand-written compatibility labels.
 
-The platform is open to **students, developers, individuals, clubs, NGOs and other community organizations**. Anyone with an account can organize an activity, including a volunteer drive, workshop or meetup. Academic details and an organization name are optional; people can create an interest-based profile without technical skills.
+## What problem does this version solve?
 
-Developed as a **B.Tech CSE major project**, ConnectAI combines a working collaboration platform with an explainable, reproducible machine-learning pipeline. The current ML models focus on technical profiles and projects. Community activity suggestions use a separate interest-matching method.
+Finding someone with similar skills is useful, but it can miss a learning exchange: you want to use a technology another person has used, while you have used something they want to explore. ConnectAI adds **reciprocal learning discovery**, with explanations in both directions and visible handling of incomplete profiles.
 
-**The bundled ML datasets and presentation accounts are fictional.** Match percentages are model estimates learned from documented synthetic labels, not validated probabilities of successful real collaboration. Training spreadsheets are separate from the live application database.
+This is a project-specific application of established recommendation ideas, not a claim to have invented a new ML algorithm. See [references and comparison](docs/REFERENCES.md).
 
-## What you can do
+**What the ML claim means:** Random Forest predicts respondents' stated future language preferences. K-Means groups technology profiles. A transparent ranking combines these with actual profile comparisons. The survey contains no friendship/team-success labels, so a discovery score is **not** a validated probability of successful collaboration.
 
-1. **Create your profile:** add interests, optional skills, availability and a city. Academic information is optional.
-2. **Find and connect with people:** browse profiles, review recommendations and send connection requests.
-3. **Build a project team:** publish a project, apply to join, invite collaborators and manage membership and project status.
-4. **Communicate:** chat with accepted connections and share private images and documents.
-5. **Organize or join an activity:** publish a drive, workshop, meetup, sports or cultural activity and discover opportunities related to your interests.
+## Original dataset and profile attributes
 
-For example, an individual can organize a tree-plantation drive and tag it with **Gardening** and **Environmental conservation**. People who select those interests can see it in **Activities for you**, review why it was suggested and join. The same workflow supports food-distribution drives, photography meetups and coding workshops. See the [community activity guide](docs/ACTIVITIES.md).
+Source: [official Stack Overflow survey archive](https://github.com/StackExchange/Survey/tree/main/packages/archive/2024), [2024 methodology](https://survey.stackoverflow.co/2024/methodology). Data: **65,437 real responses, 114 columns**. The current experiment uses 55,752 eligible respondents. The respondents are anonymous survey records, not registered ConnectAI users.
 
-## Start here
+| Website technology field | Original source column | Role |
+|---|---|---|
+| Languages used | LanguageHaveWorkedWith | Input |
+| Databases used | DatabaseHaveWorkedWith | Input |
+| Web frameworks used | WebframeHaveWorkedWith | Input |
+| Cloud platforms used | PlatformHaveWorkedWith | Input |
+| Coding years, including education | YearsCode | Input |
+| Languages wanted for the coming year | LanguageWantToWorkWith | Real supervised target; explicit preference at serving time |
 
-- **Presentation:** [Five fictional Indian-name accounts, projects and a demonstration walkthrough](docs/PRESENTATION.md).
-- **Office laptop / no local installations:** [Use GitHub Codespaces in your browser](docs/SETUP.md#browser-only-development).
-- **Personal laptop:** [Windows setup and run instructions](docs/SETUP.md#personal-windows-laptop).
-- **Community activities:** [Individual organizers, interest matching and joining activities](docs/ACTIVITIES.md).
-- **Deployment plan:** [Vercel + Render + MongoDB Atlas guide](docs/DEPLOYMENT.md). Provider choices, database setup and current free-tier limits must be reviewed with the owner before deployment.
-- **Understand the code:** [Architecture](docs/ARCHITECTURE.md), [API reference](docs/API.md), [beginner learning guide](docs/LEARNING.md).
-- **College report / viva:** [Project report](docs/PROJECT_REPORT.md), [ML methodology](docs/ML_METHODOLOGY.md), [measured results](docs/RESULTS.md), [demonstration script](docs/DEMO.md).
+Name, authentication and contact details are operational account fields, never ML features. Interests for volunteering and meetups are separate community settings. Academic year, invented experience levels and generated domain categories no longer determine people recommendations.
 
-### Run in an existing Codespace
+Data/derived tables © Stack Exchange, Inc., under [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/); individual contents under DbCL 1.0. See [dataset provenance, checksum and preprocessing](dataset/README.md).
 
-After the included development environment has finished setting up, run these commands from the repository root:
+## Architecture
+
+```mermaid
+flowchart TD
+    Raw[Original survey CSV + schema + checksum] --> Clean[Validate / normalize / preserve missingness]
+    Clean --> Split[Group-disjoint train / validation / test]
+    Split --> Encoder[Fit vocabulary and numeric imputer on train only]
+    Encoder --> KM[K-Means: technology groups]
+    Encoder --> RF[Random Forest: wanted-language preferences]
+    KM --> Saved[Saved Joblib bundle + measured reports]
+    RF --> Saved
+    React[React website] -->|JWT / REST| API[Django REST Framework]
+    API --> DB[(MongoDB)]
+    API --> Service[Discovery service]
+    Saved --> Service
+    Service --> Rank[Reciprocal comparison + explained ranking]
+    Rank --> React
+    React <-->|WebSocket| Chat[Django Channels]
+    Chat <--> Redis[(Redis)]
+    Chat --> DB
+```
+
+Training is offline; requests only load the saved model. Full [architecture and database design](docs/ARCHITECTURE.md).
+
+## Real preprocessing evidence
+
+The original file contains **5,692** missing language-use answers, **15,183** missing database answers, **20,276** missing framework answers, **23,071** missing platform answers, **5,568** missing coding-years answers and **9,685** missing target answers.
+
+- Unanswered target fields are excluded from supervised training, not converted into negative labels.
+- Semicolon lists are trimmed, case-normalized and deduplicated; documented aliases share a token.
+- Missing numeric input uses the **training median of 11 years**, with a separate missing-value indicator.
+- Invalid numeric values become missing during data ingestion; the API rejects invalid numbers.
+- Identical normalized input profiles stay in one split. The encoder never learns vocabulary or statistics from test data.
+- Artificial malformed-input and masking tests are labelled separately. The original source had **zero nonmissing invalid YearsCode values**; we do not invent corruption in the source.
+
+![Original missing values](docs/evidence/survey2024/01-original-missing-values.png)
+![Actual preprocessing examples](docs/evidence/survey2024/02-preprocessing-examples.png)
+
+## Measured training parameters and results
+
+Full original-release experiment, seed 42, Python/scikit-learn in Codespaces. Splits: **33,415 training**, **11,162 validation**, **11,175 test** respondents, with no shared normalized input groups. The 16 target languages are selected by frequency/support **from training data only**.
+
+Selected Random Forest parameters: **160 trees**, **maximum depth 20**, **minimum leaf size 5**, **threshold 0.35**, `max_features=sqrt`. Selection maximizes validation micro F1; the test set is not used to select parameters.
+
+![Highlighted validation parameter comparison](docs/evidence/survey2024/04-parameter-selection.png)
+![Measured learning curve](docs/evidence/survey2024/05-learning-curve.png)
+
+Random Forest has no neural-network epochs. The learning curve measures performance at increasing training-set sizes. The parameter table compares tree counts, depth, leaf size and runtime.
+
+| Held-out method | Accuracy per language | Precision | Recall | Micro F1 | Probability MSE | RMSE |
+|---|---:|---:|---:|---:|---:|---:|
+| Random Forest | 84.26% | 0.6688 | 0.7262 | 0.6963 | 0.1154 | 0.3396 |
+| Training-frequency baseline | 66.66% | 0.3868 | 0.5838 | 0.4653 | 0.1717 | 0.4143 |
+| Continue currently used languages | 84.07% | 0.6529 | 0.7657 | **0.7048** | 0.1593 | 0.3992 |
+
+**Interpretation:** the forest has lower probability error and slightly higher per-label accuracy, but the continuation baseline has better F1, recall and exact-profile accuracy. We do not claim universal superiority. Whole-profile exact accuracy for the forest is **17.61%**, distinct from per-language accuracy. There are many negative labels; accuracy alone is insufficient.
+
+Of **178,800 person-language decisions**, **150,664 are correct** and **28,136 are wrong**: correct:wrong ≈ **5.35:1**. These are preference decisions, not successful/failed connections. MSE = mean((predicted probability − actual 0/1 answer)²); RMSE = √MSE.
+
+![Correct/wrong counts and confusion matrix](docs/evidence/survey2024/06-test-correct-wrong.png)
+
+K-Means selects **k=2** from 2, 3, 4, 5, 6, 8, 10 using validation silhouette (0.0668). Test silhouette is **0.0633**, indicating weak cluster separation. We do not assign invented expert/domain names to these groups. Explicit reciprocal matches may cross groups.
+
+![Silhouette and elbow analysis](docs/evidence/survey2024/03-cluster-selection.png)
+
+### Missing and irregular data behavior
+
+| Deliberately hidden input fields | Supported-profile coverage | Micro F1 on supported profiles | Abstentions |
+|---|---:|---:|---:|
+| 0% | 100% | 0.6963 | 0 |
+| 10% | 99.11% | 0.6651 | 100 |
+| 30% | 95.71% | 0.5894 | 479 |
+| 50% | 86.98% | 0.5066 | 1,455 |
+| 100% | 0% | No prediction | 11,175 |
+
+These are **artificial stress tests on held-out inputs**, not claims about additional source corruption. Naturally incomplete test profiles are evaluated separately. An empty or completely unsupported live technology profile receives guidance to add information, not a made-up score.
+
+![Executed irregular-input checks](docs/evidence/survey2024/09-irregular-input-checks.png)
+![Natural missingness results](docs/evidence/survey2024/10-natural-missingness.png)
+
+[Complete measured results and figures](docs/RESULTS.md) · [machine-readable metrics](ml/evaluation/survey2024/metrics.json) · [methodology and metric explanations](docs/ML_METHODOLOGY.md) · [teacher demonstration walkthrough](docs/TEACHER_DEMO.md)
+
+## Website evidence
+
+Screenshots below come from browser checks of the real application using **fictional UI test accounts**. Those accounts are never model-training or evaluation data.
+
+![Reciprocal learning dashboard](docs/screenshots/survey-dashboard.png)
+![Dataset-aligned profile form](docs/screenshots/survey-profile.png)
+![Measured-method page](docs/screenshots/survey-method.png)
+![Empty-profile behavior](docs/screenshots/survey-empty-profile.png)
+
+## Platform workflows
+
+| Area | Implemented behavior |
+|---|---|
+| Accounts | JWT registration/login, secure password hashing, refresh rotation, logout |
+| People | Technology profiles, search, connection requests and reciprocal learning discovery |
+| Projects | Create, apply, invite, team formation, status and feedback |
+| Project recommendations | Explained technology coverage; no invented project-success classifier |
+| Messaging | Django Channels, one-to-one WebSockets, read state, private images/files |
+| Community | Individuals, clubs or NGOs can organize drives, workshops and meetups |
+| Activity suggestions | Explicit interest/location matching, separate from technical ML |
+| Evidence | Measured dataset audit, preprocessing examples, parameter search, baseline comparison, missing-field behavior |
+
+## Run in GitHub Codespaces
+
+No office-laptop installation is required. In the Codespace terminal:
 
 ```bash
 bash scripts/start-data.sh
 bash scripts/dev.sh
 ```
 
-Open forwarded port **5173** from the **Ports** panel. The first command starts MongoDB and Redis; the second starts the application. Keep the Codespace running while using the preview. For first-time setup or troubleshooting, follow [SETUP.md](docs/SETUP.md).
+Open forwarded **port 5173**. The checked-in verified model is ready for inference. To reproduce the experiment in the cloud:
 
-## Preview
-
-These screenshots show fictional records from an earlier automated test run; the current theme and interface labels may differ.
-
-![Dashboard with fictional test records](docs/screenshots/dashboard-desktop.png)
-
-[Mobile view](docs/screenshots/dashboard-mobile.png) · [Project team](docs/screenshots/project-team.png) · [Live chat](docs/screenshots/chat-desktop.png)
-
-## Implemented workflows
-
-| Area | Functionality |
-|---|---|
-| Accounts | Registration, login, rotating JWT refresh, logout, password changes and session revocation |
-| Profiles | Normalized skills/interests, optional academic and organization details, availability, city preferences, contact privacy and optional PDF/DOCX resume suggestions |
-| Connections | People search, profile details, connection requests, acceptance/removal |
-| Projects | Create/edit, apply/withdraw, owner decisions, invitations, capacity-safe team formation, progress and completed-project feedback |
-| Discovery | User → user, user → project and project → teammate recommendations for technical profiles/projects, with actual feature comparisons |
-| Events & activities | Individuals, clubs and organizations can publish drives, workshops and meetups; interest-based dashboard suggestions, city preferences, capacity-safe joining, editing and private participant lists |
-| Messaging | One-to-one chat, private image/file attachments, previews/downloads, persistent history, read receipts, WebSocket delivery, reconnect and duplicate-safe sending |
-| Personal space | My teams/projects, sent/received invitations and saved projects |
-
-After forming a team, members can discuss responsibilities, exchange files and update the overall project status. They can use a shared GitHub repository for code, issues and reviews. ConnectAI does not currently include a code editor or a task board.
-
-## Recommendation methods
-
-| Recommendation | Method | What the user sees |
-|---|---|---|
-| People with compatible technical profiles | K-Means candidate discovery followed by a user–user Random Forest classifier | Ranked suggestions, model scores and actual shared skills/interests |
-| Projects suited to a user | K-Means candidate discovery followed by a user–project Random Forest classifier | Project suggestions with requirement comparisons |
-| Teammates for a project | The user–project classifier compares candidates with the actual project requirements | Owner-only suggestions with skill coverage and other comparison reasons |
-| Community activities | Shared normalized interest tags and optional city/online preferences | Reasons based on shared interests and location, without an ML percentage |
-
-Activity suggestions exclude an organizer's own activities, activities already joined, full activities and past activities. An organization name is self-described, not a verification badge. The existing technical ML models are not used to predict volunteer suitability. An activity-specific model would require suitable data, defensible labels and its own evaluation.
-
-New users can receive profile-based suggestions without interaction history. Missing profile information or unsupported vocabulary produces guidance to improve the profile or browse manually. The system does not invent match scores when models or useful information are unavailable.
-
-## Machine learning
-
-- **K-Means:** TF-IDF features from normalized skills/interests; select k by silhouette over 2–10, retain inertia for analysis.
-- **Random Forest:** separate user–user and user–project classifiers, trained on synthetic technical-profile/project comparisons.
-- **Evaluation:** entities are separated between training/test sets; supervised features are recomputed from raw profiles. Reports include majority and similarity baselines, confusion matrices and ranking metrics.
-- **Artifacts:** the repository includes the offline trained bundle, Excel/CSV data and measured results. Inference loads the bundle once per process; request handlers do not train.
-
-The development dataset contains **420 fictional profiles, 84 project scenarios, 6,000 user pairs and 6,000 user–project pairs**. Labels come from a documented compatibility rubric. Evaluation measures how well the models reproduce that rubric; it does not establish real-world teamwork success. See [dataset design and methodology](docs/ML_METHODOLOGY.md) and [actual evaluation results](docs/RESULTS.md).
-
-No external AI API subscription is needed. There is no automatic online retraining, and activity matching works independently of the saved ML models.
-
-## Technology stack
-
-| Layer | Technology and purpose |
-|---|---|
-| Frontend | React, JavaScript, Vite, React Router, Axios and responsive CSS |
-| Backend | Python, Django REST Framework and domain services |
-| Database | MongoDB; explicit PyMongo domain operations with the matching official Django MongoDB backend configured for Django integration |
-| Authentication | JWT access/refresh tokens, Django password hashing and revocable sessions |
-| Live messaging | Django Channels, WebSockets and Redis for transient events; MongoDB for message history |
-| Machine learning | Pandas, NumPy, scikit-learn and Joblib; Excel and CSV input |
-| Development and checks | GitHub Codespaces, Docker data services and GitHub Actions |
-
-The API, live chat and recommendation inference share one Django/ASGI backend. Training runs separately and saves artifacts for inference. See [architecture and database decisions](docs/ARCHITECTURE.md).
-
-## Repository structure
-
-```text
-backend/       Django API, Channels, permissions and domain services
-frontend/      React pages, reusable components and API client
-ml/            Shared preprocessing, offline training, saved model and metrics
-dataset/       Reproducible generator + explicitly synthetic Excel/CSV datasets
-docs/          Setup, architecture, API, methodology, results and report
-scripts/       Development and deployment startup helpers
-tests/         ML, resume and browser journey tests
-.devcontainer/ Browser-only development configuration
+```bash
+.venv/bin/python -m pip install -r ml/requirements-training.txt
+.venv/bin/python -m ml.train --download
+.venv/bin/python -m ml.export_data
 ```
 
-## Checks
+The unchanged 159 MB CSV is stored under ignored `dataset/raw/`; checksums pin the exact original release. The export creates inspectable cleaned CSV and Excel files. The app never imports anonymous survey rows as registered people.
 
-GitHub Actions trains from the reproducible generator, checks Django, tests against a disposable MongoDB replica set and Redis, builds React, and runs a real Chromium browser journey. Test artifacts include screenshots, a browser trace, the trained model and measured metrics. See [testing instructions](docs/TESTING.md).
+For an existing demonstration database, preview then apply the idempotent upgrade of marked fictional profiles:
 
-Do not run the database tests on an important database: they deliberately reset the database and refuse names that do not end in `_test`.
+```bash
+.venv/bin/python backend/manage.py migrate_survey_profiles
+.venv/bin/python backend/manage.py migrate_survey_profiles --apply
+```
 
-## Scope and limitations
+It backs up those profiles privately, preserves accounts/connections/messages, and leaves real users to complete their own new technology fields.
 
-This is an academic prototype for social connections, project collaboration and community participation. The interface supports a broader community, while the current ML training data remains focused on technical profiles and projects.
+[Setup](docs/SETUP.md) · [testing](docs/TESTING.md) · [deployment planning](docs/DEPLOYMENT.md). Hosting/database choices still require the owner's review before deployment.
 
-There is no email verification/recovery, moderation console, organization verification, profile photo storage, group chat or presence indicator. Profiles use initials as avatars. Candidate retrieval and attachment storage are bounded for a small demonstration. Synthetic labels and related project scenarios limit what evaluation proves. Read [the ML limitations](docs/ML_METHODOLOGY.md#limitations) and [activity limitations](docs/ACTIVITIES.md#implementation-and-limits) before presenting results.
+## Limits and next steps
 
-## Next steps
+This is a B.Tech academic prototype. The survey is self-selected, self-reported, from 2024, and not a representative university cohort. Its labels describe wanted technologies, not proficiency, teaching ability or interpersonal success. Ranking weights are transparent design choices; the complete social ranking still needs a consented user study. K-Means separation is weak, and a simple baseline beats the forest on some metrics.
 
-- Review the hosting and database choices with the owner, confirm the available free tiers and deploy the frontend and backend.
-- Check the deployed connection, project, activity and messaging workflows; fix issues found on desktop and mobile.
-- Collect user feedback and, with consent, real collaboration outcomes for later offline model evaluation and improvement.
+Next: collect consented connection/collaboration outcomes, evaluate reciprocal recommendation usefulness, improve models without touching the held-out test set, and review free-hosting limits before deployment. There is no automatic online retraining.
 
-The deployment guide describes proposed services; this repository does not establish that a public deployment is live or create hosting resources. Free-tier limits and availability must be checked before provisioning.
-
-## Conceptual reference
-
-The conceptual reference is [RohitGaira/connecT-University-Social-Platform](https://github.com/RohitGaira/connecT-University-Social-Platform). This implementation uses its own React/Django/MongoDB/ML architecture. Earlier Flask, SQLite and static-site experiments were removed from the current tree to leave one supported application; they remain in Git history at `8eaf15a`.
+The official project title remains **ConnectAI: AI/ML-Based Social Connection Recommendation Platform**.

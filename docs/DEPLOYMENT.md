@@ -96,7 +96,7 @@ Vite embeds these in the browser bundle. Never put MongoDB credentials, Redis cr
 - Register two accounts and complete different profiles.
 - Create a project, apply from the other account and accept it.
 - Accept a connection and chat from two browsers, checking live delivery and history after reload.
-- Check all three recommendation types and their synthetic-model notice.
+- Check people discovery, project skill coverage, reciprocal explanations, empty profiles and the real-data model notice.
 - Check the mobile layout and direct route refresh.
 - Check service memory and usage during this small demo. No production load test has been performed.
 

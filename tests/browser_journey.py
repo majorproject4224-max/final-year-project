@@ -10,8 +10,8 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 from playwright.sync_api import sync_playwright, expect
 
-BASE = "http://127.0.0.1:5173"
-API = "http://127.0.0.1:8000/api"
+BASE = os.getenv("E2E_BASE_URL", "http://127.0.0.1:5173")
+API = os.getenv("E2E_API_URL", "http://127.0.0.1:8000/api")
 PASSWORD = os.environ["E2E_PASSWORD"]
 OUT = Path("test-results")
 OUT.mkdir(exist_ok=True)
@@ -288,13 +288,12 @@ with sync_playwright() as p:
         member_page.get_by_label("Password", exact=True).fill(PASSWORD)
         member_page.get_by_role("button", name="Create account →", exact=True).click()
         expect(member_page.get_by_role("heading", name="Welcome, Community")).to_be_visible()
-        member_page.get_by_role("link", name="My profile", exact=True).click()
-        member_page.get_by_role("button", name="Gardening", exact=True).click()
-        member_page.get_by_role("button", name="Environmental conservation", exact=True).click()
+        member_page.get_by_role("link", name="Settings", exact=True).click()
+        member_page.get_by_label("Community interests, separated by commas").fill("Gardening, Environmental conservation")
         member_page.get_by_label("City", exact=True).fill("Delhi")
-        member_page.get_by_label("Activity location preference").select_option("local")
-        member_page.get_by_role("button", name="Save profile", exact=True).click()
-        expect(member_page.get_by_role("status")).to_contain_text("Profile saved")
+        member_page.get_by_label("Activity location", exact=True).select_option("local")
+        member_page.get_by_role("button", name="Save community settings", exact=True).click()
+        expect(member_page.get_by_role("status")).to_contain_text("Community settings saved")
         member_page.get_by_role("link", name="Overview", exact=True).click()
         activity_card = member_page.locator(".activity-card").filter(
             has_text="Sunday tree plantation"

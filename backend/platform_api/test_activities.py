@@ -212,4 +212,3 @@ class ActivityTests(SimpleTestCase):
             self.client.patch(endpoint, {"title": "Past"}, format="json").status_code, 409
         )
         self.assertEqual(self.client.get("/api/events/?category=Unknown").status_code, 400)
-

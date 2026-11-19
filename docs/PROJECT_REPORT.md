@@ -1,86 +1,51 @@
-# connecT AI — AI-Powered University Social and Project Collaboration Platform
+# ConnectAI: AI/ML-Based Social Connection Recommendation Platform
 
-B.Tech Computer Science and Engineering major-project technical report.
+B.Tech Computer Science and Engineering project. Author, institution, department, guide and submission details should be completed by the project team.
 
-## 1. Introduction
+## Problem and proposed system
 
-Students often learn about potential collaborators through existing friends, class groups or chance encounters. Skills, interests, project requirements and availability are spread across messages and profiles. This project brings those details together and uses machine learning to support discovery.
+People who want to learn or build together may not know who has relevant experience or complementary learning goals. ConnectAI combines structured profiles, connections, project applications, community activities and messaging with explainable discovery.
 
-The objective is to help students find people, create teams and communicate while providing a reproducible, explainable recommendation pipeline. A match is a starting point for discussion rather than a promise of successful teamwork.
+The platform supports students and other community members. Its evaluated ML scope is technology learning preferences; it does not predict friendship success or suitability for unrelated activities.
 
-## 2. Existing system and conceptual reference
+## Reference and contribution
 
-The reference [connecT university social platform](https://github.com/RohitGaira/connecT-University-Social-Platform) demonstrates profiles, friendship, projects, teams, events and messaging. The initial repository also contained partial React/Django code alongside earlier Flask/SQLite/static experiments.
+The [connecT university social platform](https://github.com/RohitGaira/connecT-University-Social-Platform) provides a functional reference for profiles, connections, teams, projects, events and messaging. ConnectAI uses React, Django REST Framework, MongoDB and Django Channels, with an independently documented ML pipeline.
 
-The redesign preserves useful user journeys but consolidates the application into React, Django REST Framework, MongoDB and Channels. It replaces rule-only matching assumptions with separately trained models and documented labels. It addresses ownership checks, contact privacy, duplicate conversations, team capacity, session revocation and split frontend/backend configuration.
+The project's distinctive implementation is reciprocal technology learning discovery: both “what I want to learn that you use” and “what you want to learn that I use” are shown from actual profile comparisons. Source-linked fields, data completeness and measured model evidence make recommendations inspectable. Reciprocal recommendation is established research; we do not claim to invent it. See [REFERENCES.md](REFERENCES.md).
 
-## 3. Proposed system
+## Architecture and database
 
-Students create structured profiles, discover peers, send connection requests, create or apply to projects, invite teammates, attend events and chat. The dashboard integrates recommendations with feature-comparison reasons. Project owners see candidates evaluated against the project's required skills and hours.
+React calls protected Django REST APIs. MongoDB stores account/profile, connection, project/application, event/registration, conversation/message and feedback documents. JWT authenticates requests. Channels provides WebSocket delivery through Redis after messages are persisted in MongoDB.
 
-The main contribution is a hybrid recommendation pipeline with a reproducible development dataset, shared preprocessing, K-Means candidate discovery, two Random Forest ranking models, entity-disjoint evaluation and explicit disclosure of synthetic-data limitations.
+Recommendation requests load a saved model bundle. Training runs offline. A diagram and database relationship details are in [ARCHITECTURE.md](ARCHITECTURE.md). Account names and contact details are operational data and are not model features.
 
-## 4. Technology stack
+## Real dataset and preprocessing
 
-React/JavaScript with React Router, Axios and responsive CSS; Python/Django 5.2 with DRF, SimpleJWT and Django Channels; MongoDB with the official Django backend configuration and explicit PyMongo document services; Redis-compatible Channels delivery; Pandas, NumPy, scikit-learn, Joblib and openpyxl.
+The original Stack Overflow Developer Survey 2024 contains 65,437 anonymous responses. Downloads are pinned by revision and SHA-256. Inputs are languages, databases, web frameworks and platforms used, plus coding years. Recorded desired programming languages are supervised targets. Profile ML controls map these source attributes directly.
 
-The database decision and compatibility sources are documented in [ARCHITECTURE.md](ARCHITECTURE.md). The implementation does not require a paid generative-AI service.
+The data contains naturally missing values. Missing technology lists remain empty, coding years use a training-only median and a missing flag, and missing targets are excluded. Case, aliases and duplicates are normalized. Equivalent input profiles remain in one partition, preventing exact-profile overlap. The eligible cohort has 55,752 rows. [Dataset card](../dataset/README.md) and [methodology](ML_METHODOLOGY.md) document each step.
 
-## 5. System architecture
+## Models and discovery
 
-```mermaid
-flowchart TD
-  Student["Student browser / React"] --> API["Django REST API"]
-  API --> Auth["Authentication and permissions"]
-  API --> Domain["Profiles, connections, projects, events"]
-  Domain --> Database[("MongoDB")]
-  API --> Recs["Recommendation service"]
-  Recs --> KMeans["Saved TF-IDF + K-Means"]
-  KMeans --> Candidate["Candidate selection"]
-  Candidate --> RF["Saved Random Forest"]
-  RF --> Explain["Scores + real feature comparisons"]
-  Explain --> Student
-  Student <--> Channels["Channels / WebSocket"]
-  Channels <--> Redis[("Transient Redis events")]
-  Channels --> Database
-```
+K-Means groups L2-normalized technology vectors. Validation silhouette selects k=2 among seven tested values. Weak separation is reported rather than presented as meaningful fixed social categories.
 
-The ML training process runs offline and writes versioned artifacts. API requests perform inference only. Messaging is isolated from recommendation logic.
+A multi-output Random Forest predicts 16 desired-language indicators. Training/validation select tree count, depth, minimum leaf size and decision threshold. The held-out test set is used only after those choices. No synthetic compatibility labels, registered accounts or demonstration fixtures enter training.
 
-## 6. Database design
+People ranking combines observed forward/reverse learning overlaps, shared technologies and predicted preference affinity. Its weights are transparent design choices. Project recommendations use observed requirement coverage, and community activities use explicit interests/location. These latter systems are not advertised as supervised ML.
 
-Users and profiles are separated to isolate credentials. Profiles hold small normalized skill/interest arrays. A project embeds member IDs; requests and invitations remain separate records. Transactions keep decisions and membership consistent. Conversations have a scalar unique participant-pair key; messages are separate, cursor-paginated records. Events use attendee sets; feedback requires a shared completed project. See the relationship diagram and collection/index table in [ARCHITECTURE.md](ARCHITECTURE.md).
+## Evaluation and results
 
-## 7. ML methodology
+The forest has test micro-F1 0.6963, per-label accuracy 84.26%, probability MSE 0.11535 and RMSE 0.33963. Its exact-profile accuracy is 17.61%. A simple continue-current-languages baseline has slightly higher F1 (0.7048), while the forest has lower probability error. This mixed result does not establish universal superiority.
 
-The four development tables contain fictional profiles, project scenarios and labeled pairs. Labels are reproducible rubric judgments with explicit provenance. The supervised model is trained on those labels, so its current purpose is to validate the pipeline rather than establish real human compatibility.
+K-Means test silhouette is 0.0633, indicating strongly overlapping groups. All figures, correct/wrong counts, confusion matrix, learning curves, selected parameter comparisons and missing-input experiments are generated from saved real outputs in [RESULTS.md](RESULTS.md).
 
-Normalization handles case, whitespace, aliases, duplicates and missing values. Derived features include Jaccard similarities, directional skill coverage, experience and availability compatibility. K-Means selects k by silhouette; Random Forest predicts pair-level compatibility. Classifier evaluation holds out student identities, and student–project evaluation holds out project identities too.
+## Testing and limitations
 
-The complete formulas, split design, ranking scope, limitations and real-data replacement process are in [ML_METHODOLOGY.md](ML_METHODOLOGY.md).
+[TESTING.md](TESTING.md) describes reproducible cloud checks for preprocessing, inference, API permissions, invalid values, empty-profile abstention, collaboration and chat. Actual browser screenshots accompany the README.
 
-## 8. Results
+The survey is self-selected and not a representative friendship dataset. The supervised outcome is stated interest, not future collaboration. Candidate ranking lacks labeled social-outcome evaluation. Clusters overlap; missing information reduces coverage; test metrics are one fixed split. Controlled corruption tests are clearly distinguished from original missing data.
 
-Actual cloud-generated results are reproduced in [RESULTS.md](RESULTS.md) from `ml/evaluation/metrics.json`. Selected k is 7, with silhouette approximately 0.297. The student classifier has F1 approximately 0.946 on 390 held-out pairs. The student–project classifier reproduces the synthetic test rubric perfectly on 405 held-out pairs; this is a limitation of the synthetic evaluation setting, not proof of perfect real-world recommendations.
+## Future work
 
-Functional verification uses a real disposable MongoDB replica set, Redis, backend/ML checks and browser journeys. The corresponding [GitHub workflow](https://github.com/majorproject4224-max/final-year-project/actions/workflows/ci.yml) and saved artifacts make failures and successful runs inspectable.
-
-## 9. Security and validation
-
-The application hashes passwords, rotates refresh tokens, revokes sessions, restricts records by ownership/membership, validates structured inputs and enforces unique indexes. Chat requires an accepted connection, an allowed origin and a short-lived single-use ticket. Secrets belong in private environment settings. Résumé suggestions require user review before saving. Contact numbers are shared only with consent and accepted connections.
-
-The project is an academic prototype. These controls do not substitute for a full security review before institutional production use.
-
-## 10. Limitations
-
-Synthetic labels, scenario reuse, narrow skill vocabulary and small held-out positive counts limit generalization. The evaluation is a single fixed entity split; classifier metrics do not cover full-catalog candidate recall. Scores are uncalibrated. Free hosting can sleep or suspend service at limits. The current application does not include email verification/recovery, moderation, uploaded avatars, group chat or online-presence tracking.
-
-No real student data or observational results should be claimed in the final presentation.
-
-## 11. Future work
-
-Collect consented real collaboration outcomes; evaluate temporal/entity generalization and fairness; compare collaborative filtering and learned ranking; add calibrated probability estimates and better candidate retrieval; consider NLP skill extraction after building a reviewed vocabulary. Product improvements include email verification/recovery, administrator moderation, notification preferences, group conversations and storage-backed avatars.
-
-## 12. Reproduction and demonstration
-
-Follow [SETUP.md](SETUP.md) for personal-laptop or browser-only development, [TESTING.md](TESTING.md) for verification, [DEPLOYMENT.md](DEPLOYMENT.md) for the proposed free hosting setup, and [DEMO.md](DEMO.md) for a guided presentation. Deployment is a separate owner-approved activity.
+Collect consented interaction outcomes, define a defensible social-success target, evaluate candidate recall and ranking with real outcomes, compare additional models under a new evaluation protocol, and improve calibration. Production deployment requires separate hosting, moderation and security review. The current work remains a demonstrable academic prototype.
