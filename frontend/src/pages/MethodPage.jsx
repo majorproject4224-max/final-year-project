@@ -22,6 +22,12 @@ export default function MethodPage() {
     <ErrorBox message={state.error} retry={state.reload} />
     {state.loading && <p role="status">Loading measured results…</p>}
     {data && <>
+      <section className="card">
+        <h2>70% for learning, 30% for testing</h2>
+        <p>The original survey supplies {data.splits.train.rows.toLocaleString()} training responses and {data.splits.test.rows.toLocaleString()} test responses. Identical input profiles stay together, so the row percentages are approximately 70:30.</p>
+        <p>Settings are compared using a small validation portion inside the 70%. The final models then learn from the full 70%, before their final exam on the untouched 30%.</p>
+        <p>The five presentation profiles and all newly registered accounts are separate from both portions. They use the saved models to receive recommendations; signing up does not retrain a model.</p>
+      </section>
       <div className="evidence-stats">
         <article className="card"><small>Original real responses</small><strong>{data.audit.raw_rows.toLocaleString()}</strong></article>
         <article className="card"><small>Held-out accuracy per language</small><strong>{percent(data.test.per_label_accuracy)}</strong></article>
@@ -35,10 +41,10 @@ export default function MethodPage() {
           {[['Random Forest', data.test], ['Training frequency baseline', data.baselines.training_prevalence], ['Continue current languages', data.baselines.continue_current_languages]].map(([label, row]) => <tr key={label}><td>{label}</td><td>{row.f1_micro.toFixed(3)}</td><td>{row.probability_mse.toFixed(3)}</td><td>{row.probability_rmse.toFixed(3)}</td></tr>)}
         </tbody></table></div>
         <p className="muted">MSE averages the squared error between a probability and the actual 0/1 response. RMSE is its square root. Lower error is better.</p>
-        <p>The continue-current-languages baseline has slightly higher F1 than the forest. The forest has lower probability error. These are mixed results, not evidence that one method is always better.</p>
+        <p>F1 balances finding wanted languages with avoiding wrong suggestions: higher is better. Compare each method on the same test data; no method is assumed to win every measure.</p>
       </section>
       <section className="card">
-        <h2>Chosen using validation data</h2>
+        <h2>Settings chosen inside the 70% training portion</h2>
         <div className="parameter-tags">{Object.entries(data.selected_parameters).map(([key, value]) => <span key={key}>{key.replaceAll('_', ' ')}: <strong>{String(value)}</strong></span>)}</div>
         <p>K-Means: {data.clustering.selected_k} groups, selected by validation silhouette. We keep the final test data separate from parameter selection.</p>
         <p>Test silhouette: {data.clustering.test_silhouette.toFixed(3)}. This low score means the technology groups overlap substantially; they are not distinct types of people.</p>
@@ -49,7 +55,7 @@ export default function MethodPage() {
         <div className="table-scroll"><table className="evidence-table"><thead><tr><th>Artificial fields hidden</th><th>Coverage</th><th>Abstained</th><th>F1 on supported profiles</th></tr></thead><tbody>{data.artificial_masking_stress_test.map(row => <tr key={row.artificial_field_mask_rate}><td>{percent(row.artificial_field_mask_rate)}</td><td>{percent(row.coverage)}</td><td>{row.abstained_rows}</td><td>{row.metrics_supported_only?.f1_micro.toFixed(3) ?? 'No predictions'}</td></tr>)}</tbody></table></div>
         <p className="muted">This stress test deliberately hides fields. It is separate from missing values found in the original survey.</p>
       </section>
-      <section className="card"><h2>Limits of this experiment</h2><ul>{data.limitations.map(text => <li key={text}>{text}</li>)}</ul><p>Community activity suggestions use your separate interests. Project suggestions use technology coverage; neither is presented as a trained success model.</p></section>
+      <section className="card"><h2>What these measurements describe</h2><ul>{data.limitations.map(text => <li key={text}>{text}</li>)}</ul><p>Community activity suggestions use your separate interests. Project suggestions use technology coverage; neither is presented as a trained success model.</p></section>
     </>}
     <Link to="/profile">Update my technology profile →</Link>
   </>;

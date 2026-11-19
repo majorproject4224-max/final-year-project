@@ -5,7 +5,7 @@ This is a data export, not another training run. Raw bytes remain unchanged.
 import pandas as pd
 from ml.download_survey import ROOT, FILES, checksum
 from ml.survey import read_survey, PROFILE_FIELDS
-from ml.train_survey import split_rows
+from ml.train_survey import split_rows, tuning_rows
 
 
 def main():
@@ -14,8 +14,10 @@ def main():
         raise ValueError("Unverified original data")
     rows, audit, examples = read_survey(raw)
     partitions = split_rows(rows)
+    tuning = tuning_rows(partitions["train"])
+    tuning_role = {row["response_id"]: name for name, values in tuning.items() for row in values}
     split = {row["response_id"]: name for name, values in partitions.items() for row in values}
-    frame = pd.DataFrame([{"response_id": r["response_id"], **{k: ";".join(r[k]) if isinstance(r[k], list) else r[k] for k in PROFILE_FIELDS}, "split": split[r["response_id"]]} for r in rows])
+    frame = pd.DataFrame([{"response_id": r["response_id"], **{k: ";".join(r[k]) if isinstance(r[k], list) else r[k] for k in PROFILE_FIELDS}, "split": split[r["response_id"]], "tuning_role": tuning_role.get(r["response_id"], "test_not_used_for_tuning")} for r in rows])
     destination = ROOT / "dataset/processed"
     destination.mkdir(exist_ok=True)
     frame.to_csv(destination / "survey2024_profiles.csv", index=False)

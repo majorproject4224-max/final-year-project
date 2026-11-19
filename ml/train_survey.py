@@ -29,17 +29,24 @@ def save_json(path, value):
     Path(path).write_text(json.dumps(value, indent=2, allow_nan=False), encoding="utf-8")
 
 
-def split_rows(rows):
+def grouped_partition(rows, test_size, seed, names):
     groups = np.array([r["group"] for r in rows])
-    train, rest = next(GroupShuffleSplit(n_splits=1, test_size=0.4, random_state=SEED).split(rows, groups=groups))
-    validation, test = next(GroupShuffleSplit(n_splits=1, test_size=0.5, random_state=SEED + 1).split(rest, groups=groups[rest]))
-    parts = {"train": train, "validation": rest[validation], "test": rest[test]}
-    result = {name: [rows[i] for i in indices] for name, indices in parts.items()}
-    group_sets = {name: {r["group"] for r in part} for name, part in result.items()}
-    assert not group_sets["train"] & group_sets["validation"]
-    assert not group_sets["train"] & group_sets["test"]
-    assert not group_sets["validation"] & group_sets["test"]
+    left, right = next(GroupShuffleSplit(
+        n_splits=1, test_size=test_size, random_state=seed
+    ).split(rows, groups=groups))
+    result = {name: [rows[i] for i in indices] for name, indices in zip(names, (left, right))}
+    assert not {r["group"] for r in result[names[0]]} & {r["group"] for r in result[names[1]]}
     return result
+
+
+def split_rows(rows):
+    """Outer 70:30 split by identical-input group; website accounts never enter here."""
+    return grouped_partition(rows, 0.3, SEED, ("train", "test"))
+
+
+def tuning_rows(training_rows):
+    """Choose settings inside the outer 70%; never inspect the outer test set."""
+    return grouped_partition(training_rows, 0.2, SEED + 1, ("fit", "validation"))
 
 
 def target_matrix(rows, labels):
@@ -94,7 +101,11 @@ def main():
     save_json(REPORT_DIR / "data_audit.json", audit)
     save_json(REPORT_DIR / "preprocessing_examples.json", preview)
     print(f"Source {audit['raw_rows']} real responses; {len(rows)} eligible rows in run.", flush=True)
-    parts = split_rows(rows)
+    outer_parts = split_rows(rows)
+    tuning = tuning_rows(outer_parts["train"])
+    parts = {"train": tuning["fit"], "validation": tuning["validation"]}
+    selection_counts = {name: len(part) for name, part in tuning.items()}
+    print(f"Outer train/test: {len(outer_parts['train'])}/{len(outer_parts['test'])}; internal fit/validation: {selection_counts}", flush=True)
     encoder = SurveyEncoder().fit(parts["train"])
     x = {name: encoder.transform(values) for name, values in parts.items()}
     z = {name: encoder.cluster_matrix(values) for name, values in parts.items()}
@@ -108,7 +119,9 @@ def main():
     if len(labels) < 2:
         raise ValueError("Insufficient observed target support.")
     y = {name: target_matrix(values, labels) for name, values in parts.items()}
-    save_json(REPORT_DIR / "split_manifest.json", {name: {"response_ids": [r["response_id"] for r in part], "groups": sorted({r["group"] for r in part})} for name, part in parts.items()})
+    save_json(REPORT_DIR / "split_manifest.json", {name: {"response_ids": [r["response_id"] for r in part], "groups": sorted({r["group"] for r in part})} for name, part in outer_parts.items()})
+
+    save_json(REPORT_DIR / "tuning_manifest.json", {name: {"response_ids": [r["response_id"] for r in part], "groups": sorted({r["group"] for r in part})} for name, part in tuning.items()})
 
     cluster_trials, cluster_models = [], []
     valid_z = z["validation"][np.asarray(z["validation"].getnnz(axis=1)).ravel() > 0]
@@ -158,11 +171,24 @@ def main():
         b = evaluate(y["validation"], positive_probabilities(model, partial_encoder.transform(parts["validation"])), threshold)
         learning_curve.append({"train_rows": len(subset), "train_f1": a["f1_micro"], "validation_f1": b["f1_micro"]})
 
+    # Lock every selection before touching the outer test data.
+    selection_prevalence = y["train"].mean(axis=0)
+    baseline_threshold, _ = select_threshold(y["validation"], np.tile(selection_prevalence, (len(parts["validation"]), 1)))
+    # Refit preprocessing and both final models on ALL of the outer 70%.
+    parts = outer_parts
+    encoder = SurveyEncoder().fit(parts["train"])
+    x = {name: encoder.transform(values) for name, values in parts.items()}
+    z = {name: encoder.cluster_matrix(values) for name, values in parts.items()}
+    y = {name: target_matrix(values, labels) for name, values in parts.items()}
+    best_model = forest(parameters).fit(x["train"], y["train"])
+    clusters = KMeans(n_clusters=cluster_trials[best_cluster]["k"], n_init=10, random_state=SEED, max_iter=300).fit(z["train"])
+    counts = {label: int(y["train"][:, i].sum()) for i, label in enumerate(labels)}
+    print(f"Final models refitted on all {len(parts['train'])} training responses; evaluating untouched 30% test portion.", flush=True)
+
     probability = positive_probabilities(best_model, x["test"])
     test_metrics = evaluate(y["test"], probability, threshold)
     train_metrics = evaluate(y["train"], positive_probabilities(best_model, x["train"]), threshold)
     prevalence = y["train"].mean(axis=0)
-    baseline_threshold, _ = select_threshold(y["validation"], np.tile(prevalence, (len(parts["validation"]), 1)))
     baselines = {
         "training_prevalence": evaluate(y["test"], np.tile(prevalence, (len(parts["test"]), 1)), baseline_threshold),
         "continue_current_languages": evaluate(y["test"], np.array([[float(label in row["languages"]) for label in labels] for row in parts["test"]])),
@@ -190,6 +216,7 @@ def main():
     assignments = clusters.predict(test_z)
     test_silhouette = float(silhouette_score(test_z, assignments, sample_size=min(1500, len(assignments)), random_state=SEED)) if len(set(assignments)) > 1 else None
     metadata = {
+        "split_protocol": {"train_fraction": 0.7, "test_fraction": 0.3, "grouped": True, "internal_validation_fraction_of_train": 0.2, "final_refit_on_all_training_rows": True, "final_fit_rows": len(parts["train"]), "website_accounts_included": False},
         "schema_version": 3, "synthetic": False, "source": "Stack Overflow Developer Survey 2024",
         "source_sha256": FILES["results.csv"], "target": TARGET,
         "task": "Self-reported desired programming languages; not interpersonal compatibility",
@@ -199,9 +226,10 @@ def main():
     }
     report = {"metadata": metadata, "audit": audit,
         "splits": {name: {"rows": len(part), "unique_groups": len({r['group'] for r in part})} for name, part in parts.items()},
+        "validation_setup": {"inside_training_only": True, "fit_rows": selection_counts["fit"], "validation_rows": selection_counts["validation"], "final_refit_rows": len(parts["train"]), "learning_curve_scope": "Subsets of the internal fit portion, evaluated on internal validation; outer test unused."},
         "group_overlap": 0, "target_labels": labels, "target_train_support": {label: counts[label] for label in labels},
         "preprocessing": {"numeric_train_median": float(encoder.imputer_.statistics_[0]), "technology_feature_count": len(encoder.vocabulary_.vocabulary_), "feature_count": x['train'].shape[1]},
-        "clustering": {"selected_k": clusters.n_clusters, "selection": "Highest validation silhouette; ties prefer smaller k", "candidates": cluster_trials, "test_silhouette": test_silhouette},
+        "clustering": {"selected_k": clusters.n_clusters, "selection": "Highest internal-validation silhouette within the 70% training portion; then refit all 70%; ties prefer smaller k", "candidates": cluster_trials, "test_silhouette": test_silhouette},
         "parameter_search": trials, "selected_parameters": {**parameters, "threshold": threshold, "random_state": SEED, "max_features": "sqrt"},
         "train": train_metrics, "validation": best_trial["validation"], "test": test_metrics,
         "baselines": baselines, "per_label": per_label, "learning_curve": learning_curve,

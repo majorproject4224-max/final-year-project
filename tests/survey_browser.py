@@ -50,6 +50,8 @@ with sync_playwright() as p:
     page.goto(BASE + "/method")
     expect(page.get_by_role("heading", name="Real data. Explainable discovery.")).to_be_visible()
     expect(page.get_by_text("65,437", exact=True)).to_be_visible()
+    expect(page.get_by_role("heading", name="70% for learning, 30% for testing")).to_be_visible()
+    expect(page.get_by_text("The five presentation profiles and all newly registered accounts", exact=False)).to_be_visible()
     page.screenshot(path=str(OUT / "measured-method.png"), full_page=True)
     page.set_viewport_size({"width": 390, "height": 844})
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), "Method page overflows on mobile"

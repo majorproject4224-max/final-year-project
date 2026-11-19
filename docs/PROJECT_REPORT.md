@@ -36,9 +36,11 @@ People ranking combines observed forward/reverse learning overlaps, shared techn
 
 ## Evaluation and results
 
-The forest has test micro-F1 0.6963, per-label accuracy 84.26%, probability MSE 0.11535 and RMSE 0.33963. Its exact-profile accuracy is 17.61%. A simple continue-current-languages baseline has slightly higher F1 (0.7048), while the forest has lower probability error. This mixed result does not establish universal superiority.
+The final models train on 38,993 original survey responses and are tested on 16,759 different responses, using an outer grouped 70:30 split. Settings are selected inside the training portion and final models are refitted on all training rows. Five website presentation profiles and new registrations are outside both datasets.
 
-K-Means test silhouette is 0.0633, indicating strongly overlapping groups. All figures, correct/wrong counts, confusion matrix, learning curves, selected parameter comparisons and missing-input experiments are generated from saved real outputs in [RESULTS.md](RESULTS.md).
+The forest has test micro-F1 0.6969, per-language accuracy 84.39%, probability MSE 0.11406 and RMSE 0.33773. Exact-profile accuracy is 18.32%. Correct decisions: 226,278; wrong decisions: 41,866. The continuation baseline has F1 0.7051 and probability MSE 0.1580. These measures describe wanted-language prediction, not friendship success.
+
+K-Means test silhouette is 0.0611, indicating overlapping technology groups. All figures, parameter comparisons, learning curves and missing-input experiments are generated from saved real outputs in [RESULTS.md](RESULTS.md).
 
 ## Verification and measurement
 

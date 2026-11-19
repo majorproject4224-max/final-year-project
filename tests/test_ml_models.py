@@ -26,6 +26,19 @@ class SavedSurveyModelTests(unittest.TestCase):
         self.assertEqual(checksum(self.path), self.report['model_sha256'])
         self.assertEqual(self.report['group_overlap'], 0)
 
+    def test_saved_forest_was_refitted_on_all_outer_training_rows(self):
+        protocol = self.bundle["metadata"]["split_protocol"]
+        count = self.report["splits"]["train"]["rows"]
+        self.assertEqual(protocol["train_fraction"], 0.7)
+        self.assertEqual(protocol["test_fraction"], 0.3)
+        self.assertTrue(protocol["final_refit_on_all_training_rows"])
+        self.assertFalse(protocol["website_accounts_included"])
+        self.assertEqual(protocol["final_fit_rows"], count)
+        self.assertEqual(set(self.report["splits"]), {"train", "test"})
+        self.assertEqual(self.report["validation_setup"]["fit_rows"] + self.report["validation_setup"]["validation_rows"], count)
+        for tree in self.bundle["preferences"].estimators_:
+            self.assertEqual(tree.tree_.weighted_n_node_samples[0], count)
+
     def test_shared_encoder_cluster_and_rf_predictions(self):
         rows = [{'languages': ['Python'], 'databases': ['PostgreSQL'], 'years_code': 3}, {'languages': ['JavaScript'], 'frameworks': ['React'], 'years_code': None}]
         encoder = self.bundle['encoder']

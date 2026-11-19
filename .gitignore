@@ -22,3 +22,5 @@ dataset/raw/
 ml/evaluation/survey2024/split_manifest.json
 output/
 tmp/
+
+ml/evaluation/survey2024/tuning_manifest.json

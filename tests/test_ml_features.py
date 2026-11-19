@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from ml.survey import tags, years, read_survey, SurveyEncoder, FIELD_MAP, TARGET
-from ml.train_survey import split_rows, evaluate
+from ml.train_survey import split_rows, tuning_rows, evaluate
 from ml.discovery import compare_people, project_match
 
 class SurveyPreprocessingTests(unittest.TestCase):
@@ -51,10 +51,25 @@ class SurveyPreprocessingTests(unittest.TestCase):
     def test_duplicate_input_groups_never_cross_splits(self):
         rows = [{'group': str(i // 2), 'response_id': str(i)} for i in range(60)]
         parts = split_rows(rows)
-        groups = {name: {r['group'] for r in part} for name, part in parts.items()}
-        self.assertFalse(groups['train'] & groups['validation'])
-        self.assertFalse(groups['train'] & groups['test'])
-        self.assertFalse(groups['validation'] & groups['test'])
+        self.assertEqual(set(parts), {"train", "test"})
+        self.assertEqual(len(parts["train"]), 42)
+        self.assertEqual(len(parts["test"]), 18)
+        groups = {name: {r["group"] for r in part} for name, part in parts.items()}
+        self.assertFalse(groups["train"] & groups["test"])
+        self.assertEqual(parts, split_rows(rows))
+        self.assertEqual({r["response_id"] for part in parts.values() for r in part}, {r["response_id"] for r in rows})
+
+    def test_internal_validation_is_only_inside_outer_training(self):
+        rows = [{"group": str(i // 2), "response_id": str(i)} for i in range(200)]
+        outer = split_rows(rows)
+        tuning = tuning_rows(outer["train"])
+        fit = {r["group"] for r in tuning["fit"]}
+        validation = {r["group"] for r in tuning["validation"]}
+        test = {r["group"] for r in outer["test"]}
+        self.assertFalse(fit & validation)
+        self.assertFalse((fit | validation) & test)
+        self.assertEqual(fit | validation, {r["group"] for r in outer["train"]})
+        self.assertEqual(len(tuning["fit"]) + len(tuning["validation"]), len(outer["train"]))
 
     def test_reciprocal_reasons_and_project_coverage_use_real_comparisons(self):
         a = {'languages': ['Python'], 'wanted_languages': ['Rust']}

@@ -1,194 +1,175 @@
-# ConnectAI
+# ConnectAI: AI/ML-Based Social Connection Recommendation Platform
 
-**AI/ML-Based Social Connection Recommendation Platform**
+ConnectAI helps people find technology learning partners, connect, build projects, organize community activities and chat. It uses **K-Means** to group similar technology profiles and **Random Forest** to predict languages a person may want to use.
 
-ConnectAI helps people discover technology learning partners, form project teams, message accepted connections, and organize community activities. The frontend is React; the backend is Django REST Framework and Channels; MongoDB stores application records.
+## 1. Which data is used? Understand this first
 
-The revised ML system uses **original Stack Overflow Developer Survey 2024 responses**, downloaded from the publisher and verified by SHA-256. It does **not** train on generated students, fictional accounts or hand-written compatibility labels.
-
-## What problem does this version solve?
-
-Finding someone with similar skills is useful, but it can miss a learning exchange: you want to use a technology another person has used, while you have used something they want to explore. ConnectAI adds **reciprocal learning discovery**, with explanations in both directions and visible handling of incomplete profiles.
-
-This is a project-specific application of established recommendation ideas, not a claim to have invented a new ML algorithm. See [references and comparison](docs/REFERENCES.md).
-
-**What the ML claim means:** Random Forest predicts respondents' stated future language preferences. K-Means groups technology profiles. A transparent ranking combines these with actual profile comparisons. The survey contains no friendship/team-success labels, so a discovery score is **not** a validated probability of successful collaboration.
-
-## Original dataset and profile attributes
-
-Source: [official Stack Overflow survey archive](https://github.com/StackExchange/Survey/tree/main/packages/archive/2024), [2024 methodology](https://survey.stackoverflow.co/2024/methodology). Data: **65,437 real responses, 114 columns**. The current experiment uses 55,752 eligible respondents. The respondents are anonymous survey records, not registered ConnectAI users.
-
-| Website technology field | Original source column | Role |
+| Data | Purpose | Part of the 70:30 split? |
 |---|---|---|
-| Languages used | LanguageHaveWorkedWith | Input |
-| Databases used | DatabaseHaveWorkedWith | Input |
-| Web frameworks used | WebframeHaveWorkedWith | Input |
-| Cloud platforms used | PlatformHaveWorkedWith | Input |
-| Coding years, including education | YearsCode | Input |
-| Languages wanted for the coming year | LanguageWantToWorkWith | Real supervised target; explicit preference at serving time |
+| Original Stack Overflow Developer Survey 2024 | Teach and evaluate the models using real recorded answers | **Yes** |
+| Five presentation accounts: Aarav, Priya, Rohan, Ananya and Kabir | Show profiles, recommendations, connections and chat on the website | **No** |
+| Any newly registered website account | Receive recommendations from already saved models | **No** |
 
-Name, authentication and contact details are operational account fields, never ML features. Interests for volunteering and meetups are separate community settings. Academic year, invented experience levels and generated domain categories no longer determine people recommendations.
+**Training is learning from examples. Testing is the final exam. Using the website is applying what the model has learned.** Signing up does not add a person to training data or automatically retrain the models.
 
-Data/derived tables © Stack Exchange, Inc., under [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/); individual contents under DbCL 1.0. See [dataset provenance, checksum and preprocessing](dataset/README.md).
+![Survey data and website accounts are separate](docs/evidence/survey2024/00-data-separation.png)
 
-Inspect the [cleaned Excel dataset](dataset/processed/survey2024_profiles.xlsx) or [CSV export](dataset/processed/survey2024_profiles.csv). Original anonymous response IDs and split membership are retained for reproducibility.
+The original file has **65,437 responses**. After excluding unanswered target questions and profiles without current technologies, **55,752 responses** are usable.
 
-## Architecture
+- **70% training:** 38,993 responses (69.94%).
+- **30% testing:** 16,759 responses (30.06%).
+- Identical cleaned inputs stay in one group. We split the groups 70:30, so row percentages are very close to that ratio. **No identical-input group crosses the split.**
+- To choose model settings, the training portion temporarily contains 31,228 fitting rows and 7,765 validation rows. Validation is a practice check **inside the 70%**.
+- After choosing settings, both models and their preprocessing are trained again on **all 38,993 training rows**. Only then do we evaluate the 16,759 test rows.
 
-```mermaid
-flowchart TD
-    Raw[Original survey CSV + schema + checksum] --> Clean[Validate / normalize / preserve missingness]
-    Clean --> Split[Group-disjoint train / validation / test]
-    Split --> Encoder[Fit vocabulary and numeric imputer on train only]
-    Encoder --> KM[K-Means: technology groups]
-    Encoder --> RF[Random Forest: wanted-language preferences]
-    KM --> Saved[Saved Joblib bundle + measured reports]
-    RF --> Saved
-    React[React website] -->|JWT / REST| API[Django REST Framework]
-    API --> DB[(MongoDB)]
-    API --> Service[Discovery service]
-    Saved --> Service
-    Service --> Rank[Reciprocal comparison + explained ranking]
-    Rank --> React
-    React <-->|WebSocket| Chat[Django Channels]
-    Chat <--> Redis[(Redis)]
-    Chat --> DB
-```
+## 2. Original dataset and profile attributes
 
-Training is offline; requests only load the saved model. Full [architecture and database design](docs/ARCHITECTURE.md).
+Source: [Stack Overflow Developer Survey 2024 — original publisher archive](https://github.com/StackExchange/Survey/tree/main/packages/archive/2024). These are anonymous, real self-reported answers. The original file is preserved and checked against its published file hash. [Source, license and download details](dataset/README.md).
 
-## Real preprocessing evidence
+| Website question | Original survey column | Role in ML |
+|---|---|---|
+| Languages you have used | LanguageHaveWorkedWith | Input |
+| Databases you have used | DatabaseHaveWorkedWith | Input |
+| Web frameworks you have used | WebframeHaveWorkedWith | Input |
+| Platforms you have used | PlatformHaveWorkedWith | Input |
+| Years of coding | YearsCode | Input |
+| Languages you want to use | LanguageWantToWorkWith | Recorded answer the forest learns to predict |
 
-The original file contains **5,692** missing language-use answers, **15,183** missing database answers, **20,276** missing framework answers, **23,071** missing platform answers, **5,568** missing coding-years answers and **9,685** missing target answers.
+Names, emails and community interests are website information, not ML input. The desired-language answer is never copied into the model inputs. The model predicts preferences for **16 frequently selected languages**, not friendship success.
 
-- Unanswered target fields are excluded from supervised training, not converted into negative labels.
-- Semicolon lists are trimmed, case-normalized and deduplicated; documented aliases share a token.
-- Missing numeric input uses the **training median of 11 years**, with a separate missing-value indicator.
-- Invalid numeric values become missing during data ingestion; the API rejects invalid numbers.
-- Identical normalized input profiles stay in one split. The encoder never learns vocabulary or statistics from test data.
-- Artificial malformed-input and masking tests are labelled separately. The original source had **zero nonmissing invalid YearsCode values**; we do not invent corruption in the source.
+## 3. How the two models help
 
-![Original missing values](docs/evidence/survey2024/01-original-missing-values.png)
-![Actual preprocessing examples](docs/evidence/survey2024/02-preprocessing-examples.png)
+| Model | Simple explanation | Role in ConnectAI |
+|---|---|---|
+| K-Means — unsupervised learning | Groups similar technology profiles without being given group names | Helps find candidate people with related technologies |
+| Random Forest — supervised learning | Many decision trees learn from current technologies and recorded wanted-language answers | Predicts language preferences that contribute to people ranking |
 
-## Measured training parameters and results
+**Example of reciprocal learning:** Aarav has used Python and wants JavaScript. Priya has used JavaScript and wants Python. Their profiles show what each could learn from the other. This is an illustrative website example, not a training label.
 
-Full original-release experiment, seed 42, Python/scikit-learn in Codespaces. Splits: **33,415 training**, **11,162 validation**, **11,175 test** respondents, with no shared normalized input groups. The 16 target languages are selected by frequency/support **from training data only**.
+The people score combines these observed profile comparisons with a learned preference signal. Explanations show actual shared/complementary technologies. Project suggestions use requirement coverage; activity suggestions use explicit interests. These two features do not claim trained success predictions.
 
-Selected Random Forest parameters: **160 trees**, **maximum depth 20**, **minimum leaf size 5**, **threshold 0.35**, `max_features=sqrt`. Selection maximizes validation micro F1; the test set is not used to select parameters.
+## 4. Cleaning data and handling empty fields
 
-![Highlighted validation parameter comparison](docs/evidence/survey2024/04-parameter-selection.png)
-![Measured learning curve](docs/evidence/survey2024/05-learning-curve.png)
-
-Random Forest has no neural-network epochs. The learning curve measures performance at increasing training-set sizes. The parameter table compares tree counts, depth, leaf size and runtime.
-
-| Held-out method | Accuracy per language | Precision | Recall | Micro F1 | Probability MSE | RMSE |
-|---|---:|---:|---:|---:|---:|---:|
-| Random Forest | 84.26% | 0.6688 | 0.7262 | 0.6963 | 0.1154 | 0.3396 |
-| Training-frequency baseline | 66.66% | 0.3868 | 0.5838 | 0.4653 | 0.1717 | 0.4143 |
-| Continue currently used languages | 84.07% | 0.6529 | 0.7657 | **0.7048** | 0.1593 | 0.3992 |
-
-**Interpretation:** the forest has lower probability error and slightly higher per-label accuracy, but the continuation baseline has better F1, recall and exact-profile accuracy. We do not claim universal superiority. Whole-profile exact accuracy for the forest is **17.61%**, distinct from per-language accuracy. There are many negative labels; accuracy alone is insufficient.
-
-Of **178,800 person-language decisions**, **150,664 are correct** and **28,136 are wrong**: correct:wrong ≈ **5.35:1**. These are preference decisions, not successful/failed connections. MSE = mean((predicted probability − actual 0/1 answer)²); RMSE = √MSE.
-
-![Correct/wrong counts and confusion matrix](docs/evidence/survey2024/06-test-correct-wrong.png)
-
-K-Means selects **k=2** from 2, 3, 4, 5, 6, 8, 10 using validation silhouette (0.0668). Test silhouette is **0.0633**, indicating weak cluster separation. We do not assign invented expert/domain names to these groups. Explicit reciprocal matches may cross groups.
-
-![Silhouette and elbow analysis](docs/evidence/survey2024/03-cluster-selection.png)
-
-### Missing and irregular data behavior
-
-| Deliberately hidden input fields | Supported-profile coverage | Micro F1 on supported profiles | Abstentions |
-|---|---:|---:|---:|
-| 0% | 100% | 0.6963 | 0 |
-| 10% | 99.11% | 0.6651 | 100 |
-| 30% | 95.71% | 0.5894 | 479 |
-| 50% | 86.98% | 0.5066 | 1,455 |
-| 100% | 0% | No prediction | 11,175 |
-
-These are **artificial stress tests on held-out inputs**, not claims about additional source corruption. Naturally incomplete test profiles are evaluated separately. An empty or completely unsupported live technology profile receives guidance to add information, not a made-up score.
-
-![Executed irregular-input checks](docs/evidence/survey2024/09-irregular-input-checks.png)
-![Natural missingness results](docs/evidence/survey2024/10-natural-missingness.png)
-
-[Complete measured results and figures](docs/RESULTS.md) · [machine-readable metrics](ml/evaluation/survey2024/metrics.json) · [methodology and metric explanations](docs/ML_METHODOLOGY.md) · [teacher presentation walkthrough](docs/TEACHER_GUIDE.md)
-
-## Website evidence
-
-Screenshots below come from browser checks of the real application using **fictional UI test accounts**. Those accounts are never model-training or evaluation data.
-
-[Verified cloud checks](docs/VERIFICATION.md): 11 unit checks, 25 backend tests, the React production build and three complete browser journeys passed.
-
-![Reciprocal learning dashboard](docs/screenshots/survey-dashboard.png)
-![Dataset-aligned profile form](docs/screenshots/survey-profile.png)
-![Measured-method page](docs/screenshots/survey-method.png)
-![Empty-profile behavior](docs/screenshots/survey-empty-profile.png)
-
-## Platform workflows
-
-| Area | Implemented behavior |
+| Situation | What the project does |
 |---|---|
-| Accounts | JWT registration/login, secure password hashing, refresh rotation, logout |
-| People | Technology profiles, search, connection requests and reciprocal learning discovery |
-| Projects | Create, apply, invite, team formation, status and feedback |
-| Project recommendations | Explained technology coverage; no invented project-success classifier |
-| Messaging | Django Channels, one-to-one WebSockets, read state, private images/files |
-| Community | Individuals, clubs or NGOs can organize drives, workshops and meetups |
-| Activity suggestions | Explicit interest/location matching, separate from technical ML |
-| Evidence | Measured dataset audit, preprocessing examples, parameter search, baseline comparison, missing-field behavior |
+| Python, python, repeated values or extra spaces | Normalize names and remove duplicates |
+| JS and JavaScript | Treat both as javascript |
+| Missing technology answers | Keep them unknown; record that the field is missing |
+| Missing coding years | Use the training median, **11 years**, with a missing-value flag |
+| Invalid numeric input such as negative years | Reject it in the website API; offline ingestion treats it as missing |
+| Missing wanted-language answer | Exclude that survey row from supervised learning; do not invent a label |
+| Empty or entirely unsupported website technology profile | Ask for more information instead of producing an ML score |
 
-## Run in GitHub Codespaces
+The original file really contains missing data: **9,685** unanswered wanted-language fields and **5,568** unanswered coding-years fields. Deliberately irregular parser checks are labelled separately from original survey records.
 
-No office-laptop installation is required. In the Codespace terminal:
+![Missing answers in the original dataset](docs/evidence/survey2024/01-original-missing-values.png)
+**Read this chart:** a longer bar means more unanswered cells. These are source-data counts, before model training.
 
-```bash
+[Before/after cleaning snapshot](docs/evidence/survey2024/02-preprocessing-examples.png) · [Executed irregular-input checks](docs/evidence/survey2024/09-irregular-input-checks.png) · [All null/missing-field experiments](docs/RESULTS.md)
+
+## 5. Actual results, explained simply
+
+These results evaluate wanted-language predictions on the **30% test portion**. One decision means one respondent and one language: selected or not selected.
+
+| Measure | Actual result | Easy meaning |
+|---|---:|---|
+| Accuracy | **84.39%** | Percentage of language decisions that were correct |
+| Precision | 66.64% | Of the languages predicted as wanted, how many were actually selected? |
+| Recall | 73.04% | Of all genuinely selected languages, how many did the model find? |
+| F1 | **0.6969** | Balances precision and recall; closer to 1 is better |
+| MSE | 0.1141 | Average squared probability error; lower is better |
+| RMSE | 0.3377 | Square root of MSE; lower is better |
+
+**226,278 correct and 41,866 wrong decisions**, out of 268,144. Correct:wrong is approximately **5.40:1**. Getting every evaluated language right for the same person is harder: exact-profile accuracy is 18.32%.
+
+For MSE, a simple example: predicting 0.8 when the actual answer is 1 gives squared error **(0.8 - 1)² = 0.04**. We average errors over all test decisions; RMSE is the square root of that average.
+
+![Correct and wrong test predictions](docs/evidence/survey2024/06-test-correct-wrong.png)
+**Read this figure:** green counts correct decisions, red counts mistakes. In the left matrix, the diagonal cells are correct; the other two cells are errors. These are language predictions, not successful or failed friendships.
+
+We also compare against a simple rule: predict that people want to continue their currently used languages. Its F1 is **0.7051** and MSE is **0.1580**, compared with the forest's **0.6969** and **0.1141**. Read F1 together with accuracy and error; an ML model does not automatically beat a simpler method on every measure.
+
+## 6. Settings and learning charts
+
+The highlighted settings were selected using validation **inside the training portion**, not the final test set.
+
+| Selected Random Forest setting | Value | Meaning |
+|---|---:|---|
+| Number of trees | 160 | How many decision trees contribute |
+| Maximum depth | 20 | Maximum levels in each tree |
+| Minimum leaf size | 5 | Minimum fitting examples allowed in a leaf |
+| Decision threshold | 0.35 | Probability cutoff for predicting a selected language |
+| Random seed | 42 | Makes the split and training repeatable |
+
+![Settings tried and the selected row](docs/evidence/survey2024/04-parameter-selection.png)
+**Read this table:** green marks the best validation F1 among the tried settings. It does not mean more trees or deeper trees always help.
+
+![Learning from increasing amounts of data](docs/evidence/survey2024/05-learning-curve.png)
+**Read this chart:** moving right uses more fitting examples. Higher F1 is better. Blue measures fitting rows; green measures separate internal validation rows. A large gap suggests overfitting. These are repeated fits with different data sizes, not neural-network epochs; the outer 30% test data is not used in this chart.
+
+K-Means selected **2 groups** from 2, 3, 4, 5, 6, 8 and 10. Test silhouette is **0.0611**. Silhouette measures group separation: near 1 is more separated, near 0 means overlap. Here the groups overlap, so we do not give them invented expert-category names. [Cluster selection chart](docs/evidence/survey2024/03-cluster-selection.png).
+
+[Full measured results and explained figures](docs/RESULTS.md) · [Detailed methodology](docs/ML_METHODOLOGY.md) · [Simple teacher walkthrough](docs/TEACHER_GUIDE.md) · [Metrics JSON](ml/evaluation/survey2024/metrics.json)
+
+## 7. Website and technology flow
+
+~~~mermaid
+flowchart LR
+    U[User in browser] --> R[React interface]
+    R --> D[Django REST API]
+    D --> M[(MongoDB: live accounts and activity)]
+    D --> S[Saved preprocessing + K-Means + Random Forest]
+    R <-->|Live chat| C[Django Channels + Redis]
+    C --> M
+~~~
+
+| Technology | What it does here |
+|---|---|
+| React | Pages, forms, dashboard and chat interface |
+| Django REST Framework | Validates requests and serves protected APIs |
+| MongoDB | Stores website accounts, profiles, projects, events and messages |
+| JWT | Identifies the signed-in user |
+| Channels, WebSockets and Redis | Deliver messages while both people are online |
+| Pandas / NumPy | Read, clean and prepare survey data |
+| Scikit-learn / Joblib | Train models, calculate results and save/reload fitted models |
+
+Implemented workflows include profiles, explainable people discovery, connection acceptance, project applications/teams, activities by individuals/clubs/NGOs, and private chat with image/file sharing.
+
+![Recommendation dashboard](docs/screenshots/survey-dashboard.png)
+[Profile screenshot](docs/screenshots/survey-profile.png) · [Model explanation page](docs/screenshots/survey-method.png) · [Empty-profile behavior](docs/screenshots/survey-empty-profile.png) · [Verified application checks](docs/VERIFICATION.md)
+
+Screenshots use fictional website accounts. Statistical results use the original survey. The functional reference is [connecT University Social Platform](https://github.com/RohitGaira/connecT-University-Social-Platform). Our contribution is source-aligned profiles, reciprocal learning explanations, missing-input handling and reproducible model evidence. [References](docs/REFERENCES.md).
+
+## 8. Run and present
+
+In the existing GitHub Codespace terminal, run:
+
+~~~bash
 bash scripts/start-data.sh
 bash scripts/dev.sh
-```
+~~~
 
-Open forwarded **port 5173**. The checked-in verified model is ready for inference. To reproduce the experiment in the cloud:
+Open forwarded **port 5173**. No installation is needed on the office laptop. Saved models are used for recommendations; requests do not train models.
 
-```bash
-.venv/bin/python -m pip install -r ml/requirements-training.txt
+| Presentation profile | Sign-in email |
+|---|---|
+| Aarav Sharma | aarav@connect.example |
+| Priya Verma | priya@connect.example |
+| Rohan Mehta | rohan@connect.example |
+| Ananya Iyer | ananya@connect.example |
+| Kabir Singh | kabir@connect.example |
+
+Passwords are supplied privately. These five accounts are outside training, validation and testing.
+
+To reproduce training in Codespaces after setup, run:
+
+~~~bash
 .venv/bin/python -m ml.train --download
 .venv/bin/python -m ml.export_data
-```
+~~~
 
-The unchanged 159 MB CSV is stored under ignored `dataset/raw/`; checksums pin the exact original release. The export creates inspectable cleaned CSV and Excel files. The app never imports anonymous survey rows as registered people.
+The cleaned Excel/CSV includes train/test membership and internal tuning roles.
 
-For an existing presentation database, preview then apply the idempotent upgrade of marked fictional profiles:
+[Setup](docs/SETUP.md) · [Browse MongoDB visually](docs/DATABASE.md) · [Presentation guide](docs/PRESENTATION.md) · [Tests](docs/TESTING.md) · [Dataset/license](dataset/README.md)
 
-```bash
-PRESENTATION_DATA_ENABLED=1 .venv/bin/python backend/manage.py migrate_survey_profiles
-PRESENTATION_DATA_ENABLED=1 .venv/bin/python backend/manage.py migrate_survey_profiles --apply
-```
-
-It backs up those profiles privately, preserves accounts/connections/messages, and leaves real users to complete their own new technology fields.
-
-[Setup](docs/SETUP.md) · [visual database browser](docs/DATABASE.md) · [testing](docs/TESTING.md) · [deployment planning](docs/DEPLOYMENT.md). Hosting/database choices still require the owner's review before deployment.
-
-## Implemented system
-
-ConnectAI implements profile creation, explainable people discovery, connection requests and acceptance, project applications and team formation, community activities, and private real-time messaging with file sharing. The [verification record](docs/VERIFICATION.md) contains the completed unit, backend, frontend-build and browser checks.
-
-The ML pipeline uses the original, self-reported Stack Overflow Developer Survey 2024. K-Means groups technology profiles; Random Forest predicts respondents' recorded desired programming languages. People discovery combines these predictions with observed reciprocal technology interests. A recommendation score expresses this ranking, not a measured probability of friendship or successful collaboration. The results above report the actual held-out measurements and baseline comparison.
-
-Training runs separately from the application. Requests load saved model and preprocessing artifacts; they do not retrain the models. Missing values, irregular inputs and empty-profile abstention are covered by the published preprocessing evidence and tests.
-
-### Presentation accounts
-
-| Name | Sign-in email | Presentation |
-|---|---|---|
-| Aarav Sharma | aarav@connect.example | Technology discovery, project applications and chat |
-| Priya Verma | priya@connect.example | Aarav's existing connection and StudyCircle AI owner |
-| Rohan Mehta | rohan@connect.example | Connection requests and a profile with coding years left blank |
-| Ananya Iyer | ananya@connect.example | Frontend collaboration and a plantation activity |
-| Kabir Singh | kabir@connect.example | Backend collaboration and an individual ration drive |
-
-These are fictional presentation accounts, separate from the original survey training data. Passwords are supplied privately. [Presentation guide](docs/PRESENTATION.md).
-
-The application runs in the existing GitHub Codespace. Deployment will be performed only when the project owner requests it.
-
-The official project title remains **ConnectAI: AI/ML-Based Social Connection Recommendation Platform**.
+Deployment will happen only when the project owner requests it.
