@@ -9,8 +9,13 @@ bash scripts/cloud-verify.sh
 
 The verification script uses a new database ending in `_test`, Redis database 15 and separate app ports 8001/5174. It does not reset the demonstration database. It runs preprocessing/model/resume checks, MongoDB/Redis API and permission tests, the production frontend build, full browser journeys, the presentation walkthrough, and the new survey/missing-field evidence checks. It stops the servers it started. Test output/screenshots are in ignored `test-results/`.
 
-Browser checks need Playwright in the Codespace (already included in the existing verification environment). For a fresh Codespace, use the same official package/browser setup as `.github/workflows/ci.yml`.
+For a fresh Codespace, install the browser-test tool there once:
 
+
+```bash
+.venv/bin/python -m pip install playwright==1.65.2
+.venv/bin/python -m playwright install --with-deps chromium
+```
 ## Coverage
 
 - Original-column validation; CSV/Excel parity; missing labels excluded.

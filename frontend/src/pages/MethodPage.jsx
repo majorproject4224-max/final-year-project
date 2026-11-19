@@ -35,11 +35,13 @@ export default function MethodPage() {
           {[['Random Forest', data.test], ['Training frequency baseline', data.baselines.training_prevalence], ['Continue current languages', data.baselines.continue_current_languages]].map(([label, row]) => <tr key={label}><td>{label}</td><td>{row.f1_micro.toFixed(3)}</td><td>{row.probability_mse.toFixed(3)}</td><td>{row.probability_rmse.toFixed(3)}</td></tr>)}
         </tbody></table></div>
         <p className="muted">MSE averages the squared error between a probability and the actual 0/1 response. RMSE is its square root. Lower error is better.</p>
+        <p>The continue-current-languages baseline has slightly higher F1 than the forest. The forest has lower probability error. These are mixed results, not evidence that one method is always better.</p>
       </section>
       <section className="card">
         <h2>Chosen using validation data</h2>
         <div className="parameter-tags">{Object.entries(data.selected_parameters).map(([key, value]) => <span key={key}>{key.replaceAll('_', ' ')}: <strong>{String(value)}</strong></span>)}</div>
         <p>K-Means: {data.clustering.selected_k} groups, selected by validation silhouette. We keep the final test data separate from parameter selection.</p>
+        <p>Test silhouette: {data.clustering.test_silhouette.toFixed(3)}. This low score means the technology groups overlap substantially; they are not distinct types of people.</p>
       </section>
       <section className="card">
         <h2>What happens when answers are missing?</h2>

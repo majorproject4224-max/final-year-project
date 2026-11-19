@@ -3,6 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 PY=.venv/bin/python
+$PY -c 'from playwright.sync_api import sync_playwright' || { echo "In Codespaces, install Playwright and Chromium as documented in docs/TESTING.md."; exit 1; }
 export DJANGO_DEBUG=1 API_THROTTLING_ENABLED=0
 export DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,testserver
 export MONGODB_DATABASE="connect_ai_verify_$(date +%Y%m%d%H%M%S)_test"
@@ -20,7 +21,7 @@ $PY backend/manage.py setup_db
 DEMO_PASSWORD="$E2E_PASSWORD" $PY backend/manage.py prepare_presentation --apply --password-env DEMO_PASSWORD
 $PY -m uvicorn config.asgi:application --app-dir backend --host 127.0.0.1 --port 8001 > test-results/backend-server.log 2>&1 &
 backend_pid=$!
-DEV_API_TARGET=http://127.0.0.1:8001 npm run dev --prefix frontend -- --port 5174 > test-results/frontend-server.log 2>&1 &
+DEV_API_TARGET=http://127.0.0.1:8001 node frontend/node_modules/vite/bin/vite.js frontend --host 127.0.0.1 --port 5174 > test-results/frontend-server.log 2>&1 &
 frontend_pid=$!
 trap 'kill "$backend_pid" "$frontend_pid" 2>/dev/null || true' EXIT INT TERM
 for attempt in $(seq 1 30); do

@@ -1,10 +1,10 @@
 # Browser evidence
 
-Screenshots are captured from a real Chromium journey against Django, MongoDB and Redis in GitHub Actions. All displayed students and messages are fictional test records.
+Screenshots are captured from real Chromium pages against Django, MongoDB and Redis in a disposable Codespaces test database. All displayed people and messages are fictional fixtures, separate from the real survey used for ML training.
 
-- dashboard-desktop.png: personalized students and projects
-- dashboard-mobile.png: responsive dashboard
-- project-team.png: application accepted and team membership updated
-- chat-desktop.png: two-user WebSocket delivery and read receipt
+- survey-dashboard.png: reciprocal learning explanations and bounded discovery scores
+- survey-profile.png: fields mapped to original survey questions
+- survey-method.png: actual metrics, parameters, baselines and missing-input coverage
+- survey-empty-profile.png: no invented recommendations for an empty profile
 
-See [TESTING.md](../TESTING.md) for the verified workflow and [ML methodology](../ML_METHODOLOGY.md) for the synthetic-data limitations.
+Older screenshots may illustrate collaboration workflows from the preceding UI revision. The four survey-prefixed images are the current model/profile evidence. See [TESTING.md](../TESTING.md) and [ML methodology](../ML_METHODOLOGY.md).

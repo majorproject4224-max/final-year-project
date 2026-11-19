@@ -19,8 +19,9 @@ Lists generally return `{items, page, page_size, total}`. Page size defaults to 
 | GET | students/ | q, domain, page, page_size |
 | GET | students/{user_id}/ | Public profile and viewer's connection status |
 
-Profile PUT requires name and nonempty interests (array). Optional fields: branch, academic_year (1–4 or null), skills (array, may be empty), domain (default Other), experience (default Beginner), preferred_project_type, projects_completed, availability_hours (1–40), bio, city, phone, github URL, share_contact, organization_name and activity_location_preference (any/local). Local activity preference requires a city. Skills/interests are normalized. Academic details are optional for non-student community members. Organization/club names are self-described public text, not verification badges. Phone is hidden unless the viewer owns the profile or is an accepted connection and sharing is enabled. Email/password/session data is not returned by student endpoints.
+Profile PUT merges with the existing document and validates name, languages, databases, frameworks, platforms, wanted_languages (normalized lists, null becomes empty), and years_code (finite 0–51, nullable). The source mapping is in the dataset card. Names are not ML inputs. GET profiles/options/ returns technology vocabulary learned from training data.
 
+Community settings are separate: community_interests, bio, city, phone, github URL, share_contact, organization_name and activity_location_preference (any/local). Local preference requires a city. Phone is visible only to its owner or an accepted connection when sharing is enabled. Student endpoints never return email/password/session data. Legacy academic fields are not model inputs or active profile controls.
 ## Connections
 
 | Method | Endpoint | Payload |
@@ -61,8 +62,9 @@ PATCH status transitions are Open → In Progress/Cancelled, In Progress → Ope
 | GET | interactions/ | Up to 100 saved targets |
 | POST | feedback/ | project_id, to_user_id, rating 1–5, comment; shared completed project required |
 
-Recommendation items contain compatibility_score and explanations. Only scores meeting the classifier’s 50% decision threshold are returned; this threshold is a product filter, not a claim of calibrated probability. The response includes model_notice when a model was used. Empty results contain a detail explaining missing information or candidates. Scores from the current synthetic model are labeled accordingly. Saving/ignoring does not retrain anything.
+Recommendation items contain match_score, score_label and explanations from actual comparisons. People scores combine explicit reciprocal learning overlaps, shared technologies and survey-trained preference affinity. The classifier predicts desired-language labels, not compatibility. K-Means supplies nearby groups; observed comparisons can cross groups. Empty/unsupported profiles abstain with a detail message. Existing connections and ignored targets are excluded. Candidate retrieval is capped at 2,000 profiles.
 
+Project/teammate scores are observed requirement coverage, not supervised success predictions. The response model_notice describes the relevant scope. GET recommendations/evidence/ returns the published experiment's measured metrics, parameters, missingness results and limitations. Saving/ignoring never retrains models.
 ## Events and community activities
 
 | Method | Endpoint | Meaning |
