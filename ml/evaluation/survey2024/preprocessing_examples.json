@@ -1,0 +1,375 @@
+[
+  {
+    "raw": {
+      "ResponseId": "1",
+      "LanguageHaveWorkedWith": null,
+      "DatabaseHaveWorkedWith": null,
+      "WebframeHaveWorkedWith": null,
+      "PlatformHaveWorkedWith": null,
+      "YearsCode": null,
+      "LanguageWantToWorkWith": null
+    },
+    "cleaned": {
+      "languages": [],
+      "databases": [],
+      "frameworks": [],
+      "platforms": [],
+      "years_code": null,
+      "wanted_languages": []
+    },
+    "target_observed": false
+  },
+  {
+    "raw": {
+      "ResponseId": "5",
+      "LanguageHaveWorkedWith": "C++;HTML/CSS;JavaScript;Lua;Python;Rust",
+      "DatabaseHaveWorkedWith": "PostgreSQL;SQLite",
+      "WebframeHaveWorkedWith": null,
+      "PlatformHaveWorkedWith": null,
+      "YearsCode": "9",
+      "LanguageWantToWorkWith": "C++;HTML/CSS;JavaScript;Lua;Python"
+    },
+    "cleaned": {
+      "languages": [
+        "c++",
+        "html/css",
+        "javascript",
+        "lua",
+        "python",
+        "rust"
+      ],
+      "databases": [
+        "postgresql",
+        "sqlite"
+      ],
+      "frameworks": [],
+      "platforms": [],
+      "years_code": 9.0,
+      "wanted_languages": [
+        "c++",
+        "html/css",
+        "javascript",
+        "lua",
+        "python"
+      ]
+    },
+    "target_observed": true
+  },
+  {
+    "raw": {
+      "ResponseId": "7",
+      "LanguageHaveWorkedWith": "R",
+      "DatabaseHaveWorkedWith": null,
+      "WebframeHaveWorkedWith": null,
+      "PlatformHaveWorkedWith": null,
+      "YearsCode": "7",
+      "LanguageWantToWorkWith": "R"
+    },
+    "cleaned": {
+      "languages": [
+        "r"
+      ],
+      "databases": [],
+      "frameworks": [],
+      "platforms": [],
+      "years_code": 7.0,
+      "wanted_languages": [
+        "r"
+      ]
+    },
+    "target_observed": true
+  },
+  {
+    "raw": {
+      "ResponseId": "9",
+      "LanguageHaveWorkedWith": "Lua",
+      "DatabaseHaveWorkedWith": null,
+      "WebframeHaveWorkedWith": null,
+      "PlatformHaveWorkedWith": null,
+      "YearsCode": "20",
+      "LanguageWantToWorkWith": "Lua"
+    },
+    "cleaned": {
+      "languages": [
+        "lua"
+      ],
+      "databases": [],
+      "frameworks": [],
+      "platforms": [],
+      "years_code": 20.0,
+      "wanted_languages": [
+        "lua"
+      ]
+    },
+    "target_observed": true
+  },
+  {
+    "raw": {
+      "ResponseId": "13",
+      "LanguageHaveWorkedWith": "Bash/Shell (all shells);C#;JavaScript;PowerShell;VBA",
+      "DatabaseHaveWorkedWith": "MySQL",
+      "WebframeHaveWorkedWith": null,
+      "PlatformHaveWorkedWith": "Amazon Web Services (AWS);Google Cloud;Hetzner;VMware",
+      "YearsCode": "20",
+      "LanguageWantToWorkWith": "Bash/Shell (all shells);JavaScript;VBA"
+    },
+    "cleaned": {
+      "languages": [
+        "bash/shell (all shells)",
+        "c#",
+        "javascript",
+        "powershell",
+        "vba"
+      ],
+      "databases": [
+        "mysql"
+      ],
+      "frameworks": [],
+      "platforms": [
+        "amazon web services (aws)",
+        "google cloud",
+        "hetzner",
+        "vmware"
+      ],
+      "years_code": 20.0,
+      "wanted_languages": [
+        "bash/shell (all shells)",
+        "javascript",
+        "vba"
+      ]
+    },
+    "target_observed": true
+  },
+  {
+    "raw": {
+      "ResponseId": "14",
+      "LanguageHaveWorkedWith": "PHP;Python",
+      "DatabaseHaveWorkedWith": "MariaDB;MySQL",
+      "WebframeHaveWorkedWith": "CodeIgniter",
+      "PlatformHaveWorkedWith": null,
+      "YearsCode": "20",
+      "LanguageWantToWorkWith": "Python"
+    },
+    "cleaned": {
+      "languages": [
+        "php",
+        "python"
+      ],
+      "databases": [
+        "mariadb",
+        "mysql"
+      ],
+      "frameworks": [
+        "codeigniter"
+      ],
+      "platforms": [],
+      "years_code": 20.0,
+      "wanted_languages": [
+        "python"
+      ]
+    },
+    "target_observed": true
+  },
+  {
+    "raw": {
+      "ResponseId": "15",
+      "LanguageHaveWorkedWith": "C;C++",
+      "DatabaseHaveWorkedWith": "Oracle",
+      "WebframeHaveWorkedWith": null,
+      "PlatformHaveWorkedWith": null,
+      "YearsCode": "15",
+      "LanguageWantToWorkWith": "C;C++"
+    },
+    "cleaned": {
+      "languages": [
+        "c",
+        "c++"
+      ],
+      "databases": [
+        "oracle"
+      ],
+      "frameworks": [],
+      "platforms": [],
+      "years_code": 15.0,
+      "wanted_languages": [
+        "c",
+        "c++"
+      ]
+    },
+    "target_observed": true
+  },
+  {
+    "raw": {
+      "ResponseId": "16",
+      "LanguageHaveWorkedWith": "C#;HTML/CSS;JavaScript;PowerShell;SQL;TypeScript;VBA;Visual Basic (.Net)",
+      "DatabaseHaveWorkedWith": "Microsoft Access;Microsoft SQL Server",
+      "WebframeHaveWorkedWith": "ASP.NET;ASP.NET CORE;Blazor;jQuery",
+      "PlatformHaveWorkedWith": null,
+      "YearsCode": "31",
+      "LanguageWantToWorkWith": "C#;SQL"
+    },
+    "cleaned": {
+      "languages": [
+        "c#",
+        "html/css",
+        "javascript",
+        "powershell",
+        "sql",
+        "typescript",
+        "vba",
+        "visual basic (.net)"
+      ],
+      "databases": [
+        "microsoft access",
+        "microsoft sql server"
+      ],
+      "frameworks": [
+        "asp.net",
+        "asp.net core",
+        "blazor",
+        "jquery"
+      ],
+      "platforms": [],
+      "years_code": 31.0,
+      "wanted_languages": [
+        "c#",
+        "sql"
+      ]
+    },
+    "target_observed": true
+  },
+  {
+    "raw": {
+      "ResponseId": "2",
+      "LanguageHaveWorkedWith": "Bash/Shell (all shells);Go;HTML/CSS;Java;JavaScript;Python;TypeScript",
+      "DatabaseHaveWorkedWith": "Dynamodb;MongoDB;PostgreSQL",
+      "WebframeHaveWorkedWith": "Express;Next.js;Node.js;React",
+      "PlatformHaveWorkedWith": "Amazon Web Services (AWS);Heroku;Netlify",
+      "YearsCode": "20",
+      "LanguageWantToWorkWith": "Bash/Shell (all shells);Go;HTML/CSS;Java;JavaScript;Kotlin;Python;TypeScript"
+    },
+    "cleaned": {
+      "languages": [
+        "bash/shell (all shells)",
+        "go",
+        "html/css",
+        "java",
+        "javascript",
+        "python",
+        "typescript"
+      ],
+      "databases": [
+        "dynamodb",
+        "mongodb",
+        "postgresql"
+      ],
+      "frameworks": [
+        "express",
+        "next.js",
+        "node.js",
+        "react"
+      ],
+      "platforms": [
+        "amazon web services (aws)",
+        "heroku",
+        "netlify"
+      ],
+      "years_code": 20.0,
+      "wanted_languages": [
+        "bash/shell (all shells)",
+        "go",
+        "html/css",
+        "java",
+        "javascript",
+        "kotlin",
+        "python",
+        "typescript"
+      ]
+    },
+    "target_observed": true
+  },
+  {
+    "raw": {
+      "ResponseId": "3",
+      "LanguageHaveWorkedWith": "C#",
+      "DatabaseHaveWorkedWith": "Firebase Realtime Database",
+      "WebframeHaveWorkedWith": "ASP.NET CORE",
+      "PlatformHaveWorkedWith": "Google Cloud",
+      "YearsCode": "37",
+      "LanguageWantToWorkWith": "C#"
+    },
+    "cleaned": {
+      "languages": [
+        "c#"
+      ],
+      "databases": [
+        "firebase realtime database"
+      ],
+      "frameworks": [
+        "asp.net core"
+      ],
+      "platforms": [
+        "google cloud"
+      ],
+      "years_code": 37.0,
+      "wanted_languages": [
+        "c#"
+      ]
+    },
+    "target_observed": true
+  },
+  {
+    "raw": {
+      "ResponseId": "4",
+      "LanguageHaveWorkedWith": "C;C++;HTML/CSS;Java;JavaScript;PHP;PowerShell;Python;SQL;TypeScript",
+      "DatabaseHaveWorkedWith": "MongoDB;MySQL;PostgreSQL;SQLite",
+      "WebframeHaveWorkedWith": "jQuery;Next.js;Node.js;React;WordPress",
+      "PlatformHaveWorkedWith": "Amazon Web Services (AWS);Fly.io;Heroku",
+      "YearsCode": "4",
+      "LanguageWantToWorkWith": "HTML/CSS;Java;JavaScript;PowerShell;Python;SQL;TypeScript"
+    },
+    "cleaned": {
+      "languages": [
+        "c",
+        "c++",
+        "html/css",
+        "java",
+        "javascript",
+        "php",
+        "powershell",
+        "python",
+        "sql",
+        "typescript"
+      ],
+      "databases": [
+        "mongodb",
+        "mysql",
+        "postgresql",
+        "sqlite"
+      ],
+      "frameworks": [
+        "jquery",
+        "next.js",
+        "node.js",
+        "react",
+        "wordpress"
+      ],
+      "platforms": [
+        "amazon web services (aws)",
+        "fly.io",
+        "heroku"
+      ],
+      "years_code": 4.0,
+      "wanted_languages": [
+        "html/css",
+        "java",
+        "javascript",
+        "powershell",
+        "python",
+        "sql",
+        "typescript"
+      ]
+    },
+    "target_observed": true
+  }
+]

@@ -1,0 +1,29 @@
+{
+  "raw_rows": 65437,
+  "raw_columns": 114,
+  "source_missing_counts": {
+    "ResponseId": 0,
+    "LanguageHaveWorkedWith": 5692,
+    "DatabaseHaveWorkedWith": 15183,
+    "WebframeHaveWorkedWith": 20276,
+    "PlatformHaveWorkedWith": 23071,
+    "YearsCode": 5568,
+    "LanguageWantToWorkWith": 9685
+  },
+  "source_missing_percent": {
+    "ResponseId": 0.0,
+    "LanguageHaveWorkedWith": 8.698,
+    "DatabaseHaveWorkedWith": 23.202,
+    "WebframeHaveWorkedWith": 30.986,
+    "PlatformHaveWorkedWith": 35.257,
+    "YearsCode": 8.509,
+    "LanguageWantToWorkWith": 14.8
+  },
+  "invalid_years_nonmissing": 0,
+  "missing_target_excluded": 9685,
+  "no_current_technology_excluded": 5466,
+  "eligible_rows": 55752,
+  "unique_input_groups": 54647,
+  "repeated_input_rows": 1105,
+  "exclusion_counts_can_overlap": true
+}

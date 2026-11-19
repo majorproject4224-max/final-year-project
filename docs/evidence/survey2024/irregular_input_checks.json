@@ -1,0 +1,46 @@
+[
+  {
+    "input": "\" JS ; javascript ; Python \"",
+    "output": [
+      "javascript",
+      "python"
+    ],
+    "reason": "Aliases, whitespace and duplicates"
+  },
+  {
+    "input": "null technology list",
+    "output": [],
+    "reason": "Unknown; no fabricated skills"
+  },
+  {
+    "input": "Less than 1 year",
+    "output": 0.5,
+    "reason": "Documented boundary encoding"
+  },
+  {
+    "input": "More than 50 years",
+    "output": 51.0,
+    "reason": "Documented boundary encoding"
+  },
+  {
+    "input": "\"many\" / -3 / infinity",
+    "output": [
+      null,
+      null,
+      null
+    ],
+    "reason": "Invalid numeric \u2192 missing"
+  },
+  {
+    "input": "Empty profile",
+    "output": {
+      "languages": [],
+      "databases": [],
+      "frameworks": [],
+      "platforms": [],
+      "years_code": null,
+      "wanted_languages": []
+    },
+    "reason": "Serving abstains; asks for technologies"
+  }
+]
