@@ -10,7 +10,7 @@ These five Indian-name profiles are fictional, curated presentation fixtures. Th
 | Ananya Iyer | ananya@connect.example | Frontend collaborator and plantation-drive organizer |
 | Kabir Singh | kabir@connect.example | Backend collaborator and an individual ration-drive organizer |
 
-Five project ideas: StudyCircle AI, Resume Insights, Open Data Explorer, Green Together and FoodShare Connect. Two future fictional activities demonstrate shared-interest matching. Profiles and descriptions identify the records as presentation examples.
+Five presentation projects: StudyCircle AI, Resume Insights, Open Data Explorer, Green Together and FoodShare Connect. Two fictional community activities demonstrate shared-interest matching. Profiles and descriptions identify the records as presentation examples.
 
 ## Prepare in Codespaces or on a personal laptop
 

@@ -40,12 +40,12 @@ The forest has test micro-F1 0.6963, per-label accuracy 84.26%, probability MSE 
 
 K-Means test silhouette is 0.0633, indicating strongly overlapping groups. All figures, correct/wrong counts, confusion matrix, learning curves, selected parameter comparisons and missing-input experiments are generated from saved real outputs in [RESULTS.md](RESULTS.md).
 
-## Testing and limitations
+## Verification and measurement
 
 [TESTING.md](TESTING.md) describes reproducible cloud checks for preprocessing, inference, API permissions, invalid values, empty-profile abstention, collaboration and chat. Actual browser screenshots accompany the README.
 
-The survey is self-selected and not a representative friendship dataset. The supervised outcome is stated interest, not future collaboration. Candidate ranking lacks labeled social-outcome evaluation. Clusters overlap; missing information reduces coverage; test metrics are one fixed split. Controlled corruption tests are clearly distinguished from original missing data.
+The survey records self-reported technology use and interest. The supervised outcome is desired language use; the reported metrics measure that prediction task. Social discovery uses documented ranking weights and observed reciprocal interests. Clustering results describe overlapping technology groups. Controlled missing-input experiments are reported separately from the original dataset's natural missing values, and all test metrics identify the fixed evaluation split.
 
-## Future work
+## Implemented delivery
 
-Collect consented interaction outcomes, define a defensible social-success target, evaluate candidate recall and ranking with real outcomes, compare additional models under a new evaluation protocol, and improve calibration. Production deployment requires separate hosting, moderation and security review. The current work remains a demonstrable academic prototype.
+The working application includes accounts and profiles, explainable people recommendations, connection acceptance, project applications and teams, community activities, and private real-time chat with file sharing. Model training, preprocessing artifacts, evaluation figures, the cleaned CSV/Excel export and cloud verification evidence are included in the repository. Five fictional Indian-name profiles support demonstrations and are excluded from ML training. The application runs in GitHub Codespaces; deployment is reserved for the project owner's explicit instruction.

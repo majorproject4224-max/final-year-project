@@ -64,7 +64,7 @@ Use a disposable test account, not another person's profile.
 
 Open a recommended person's explanation: “You want to use; they have used” and the reverse direction. These lists come from actual application profile comparisons. Marked fictional accounts are only UI examples; they were never used to train the model.
 
-Explain that reciprocal learning discovery can find complementary partners as well as similar ones. The score combines observed comparisons and a learned preference signal with documented weights. Its social usefulness still needs a real user study.
+Explain that reciprocal learning discovery can find complementary partners as well as similar ones. The score combines observed comparisons and a learned preference signal with documented weights. The published model metrics evaluate desired-language predictions; the people score ranks profile matches.
 
 Then demonstrate connection acceptance, chat/file sharing, a project application and an individually organized drive. Project scores are observed technology coverage; activity suggestions are explicit-interest matching.
 
@@ -76,4 +76,4 @@ Then demonstrate connection acceptance, chat/file sharing, a project application
 
 **What is new versus the reference?** This implementation adds a reproducible original-data pipeline, reciprocal technology explanations, observed-versus-predicted distinction, completeness-aware abstention and measured evidence. The underlying algorithms/reciprocal idea are established research, which we cite.
 
-**What next?** Obtain consented real connection/collaboration outcomes, evaluate social benefit and ranking weights, compare models using a new evaluation protocol, and review free hosting before deployment.
+**What is implemented?** Original-data preprocessing and model evaluation, explainable technology discovery, connection acceptance, projects and teams, community activities, and private chat with file sharing. Show the completed checks in [VERIFICATION.md](VERIFICATION.md). Deployment is performed only on the project owner's instruction.

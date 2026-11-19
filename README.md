@@ -169,10 +169,26 @@ It backs up those profiles privately, preserves accounts/connections/messages, a
 
 [Setup](docs/SETUP.md) · [testing](docs/TESTING.md) · [deployment planning](docs/DEPLOYMENT.md). Hosting/database choices still require the owner's review before deployment.
 
-## Limits and next steps
+## Implemented system
 
-This is a B.Tech academic prototype. The survey is self-selected, self-reported, from 2024, and not a representative university cohort. Its labels describe wanted technologies, not proficiency, teaching ability or interpersonal success. Ranking weights are transparent design choices; the complete social ranking still needs a consented user study. K-Means separation is weak, and a simple baseline beats the forest on some metrics.
+ConnectAI implements profile creation, explainable people discovery, connection requests and acceptance, project applications and team formation, community activities, and private real-time messaging with file sharing. The [verification record](docs/VERIFICATION.md) contains the completed unit, backend, frontend-build and browser checks.
 
-Next: collect consented connection/collaboration outcomes, evaluate reciprocal recommendation usefulness, improve models without touching the held-out test set, and review free-hosting limits before deployment. There is no automatic online retraining.
+The ML pipeline uses the original, self-reported Stack Overflow Developer Survey 2024. K-Means groups technology profiles; Random Forest predicts respondents' recorded desired programming languages. People discovery combines these predictions with observed reciprocal technology interests. A recommendation score expresses this ranking, not a measured probability of friendship or successful collaboration. The results above report the actual held-out measurements and baseline comparison.
+
+Training runs separately from the application. Requests load saved model and preprocessing artifacts; they do not retrain the models. Missing values, irregular inputs and empty-profile abstention are covered by the published preprocessing evidence and tests.
+
+### Presentation accounts
+
+| Name | Sign-in email | Demonstration |
+|---|---|---|
+| Aarav Sharma | aarav@connect.example | Technology discovery, project applications and chat |
+| Priya Verma | priya@connect.example | Aarav's existing connection and StudyCircle AI owner |
+| Rohan Mehta | rohan@connect.example | Connection requests and a profile with coding years left blank |
+| Ananya Iyer | ananya@connect.example | Frontend collaboration and a plantation activity |
+| Kabir Singh | kabir@connect.example | Backend collaboration and an individual ration drive |
+
+These are fictional presentation accounts, separate from the original survey training data. Passwords are supplied privately. [Presentation guide](docs/PRESENTATION.md).
+
+The application runs in the existing GitHub Codespace. Deployment will be performed only when the project owner requests it.
 
 The official project title remains **ConnectAI: AI/ML-Based Social Connection Recommendation Platform**.
