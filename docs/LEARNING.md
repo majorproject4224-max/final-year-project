@@ -69,7 +69,7 @@ A thin view delegates complex behavior to a focused service. A service can be a 
 2. **Targets:** each respondent's recorded desired languages. A 1 means that language was selected; it does not mean a friendship succeeded.
 3. **K-Means:** groups normalized current-technology vectors. Validation selected two groups; their low silhouette indicates overlap, not clear social categories.
 4. **Random Forest:** many decision trees vote on each of 16 desired-language targets. It is trained offline and saved, not retrained for every request.
-5. **Split:** identical normalized input profiles stay together in train, validation or test. The vocabulary and missing-year median are learned only from training data.
+5. **Split:** the original survey uses a grouped 70:30 training/test split. A temporary validation portion inside the 70% chooses settings; final preprocessing and both models are then refitted on all 70%. Identical normalized inputs cannot cross partitions. The five website profiles and all new accounts stay outside training and testing.
 6. **Missing values:** empty technology lists stay empty; absent coding years use the training median plus a missing flag. Missing targets are excluded, not converted into negative labels.
 7. **Evaluation:** precision, recall and F1 describe language-label predictions. MSE/RMSE compare predicted probabilities with recorded 0/1 labels. Accuracy is per language decision, not per person's successful recommendation.
 8. **Honesty:** the simple continue-current-languages baseline has slightly better F1 than the forest. The forest has lower probability error. Neither proves people will collaborate successfully.

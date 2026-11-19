@@ -1,16 +1,16 @@
 {
-  "verified_at_utc": "2026-11-19T15:25:36.466087+00:00",
-  "source_commit": "dc3e94c6c5ceaaab91ca8f22057e3e45557192ad",
+  "verified_at_utc": "2026-11-19T17:33:58.977976+00:00",
+  "source_commit": "d0fda59359b9cb40737441b69a03350b4427df23",
   "environment": "GitHub Codespaces; isolated disposable MongoDB database and Redis database 15",
   "checks": {
     "unit": {
-      "tests": 11,
-      "seconds": 1.616,
+      "tests": 13,
+      "seconds": 1.451,
       "status": "passed"
     },
     "backend": {
-      "tests": 25,
-      "seconds": 28.848,
+      "tests": 30,
+      "seconds": 27.965,
       "status": "passed"
     }
   },
@@ -20,6 +20,6 @@
     "presentation-browser": "Presentation checks passed: real ML match, project match, ready connection, two-account live chat, activities and mobile layout.",
     "survey-browser": "Survey UI, reciprocal explanations, measured results, mobile layout, null fields and invalid-number rejection passed."
   },
-  "model_sha256": "06a19c12016c3c92281d206aa65a296eeb8569de495068b0a5260914a84908b8",
+  "model_sha256": "b8b53a790a164593212647bd9f88ce352e70ca4460e1602e9880b71a7dfbc5a3",
   "screenshot_accounts": "Fictional UI fixtures; never training data"
 }

@@ -1,13 +1,13 @@
 # Verified application checks
 
-Executed in GitHub Codespaces at 2026-11-19T15:25:36.466087+00:00.
+Executed in GitHub Codespaces at 2026-11-19T17:33:58.977976+00:00.
 
-Source revision at collection: `dc3e94c6c5ceaaab91ca8f22057e3e45557192ad`. Model SHA-256: `06a19c12016c3c92281d206aa65a296eeb8569de495068b0a5260914a84908b8`.
+Source revision at collection: `d0fda59359b9cb40737441b69a03350b4427df23`. Model SHA-256: `b8b53a790a164593212647bd9f88ce352e70ca4460e1602e9880b71a7dfbc5a3`.
 
 | Check | Outcome |
 |---|---|
-| Unit tests | 11 passed in 1.62s |
-| Backend tests | 25 passed in 28.85s |
+| Unit tests | 13 passed in 1.45s |
+| Backend tests | 30 passed in 27.96s |
 | React production build | Passed |
 | Full browser journeys | All three passed |
 
