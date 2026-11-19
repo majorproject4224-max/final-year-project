@@ -13,6 +13,11 @@ export CORS_ALLOWED_ORIGINS=http://127.0.0.1:5174
 export E2E_BASE_URL=http://127.0.0.1:5174
 export E2E_API_URL=http://127.0.0.1:8001/api
 export E2E_PASSWORD="${E2E_PASSWORD:-disposable-browser-test-only-4224!}"
+for port in 8001 5174; do
+  if curl -sS --max-time 2 "http://127.0.0.1:$port/" >/dev/null 2>&1; then
+    echo "Port $port is occupied. Stop the previous test server before verification."; exit 1
+  fi
+done
 mkdir -p test-results
 $PY -m unittest discover -s tests -v > test-results/unit.log 2>&1
 RUN_MONGO_TESTS=1 $PY backend/manage.py test platform_api config --verbosity 2 > test-results/backend.log 2>&1
@@ -25,6 +30,7 @@ DEV_API_TARGET=http://127.0.0.1:8001 node frontend/node_modules/vite/bin/vite.js
 frontend_pid=$!
 trap 'kill "$backend_pid" "$frontend_pid" 2>/dev/null || true' EXIT INT TERM
 for attempt in $(seq 1 30); do
+  kill -0 "$backend_pid" "$frontend_pid" || { echo "A test server stopped unexpectedly."; exit 1; }
   if curl -fsS http://127.0.0.1:8001/api/health/ >/dev/null && curl -fsS "$E2E_BASE_URL" >/dev/null; then break; fi
   sleep 2
 done

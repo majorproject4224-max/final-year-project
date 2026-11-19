@@ -19,7 +19,7 @@ export default function CommunitySettings() {
     <label className="full">Community interests, separated by commas<input name="community_interests" value={form.community_interests} onChange={change} placeholder="Gardening, volunteering, photography" /></label>
     <label>City<input name="city" value={form.city} onChange={change} maxLength={100} /></label>
     <label>Organization or club (optional)<input name="organization_name" value={form.organization_name} onChange={change} maxLength={120} /></label>
-    <label>Activity location<select name="activity_location_preference" value={form.activity_location_preference} onChange={change}><option value="any">Any location</option><option value="local">My city and online</option></select></label>
+    <label>Activity location<select aria-label="Activity location" name="activity_location_preference" value={form.activity_location_preference} onChange={change}><option value="any">Any location</option><option value="local">My city and online</option></select></label>
     <label>Portfolio link<input type="url" name="github" value={form.github} onChange={change} /></label>
     <label>Phone (optional)<input name="phone" value={form.phone} onChange={change} maxLength={40} /></label>
     <label className="checkbox"><input name="share_contact" type="checkbox" checked={form.share_contact} onChange={change} />Share phone with accepted connections</label>
