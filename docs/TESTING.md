@@ -1,6 +1,6 @@
 # Verification in Codespaces
 
-No application dependencies or tests need to run on the office laptop.
+Run application tests in a configured development environment.
 
 ```bash
 bash scripts/start-data.sh

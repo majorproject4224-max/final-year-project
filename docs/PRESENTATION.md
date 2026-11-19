@@ -12,7 +12,7 @@ These five Indian-name profiles are fictional, curated presentation fixtures. Th
 
 Five presentation projects: StudyCircle AI, Resume Insights, Open Data Explorer, Green Together and FoodShare Connect. Two fictional community activities show shared-interest matching. Profiles and descriptions identify the records as presentation examples.
 
-## Prepare in Codespaces or on a personal laptop
+## Prepare in Codespaces or locally
 
 First stop the application server. MongoDB and Redis must remain running. Commands below run from the repository root with `DJANGO_DEBUG=1`. The application database is `connect_ai`; adding fictional records requires an explicit one-command opt-in. Disposable `_test` databases are also accepted in debug mode.
 

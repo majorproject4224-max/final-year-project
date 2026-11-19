@@ -62,7 +62,7 @@ OMP_NUM_THREADS=1
 OPENBLAS_NUM_THREADS=1
 ```
 
-The Blueprint links Redis and prompts for your secret. Generate it privately with Python’s secrets.token_urlsafe(64) on your personal laptop or in Codespaces; paste only into Render’s secret field. The Render hostname is automatically included in Django's allowed hosts. Put exact frontend origins in CORS, with no trailing slash. Do not use wildcard origins. Leave HTTPS redirects enabled.
+The Blueprint links Redis and prompts for your secret. Generate it privately with Python’s secrets.token_urlsafe(64) in your development environment; paste only into Render’s secret field. The Render hostname is automatically included in Django's allowed hosts. Put exact frontend origins in CORS, with no trailing slash. Do not use wildcard origins. Leave HTTPS redirects enabled.
 
 Key Value should have `noeviction` and private access. Its contents are disposable; losing them may interrupt live delivery and reset rate counters. Clients reconnect and retrieve permanent history from MongoDB.
 

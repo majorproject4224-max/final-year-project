@@ -149,7 +149,7 @@ bash scripts/start-data.sh
 bash scripts/dev.sh
 ~~~
 
-Open forwarded **port 5173**. No installation is needed on the office laptop. Saved models are used for recommendations; requests do not train models.
+Open forwarded **port 5173**. Saved models are used for recommendations; requests do not train models.
 
 | Presentation profile | Sign-in email |
 |---|---|

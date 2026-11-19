@@ -1,6 +1,6 @@
 # Run connecT AI
 
-Use a personal laptop or a cloud development environment. Nothing needs to be installed on an office laptop to view a deployed site or use Codespaces.
+Use a local or cloud development environment.
 
 ## Browser-only development
 
@@ -30,9 +30,9 @@ The codespace has a free-use quota for personal accounts, covering compute and s
 
 Codespaces configuration is supplied; its initial account provisioning must be performed in your GitHub account. The application itself is tested in GitHub Actions.
 
-## Personal Windows laptop
+## Local Windows setup
 
-Install these **on your personal laptop**: Git, Python 3.12, Node.js 22 and Docker Desktop. Start Docker Desktop. Docker runs the development databases; Python and Node run the application.
+For local development, install: Git, Python 3.12, Node.js 22 and Docker Desktop. Start Docker Desktop. Docker runs the development databases; Python and Node run the application.
 
 Open PowerShell and clone:
 
@@ -115,7 +115,7 @@ unset PRESENTATION_PASSWORD
 
 Use at least 8 characters and avoid common passwords. The five fictional Indian-name accounts and five projects are listed in [PRESENTATION.md](PRESENTATION.md). Re-running does not overwrite existing profiles or passwords. Do not seed these accounts into a public production database.
 
-### Without Docker on a personal laptop
+### Local setup without Docker
 
 Use an Atlas free database as described in the deployment guide. Put its connection string in your local `.env`, allow your personal IP, and run `setup_db`. For a single-process local session you can leave `REDIS_URL=` empty with `DJANGO_DEBUG=1`; Channels then uses an in-memory layer. Deployed chat requires Redis-compatible shared storage.
 

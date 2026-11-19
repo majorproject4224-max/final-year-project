@@ -1,4 +1,4 @@
-"""Settings for personal-laptop development, Codespaces and Render."""
+"""Settings for local development, Codespaces and Render."""
 
 import os
 import sys

@@ -9,7 +9,7 @@ The application database is **`connect_ai`**. MongoDB calls a table-like group a
 3. Expand a collection and click **Documents**. This opens the visual record browser; writing a query is not required.
 4. Use **Refresh** after changing data through the website.
 
-If a connection has not been saved, use **MongoDB: Connect with Connection String** and enter `mongodb://127.0.0.1:27017/?replicaSet=rs0&directConnection=true`. Install the official `mongodb.mongodb-vscode` extension in the Codespace, not the local laptop. It is included in the development-container extension configuration.
+If a connection has not been saved, use **MongoDB: Connect with Connection String** and enter `mongodb://127.0.0.1:27017/?replicaSet=rs0&directConnection=true`. Install the official `mongodb.mongodb-vscode` extension in the Codespace. It is included in the development-container extension configuration.
 
 `users` stores accounts. `profiles` stores technology answers and community preferences, linked by `user_id`. A user's `_id` remains the same across a database rename, so relationships and login credentials are preserved. The five fictional presentation accounts are separate from the original survey used for ML training.
 

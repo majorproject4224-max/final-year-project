@@ -1,4 +1,4 @@
-"""End-to-end browser checks run in GitHub Actions, never on the office laptop."""
+"""End-to-end browser checks run in GitHub Actions or a configured development environment."""
 
 import json
 import os

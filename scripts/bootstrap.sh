@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run in Codespaces or a personal Linux/macOS computer, never on the office laptop.
+# Run in Codespaces or a configured Linux/macOS development environment.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 python -m venv .venv
