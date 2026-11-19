@@ -6,8 +6,8 @@ python -m venv .venv
 .venv/bin/python -m pip install -r backend/requirements.txt
 npm ci --prefix frontend
 if [ ! -f .env ]; then cp .env.example .env; fi
-if [ ! -f ml/models/recommender.joblib ]; then
-  .venv/bin/python dataset/generate_synthetic_datasets.py
-  .venv/bin/python ml/train.py
+if [ ! -f ml/models/survey-recommender.joblib ]; then
+  .venv/bin/python -m pip install -r ml/requirements-training.txt
+  .venv/bin/python -m ml.train --download
 fi
 echo "Dependencies are ready. Next: bash scripts/start-data.sh, then bash scripts/dev.sh"

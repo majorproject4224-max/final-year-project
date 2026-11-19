@@ -17,6 +17,11 @@ OUT = Path("test-results")
 OUT.mkdir(exist_ok=True)
 PROFILE = {
     "name": "Dev Tester",
+    "languages": ["Python", "JavaScript"],
+    "frameworks": ["Django", "React"],
+    "databases": ["MongoDB"],
+    "wanted_languages": ["Python", "JavaScript"],
+    "years_code": 3,
     "branch": "CSE",
     "academic_year": 3,
     "skills": ["Python", "ML", "Django", "React"],
@@ -79,16 +84,13 @@ with sync_playwright() as p:
         )
         expect(page.get_by_role("heading", name="Review suggestions")).to_be_visible()
         page.get_by_role("button", name="Use these suggestions").click()
-        expect(page.get_by_label("Skills, separated by commas")).to_have_value(
-            "Python, React, Django, Machine Learning"
-        )
+        expect(page.get_by_label("Languages you have used")).to_have_value("python")
         page.get_by_text("Import from Resume", exact=True).click()
-        page.get_by_label("Skills, separated by commas").fill("Python, Django, ML, React")
-        page.get_by_label("Interests, separated by commas").fill("Research, AI, Open Source")
-        page.get_by_label("Experience", exact=True).select_option("Intermediate")
-        page.get_by_label("Preferred project type").fill("AI/ML Application")
+        page.get_by_label("Languages you have used").fill("Python, JavaScript")
+        page.get_by_label("Web frameworks you have used").fill("Django, React")
+        page.get_by_label("Languages you want to use").fill("Python, JavaScript")
         page.get_by_role("button", name="Save profile", exact=True).click()
-        expect(page.get_by_role("status")).to_contain_text("Profile saved")
+        expect(page.get_by_role("status").filter(has_text="Profile saved")).to_be_visible()
         page.set_viewport_size({"width": 1280, "height": 720})
         page.evaluate("document.fonts.ready")
         page.get_by_role("button", name="Dismiss notification").click()
@@ -101,7 +103,7 @@ with sync_playwright() as p:
         page.set_viewport_size({"width": 1440, "height": 1050})
         page.get_by_role("link", name="Overview", exact=True).click()
         expect(page.locator(".student-card").first).to_be_visible(timeout=15000)
-        expect(page.locator(".model-note").first).to_contain_text("synthetic")
+        expect(page.locator(".model-note").first).to_contain_text("survey-trained")
         expect(page.locator(".match-details .reasons").first).not_to_be_visible()
         page.locator(".match-details summary").first.click()
         expect(page.locator(".match-details .reasons").first).to_be_visible()

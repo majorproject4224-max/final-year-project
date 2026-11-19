@@ -1,6 +1,7 @@
 from django.urls import path
 from .accounts import RegisterView, LoginView, RefreshView, LogoutView, AccountView
 from .people import (
+    ProfileOptionsView,
     ProfileView,
     ResumeSuggestionsView,
     StudentsView,
@@ -34,18 +35,21 @@ from .messaging import (
     WebSocketTicketView,
 )
 from .recommendations import (
+    RecommendationEvidenceView,
     UserRecommendationsView,
     ProjectRecommendationsView,
     ProjectTeammateRecommendationsView,
 )
 
 urlpatterns = [
+    path("recommendations/evidence/", RecommendationEvidenceView.as_view()),
     path("auth/register/", RegisterView.as_view()),
     path("auth/login/", LoginView.as_view()),
     path("auth/token/refresh/", RefreshView.as_view()),
     path("auth/logout/", LogoutView.as_view()),
     path("auth/me/", AccountView.as_view()),
     path("profiles/me/", ProfileView.as_view()),
+    path("profiles/options/", ProfileOptionsView.as_view()),
     path("profiles/resume-suggestions/", ResumeSuggestionsView.as_view()),
     path("students/", StudentsView.as_view()),
     path("students/<str:user_id>/", StudentDetailView.as_view()),

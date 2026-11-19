@@ -26,6 +26,12 @@ from .services.recommendations import load_models
 
 PROFILE = {
     "name": "Asha",
+    "languages": ["Python", "SQL"],
+    "databases": ["MongoDB"],
+    "frameworks": ["Django"],
+    "platforms": [],
+    "wanted_languages": ["Python", "JavaScript"],
+    "years_code": 3,
     "branch": "CSE",
     "academic_year": 3,
     "skills": ["Python", "ML", "SQL"],
@@ -123,9 +129,9 @@ class PlatformTests(SimpleTestCase):
             400,
         )
         second = self.register("Rahul")
-        self.assertEqual(self.client.get("/api/students/?q=machine").data["total"], 1)
+        self.assertEqual(self.client.get("/api/students/?q=python").data["total"], 1)
         response = self.client.put(
-            "/api/profiles/me/", {**PROFILE, "academic_year": 9}, format="json"
+            "/api/profiles/me/", {**PROFILE, "years_code": -9}, format="json"
         )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(self.client.get("/api/students/not-an-id/").status_code, 404)
@@ -258,7 +264,7 @@ class PlatformTests(SimpleTestCase):
             matches = self.client.get(url)
             self.assertEqual(matches.status_code, 200, matches.data)
             self.assertTrue(matches.data["items"], matches.data)
-            self.assertIn("synthetic", matches.data["model_notice"])
+            self.assertIn("survey", matches.data["model_notice"])
         self.as_user(owner)
         matches = self.client.get(f"/api/projects/{identifier}/teammates/")
         self.assertEqual(matches.status_code, 200, matches.data)
@@ -564,12 +570,12 @@ class PlatformTests(SimpleTestCase):
         ):
             result = self.client.get("/api/recommendations/users/")
             self.assertEqual(result.status_code, 200)
-            scores = [item["compatibility_score"] for item in result.data["items"]]
+            scores = [item["match_score"] for item in result.data["items"]]
             self.assertEqual(scores, sorted(scores, reverse=True))
-        with patch("platform_api.recommendations.probabilities", return_value=[0.1]):
-            self.assertEqual(self.client.get("/api/recommendations/users/").data["items"], [])
+        self.client.put("/api/profiles/me/", {"name": "Student", "languages": [], "databases": [], "frameworks": [], "platforms": [], "years_code": None}, format="json")
+        self.assertEqual(self.client.get("/api/recommendations/users/").data["items"], [])
         get_collection("profiles").delete_one({"user_id": ObjectId(student["id"])})
         result = self.client.get("/api/recommendations/users/")
         self.assertEqual(result.status_code, 200)
         self.assertEqual(result.data["items"], [])
-        self.assertIn("skills", result.data["detail"])
+        self.assertIn("technologies", result.data["detail"])

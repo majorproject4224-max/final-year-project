@@ -43,10 +43,10 @@ class ActivityTests(SimpleTestCase):
         owner, member = self.register("Owner"), self.register("Member")
         self.as_user(owner)
         response = self.client.put(
-            "/api/profiles/me/", {"name": "Individual", "interests": ["Gardening"]}, format="json"
+            "/api/profiles/me/", {"name": "Individual", "languages": [], "databases": [], "frameworks": [], "platforms": [], "community_interests": ["Gardening"]}, format="json"
         )
         self.assertEqual(response.status_code, 200, response.data)
-        self.assertIsNone(response.data["academic_year"])
+        self.assertNotIn("academic_year", response.data)
         self.assertEqual(response.data["skills"], [])
         activity = self.activity(owner)
         self.assertEqual(activity["organizer_name"], "Individual")
@@ -127,7 +127,7 @@ class ActivityTests(SimpleTestCase):
             "/api/profiles/me/",
             {
                 "name": "Member",
-                "interests": ["GARDENING"],
+                "community_interests": ["GARDENING"],
                 "city": " delhi ",
                 "activity_location_preference": "local",
             },
@@ -155,7 +155,7 @@ class ActivityTests(SimpleTestCase):
         self.assertEqual(self.client.get("/api/events/?scope=joined").data["total"], 1)
         self.client.put(
             "/api/profiles/me/",
-            {"name": "Member", "interests": ["gardening"], "activity_location_preference": "any"},
+            {"name": "Member", "community_interests": ["gardening"], "activity_location_preference": "any"},
             format="json",
         )
         self.assertIn(
@@ -180,7 +180,7 @@ class ActivityTests(SimpleTestCase):
                 "/api/profiles/me/",
                 {
                     "name": "Owner",
-                    "interests": ["gardening"],
+                    "community_interests": ["gardening"],
                     "activity_location_preference": "local",
                 },
                 format="json",
@@ -212,3 +212,4 @@ class ActivityTests(SimpleTestCase):
             self.client.patch(endpoint, {"title": "Past"}, format="json").status_code, 409
         )
         self.assertEqual(self.client.get("/api/events/?category=Unknown").status_code, 400)
+

@@ -79,7 +79,7 @@ export function Explanations({ items = [] }) {
         {items.map((reason, i) => (
           <li key={i}>
             {reason.items
-              ? `${{ shared_skills: 'Shared skills', shared_interests: 'Common interests', required_skills_matched: 'Required skills matched', skills_to_learn: 'Skills to learn' }[reason.feature] || reason.feature}: ${reason.items.join(', ')}`
+              ? `${{ shared_skills: 'Shared skills', shared_interests: 'Common interests', required_skills_matched: 'Required skills matched', skills_to_learn: 'Skills to learn', you_want_they_use: 'You want to use; they have used', they_want_you_use: 'They want to use; you have used', shared_technologies: 'Technologies you both use', predicted_interest: 'Model-predicted interest (not stated by you)' }[reason.feature] || reason.feature}: ${reason.items.join(', ')}`
               : reason.feature === 'same_domain'
                 ? 'Same domain: ' + reason.value
                 : reason.feature === 'same_project_type'
@@ -125,13 +125,12 @@ export function StudentCard({ student, onChanged, inviteProject }) {
             {student.name}
           </Link>
           <p className="muted">
-            {student.organization_name || student.domain}
-            {student.academic_year ? ` · Year ${student.academic_year}` : ''}
+            {student.reciprocal_learning ? 'Learning exchange in both directions' : 'Connect and explore together'}
           </p>
         </div>
-        {student.compatibility_score != null && (
+        {student.match_score != null && (
           <span className="score">
-            {student.compatibility_score}% <small>match</small>
+            {student.match_score}/100 <small>{student.score_label}</small>
           </span>
         )}
       </div>
@@ -174,7 +173,7 @@ export function StudentCard({ student, onChanged, inviteProject }) {
                 : 'Connect'}
           </ActionButton>
         )}
-        {student.compatibility_score != null && (
+        {student.match_score != null && (
           <ActionButton
             className="subtle"
             action={() =>
@@ -199,9 +198,9 @@ export function ProjectCard({ project, onChanged }) {
     <article className="card project-card">
       <div className="card-top">
         <span className="badge">{project.domain}</span>
-        {project.compatibility_score != null && (
+        {project.match_score != null && (
           <span className="score">
-            {project.compatibility_score}% <small>match</small>
+            {project.match_score}% <small>skill coverage</small>
           </span>
         )}
       </div>
@@ -228,7 +227,7 @@ export function ProjectCard({ project, onChanged }) {
         >
           Save
         </ActionButton>
-        {project.compatibility_score != null && (
+        {project.match_score != null && (
           <ActionButton
             className="subtle"
             action={() =>

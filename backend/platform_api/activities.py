@@ -182,7 +182,7 @@ class ActivityRecommendationsView(APIView):
     def get(self, request):
         viewer = ObjectId(request.user.id)
         profile = get_collection("profiles").find_one({"user_id": viewer}) or {}
-        interests = set(normalize_items(profile.get("interests", [])))
+        interests = set(normalize_items(profile.get("community_interests", profile.get("interests", []))))
         response = {
             "items": [],
             "matching_method": "shared_interests",

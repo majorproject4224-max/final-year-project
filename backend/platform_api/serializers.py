@@ -2,6 +2,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 from ml.features import normalize_items, normalize_domain
+from ml.survey import tags
 
 DOMAINS = [
     "AI / ML",
@@ -61,17 +62,13 @@ class NormalizedItemsField(serializers.ListField):
 
 class ProfileSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=80)
-    branch = serializers.CharField(max_length=100, allow_blank=True, default="")
-    academic_year = serializers.IntegerField(
-        min_value=1, max_value=4, allow_null=True, default=None
-    )
-    skills = NormalizedItemsField(default=list)
-    interests = NormalizedItemsField(allow_empty=False)
-    domain = serializers.ChoiceField(choices=DOMAINS, default="Other")
-    experience = serializers.ChoiceField(choices=EXPERIENCE, default="Beginner")
-    preferred_project_type = serializers.CharField(max_length=80, allow_blank=True, default="")
-    projects_completed = serializers.IntegerField(min_value=0, max_value=100, default=0)
-    availability_hours = serializers.IntegerField(min_value=1, max_value=40, default=8)
+    languages = NormalizedItemsField(default=list, allow_null=True)
+    databases = NormalizedItemsField(default=list, allow_null=True)
+    frameworks = NormalizedItemsField(default=list, allow_null=True)
+    platforms = NormalizedItemsField(default=list, allow_null=True)
+    wanted_languages = NormalizedItemsField(default=list, allow_null=True)
+    years_code = serializers.FloatField(min_value=0, max_value=51, allow_null=True, default=None)
+    community_interests = NormalizedItemsField(default=list)
     bio = serializers.CharField(max_length=1000, allow_blank=True, default="")
     city = serializers.CharField(max_length=100, allow_blank=True, default="")
     phone = serializers.CharField(max_length=40, allow_blank=True, default="")
@@ -81,6 +78,13 @@ class ProfileSerializer(serializers.Serializer):
     activity_location_preference = serializers.ChoiceField(choices=["any", "local"], default="any")
 
     def validate(self, attrs):
+        import math
+        from ml.survey import FIELD_MAP
+        for field in [*FIELD_MAP, "wanted_languages"]:
+            attrs[field] = tags(attrs.get(field))
+        if attrs["years_code"] is not None and not math.isfinite(attrs["years_code"]):
+            raise serializers.ValidationError({"years_code": "Enter a finite number from 0 to 51, or leave blank."})
+        attrs["profile_schema_version"] = 3
         if attrs["activity_location_preference"] == "local" and not attrs["city"]:
             raise serializers.ValidationError(
                 {"city": "Add your city to use nearby activity suggestions."}

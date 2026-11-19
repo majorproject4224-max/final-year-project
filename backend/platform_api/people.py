@@ -8,6 +8,8 @@ from .common import now, object_id, pair_key, page_result, search_regex
 from .mongo import get_collection
 from .resume import extract_resume
 from .serializers import ProfileSerializer, ConnectionRequestSerializer
+from ml.survey import current_technologies, tags
+from ml.discovery import profile_quality
 
 
 def profile_data(profile, viewer=None):
@@ -26,6 +28,10 @@ def profile_data(profile, viewer=None):
             "name": user["name"] if user else "Unavailable account",
         }
     )
+    result["skills"] = current_technologies(profile)
+    result["interests"] = tags(profile.get("wanted_languages"))
+    result["community_interests"] = profile.get("community_interests", profile.get("interests", []))
+    result["profile_quality"] = profile_quality(profile)
     own = viewer and str(profile["user_id"]) == str(viewer)
     result["connection"] = None
     if viewer and not own:
@@ -79,7 +85,8 @@ class ProfileView(APIView):
         return Response(profile_data(profile, request.user.id))
 
     def put(self, request):
-        serializer = ProfileSerializer(data=request.data)
+        existing = get_collection("profiles").find_one({"user_id": ObjectId(request.user.id)}) or {}
+        serializer = ProfileSerializer(data={**existing, **request.data})
         serializer.is_valid(raise_exception=True)
         values = dict(serializer.validated_data)
         name = values.pop("name")
@@ -94,6 +101,16 @@ class ProfileView(APIView):
             upsert=True,
         )
         return self.get(request)
+
+
+class ProfileOptionsView(APIView):
+    def get(self, request):
+        import json
+        from django.conf import settings
+        path = settings.PROJECT_ROOT / "dataset/survey_profile_options.json"
+        if not path.exists():
+            return Response({"detail": "Survey vocabulary is being prepared."}, status=503)
+        return Response(json.loads(path.read_text(encoding="utf-8")))
 
 
 class ResumeSuggestionsView(APIView):
@@ -120,13 +137,13 @@ class StudentsView(APIView):
             term = search_regex(request.query_params["q"])
             matches = get_collection("users").find({"name": term}, {"_id": 1})
             query["$or"] = [
-                {"skills": term},
-                {"interests": term},
-                {"domain": term},
+                {"languages": term},
+                {"databases": term},
+                {"frameworks": term},
+                {"platforms": term},
+                {"wanted_languages": term},
                 {"user_id": {"$in": [u["_id"] for u in matches]}},
             ]
-        if request.query_params.get("domain"):
-            query["domain"] = request.query_params["domain"]
         return Response(
             page_result(
                 get_collection("profiles"),

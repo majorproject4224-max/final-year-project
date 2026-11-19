@@ -133,6 +133,14 @@ def validated(serializer, values):
 
 
 def build_fixtures():
+    # Fictional UI fixtures only. Never read by the survey training pipeline.
+    technology = {
+        "aarav": {"languages": ["Python", "SQL"], "databases": ["PostgreSQL", "MongoDB"], "frameworks": ["Django"], "platforms": [], "wanted_languages": ["JavaScript", "Python"], "years_code": 3},
+        "priya": {"languages": ["JavaScript", "HTML/CSS"], "databases": ["MongoDB"], "frameworks": ["React", "Node.js"], "platforms": [], "wanted_languages": ["Python", "JavaScript"], "years_code": 3},
+        "rohan": {"languages": ["Python", "JavaScript", "SQL"], "databases": ["PostgreSQL"], "frameworks": ["Django", "React"], "platforms": [], "wanted_languages": ["Python", "JavaScript"], "years_code": None},
+        "ananya": {"languages": ["JavaScript", "TypeScript", "HTML/CSS"], "databases": [], "frameworks": ["React"], "platforms": [], "wanted_languages": ["Python", "TypeScript"], "years_code": 2},
+        "kabir": {"languages": ["Python", "SQL"], "databases": ["PostgreSQL"], "frameworks": ["Django"], "platforms": ["Amazon Web Services (AWS)"], "wanted_languages": ["Rust", "Go"], "years_code": 4},
+    }
     people = []
     for person in PEOPLE:
         profile = validated(
@@ -145,6 +153,8 @@ def build_fixtures():
                 "availability_hours": 8,
                 "projects_completed": 2,
                 **person,
+                **technology[person["key"]],
+                "community_interests": person["interests"],
             },
         )
         people.append(

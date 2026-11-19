@@ -97,7 +97,7 @@ with sync_playwright() as p:
         print(
             "Measured presentation recommendation:",
             [
-                {"name": item["name"], "score": item["compatibility_score"]}
+                {"name": item["name"], "score": item["match_score"]}
                 for item in recommendations["items"]
             ],
         )

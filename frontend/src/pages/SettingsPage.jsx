@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { api, clearTokens, getErrorMessage } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { PageTitle, ErrorBox } from '../components/UI';
+import CommunitySettings from '../components/CommunitySettings';
 export default function SettingsPage() {
   const { user, notify } = useAuth();
   const [current, setCurrent] = useState(''),
@@ -31,6 +32,7 @@ export default function SettingsPage() {
   return (
     <>
       <PageTitle title="Account settings">{user.email}</PageTitle>
+      <CommunitySettings />
       <form className="card form-grid form-width" onSubmit={submit}>
         <h2 className="full">Change password</h2>
         <p className="full muted">Changing your password signs you out on all devices.</p>

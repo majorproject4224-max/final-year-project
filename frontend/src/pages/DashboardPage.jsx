@@ -33,7 +33,7 @@ export default function DashboardPage() {
             </div>
           }
         >
-          Meet people, build projects and take part in community activities.
+          Discover learning partners, build projects and take part in community activities.
         </PageTitle>
       </div>
       {!profile && (
@@ -69,7 +69,8 @@ export default function DashboardPage() {
             Projects
           </button>
         </div>
-        <p className="model-note">{state.data?.model_notice}</p>
+        <p className="model-note">{state.data?.model_notice} <Link to="/method">How it works →</Link></p>
+        {view === 'students' && students.data?.profile_quality && <div className="profile-completeness"><strong>{students.data.profile_quality.observed_input_fields}/5 technology input fields answered</strong><span>Missing answers remain unknown. <Link to="/profile">Review profile →</Link></span></div>}
         {profile ? (
           <DataState state={state}>
             <div className="cards">
@@ -108,7 +109,7 @@ export default function DashboardPage() {
         </DataState>
         <p className="muted activity-preference-link">
           Suggestions use shared interests and your location preference.{' '}
-          <Link to="/profile">Update interests →</Link>
+          <Link to="/settings">Update community interests →</Link>
         </p>
       </section>
     </>

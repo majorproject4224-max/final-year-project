@@ -27,6 +27,7 @@ import MySpacePage from './pages/MySpacePage';
 import EventsPage, { ActivityDetailPage } from './pages/EventsPage';
 import ChatPage from './pages/ChatPage';
 import SettingsPage from './pages/SettingsPage';
+import MethodPage from './pages/MethodPage';
 
 const navigation = [
   ['/', 'Overview', LayoutDashboard],
@@ -204,6 +205,7 @@ export default function App() {
             <Route index element={<DashboardPage />} />
             <Route path="/recommendations" element={<DashboardPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/method" element={<MethodPage />} />
             <Route path="/students" element={<StudentsPage />} />
             <Route path="/students/:id" element={<StudentDetailPage />} />
             <Route path="/connections" element={<ConnectionsPage />} />

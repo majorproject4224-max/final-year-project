@@ -67,8 +67,6 @@ export function StudentDetailPage() {
       <PageTitle eyebrow="COMMUNITY PROFILE" title={student.name}>
         {[
           student.organization_name,
-          student.branch,
-          student.academic_year ? `Year ${student.academic_year}` : '',
           student.city || 'Community member',
         ]
           .filter(Boolean)
@@ -81,30 +79,30 @@ export function StudentDetailPage() {
           <p className="preserve-lines">
             {student.bio || 'This person has not added a bio yet.'}
           </p>
-          <h3>Skills</h3>
+          <h3>Technologies used</h3>
           <Tags values={student.skills} />
-          <h3>Interests</h3>
+          <h3>Languages they want to use</h3>
           <Tags values={student.interests} />
           <dl className="facts">
             <div>
-              <dt>Domain</dt>
-              <dd>{student.domain}</dd>
+              <dt>Languages used</dt>
+              <dd>{student.languages?.join(', ') || 'Not answered'}</dd>
             </div>
             <div>
-              <dt>Experience</dt>
-              <dd>{student.experience}</dd>
+              <dt>Databases used</dt>
+              <dd>{student.databases?.join(', ') || 'Not answered'}</dd>
             </div>
             <div>
-              <dt>Project preference</dt>
-              <dd>{student.preferred_project_type}</dd>
+              <dt>Web frameworks used</dt>
+              <dd>{student.frameworks?.join(', ') || 'Not answered'}</dd>
             </div>
             <div>
-              <dt>Availability</dt>
-              <dd>{student.availability_hours} hours / week</dd>
+              <dt>Cloud platforms used</dt>
+              <dd>{student.platforms?.join(', ') || 'Not answered'}</dd>
             </div>
             <div>
-              <dt>Projects completed</dt>
-              <dd>{student.projects_completed}</dd>
+              <dt>Coding years</dt>
+              <dd>{student.years_code ?? 'Not answered'}</dd>
             </div>
           </dl>
           {student.github && (

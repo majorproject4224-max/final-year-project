@@ -1,387 +1,78 @@
 import { useState } from 'react';
-import { FileText, ChevronDown, Upload } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { api, getErrorMessage } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { useData } from '../hooks/useData';
 import { PageTitle, ErrorBox } from '../components/UI';
-import { DOMAINS, EXPERIENCE, SelectField, splitTags } from '../components/ProfileFields';
-import { InterestSuggestions } from '../components/Activities';
+import { splitTags } from '../components/ProfileFields';
+import ResumeTechnologyImport from '../components/ResumeTechnologyImport';
+
+const FIELDS = [
+  ['languages', 'Languages you have used', 'LanguageHaveWorkedWith'],
+  ['databases', 'Databases you have used', 'DatabaseHaveWorkedWith'],
+  ['frameworks', 'Web frameworks you have used', 'WebframeHaveWorkedWith'],
+  ['platforms', 'Cloud platforms you have used', 'PlatformHaveWorkedWith'],
+  ['wanted_languages', 'Languages you want to use', 'LanguageWantToWorkWith'],
+];
 
 export default function ProfilePage() {
   const { user, profile, setProfile, setUser, notify } = useAuth();
+  const options = useData('/profiles/options/');
   const [form, setForm] = useState({
-    name: user.name,
-    branch: '',
-    academic_year: '',
-    domain: 'Other',
-    experience: 'Beginner',
-    preferred_project_type: '',
-    projects_completed: 0,
-    availability_hours: 8,
-    bio: '',
-    city: '',
-    phone: '',
-    github: '',
-    share_contact: false,
-    organization_name: '',
-    activity_location_preference: 'any',
-    ...profile,
-    skills: profile?.skills?.join(', ') || '',
-    interests: profile?.interests?.join(', ') || '',
+    name: user.name, years_code: profile?.years_code ?? '',
+    ...Object.fromEntries(FIELDS.map(([key]) => [key, profile?.[key]?.join(', ') || ''])),
   });
-  const [error, setError] = useState('');
-  const [resumeError, setResumeError] = useState('');
   const [busy, setBusy] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [suggestions, setSuggestions] = useState(null);
-  const change = (e) =>
-    setForm({
-      ...form,
-      [e.target.name]: e.target.type === 'checkbox' ? e.target.checked : e.target.value,
-    });
+  const [error, setError] = useState('');
+  const change = (e) => setForm({ ...form, [e.target.name]: e.target.value });
   async function save(e) {
-    e.preventDefault();
-    setBusy(true);
-    setError('');
+    e.preventDefault(); setBusy(true); setError('');
     try {
       const { data } = await api.put('/profiles/me/', {
         ...form,
-        academic_year:
-          form.academic_year === '' || form.academic_year == null
-            ? null
-            : Number(form.academic_year),
-        skills: splitTags(form.skills),
-        interests: splitTags(form.interests),
+        years_code: form.years_code === '' ? null : Number(form.years_code),
+        ...Object.fromEntries(FIELDS.map(([key]) => [key, splitTags(form[key])])),
       });
-      setProfile(data);
-      setUser({ ...user, name: data.name });
-      notify('Profile saved. Your matches will use these details.');
-    } catch (e) {
-      setError(getErrorMessage(e));
-    } finally {
-      setBusy(false);
-    }
+      setProfile(data); setUser({ ...user, name: data.name });
+      notify('Profile saved. Empty fields stay unknown.');
+    } catch (e) { setError(getErrorMessage(e)); }
+    finally { setBusy(false); }
   }
-  async function readResume(e) {
-    const input = e.target;
-    const file = input.files[0];
-    if (!file) return;
-    setResumeError('');
-    setSuggestions(null);
-    if (file.size > 5 * 1024 * 1024) {
-      setResumeError('Choose a Resume file smaller than 5 MB.');
-      input.value = '';
-      return;
-    }
-    setUploading(true);
-    try {
-      const body = new FormData();
-      body.append('resume', file);
-      setSuggestions((await api.post('/profiles/resume-suggestions/', body)).data.suggestions);
-    } catch (e) {
-      setResumeError(getErrorMessage(e));
-    } finally {
-      setUploading(false);
-      input.value = '';
-    }
-  }
-  function applySuggestions() {
-    const values = { ...form };
-    for (const key of ['skills', 'interests']) {
-      if (suggestions[key]?.length) {
-        values[key] = [...new Set([...splitTags(form[key]), ...suggestions[key]])].join(', ');
-      }
-    }
-    for (const key of [
-      'name',
-      'branch',
-      'academic_year',
-      'domain',
-      'experience',
-      'preferred_project_type',
-      'phone',
-      'github',
-      'city',
-    ]) {
-      if (suggestions[key]) values[key] = suggestions[key];
-    }
-    setForm(values);
-    setSuggestions(null);
-    notify('Suggestions added to the form. Review them before saving.');
-  }
-  return (
-    <div className="profile-page">
-      <PageTitle title={profile ? 'My profile' : 'Create your profile'}>
-        Share your interests to find people, projects and community activities.
-      </PageTitle>
-      <details className="resume-panel">
-        <summary>
-          <span className="resume-icon">
-            <FileText size={20} aria-hidden="true" />
-          </span>
-          <span>
-            <strong>Import from Resume</strong>
-            <small>Optional · Fill in details from a PDF or DOCX</small>
-          </span>
-          <ChevronDown className="disclosure-arrow" size={18} aria-hidden="true" />
-        </summary>
-        <div className="resume-content">
-          <p>Upload your Resume, review the suggestions, then save your profile.</p>
-          <label className="file-picker">
-            <span>
-              <Upload size={16} aria-hidden="true" /> Choose Resume
-            </span>
-            <input
-              aria-label="Choose Resume"
-              type="file"
-              accept=".pdf,.docx"
-              disabled={uploading || busy}
-              onChange={readResume}
-            />
-          </label>
-          <small className="muted">
-            PDF or DOCX, up to 5 MB. Scanned PDFs may not contain readable text.
-          </small>
-          {uploading && <p role="status">Reading your Resume…</p>}
-          <ErrorBox message={resumeError} />
-          {suggestions && (
-            <div className="resume-results">
-              <h3>Review suggestions</h3>
-              <dl className="suggestions">
-                {Object.entries(suggestions)
-                  .filter(([, value]) => value?.length)
-                  .map(([key, value]) => (
-                    <div key={key}>
-                      <dt>{key.replaceAll('_', ' ')}</dt>
-                      <dd>{Array.isArray(value) ? value.join(', ') : value}</dd>
-                    </div>
-                  ))}
-              </dl>
-              <button type="button" onClick={applySuggestions}>
-                Use these suggestions
-              </button>
-            </div>
-          )}
-        </div>
-      </details>
-      <form className="profile-form" onSubmit={save}>
-        <section className="profile-section" aria-labelledby="basic-details-title">
-          <div className="form-section-heading">
-            <h2 id="basic-details-title">Basic details</h2>
-            <p>Introduce yourself. College details are optional for community members.</p>
-          </div>
-          <div className="form-grid">
-            <label>
-              Full name
-              <input
-                name="name"
-                required
-                maxLength={80}
-                value={form.name}
-                onChange={change}
-                autoComplete="name"
-              />
-            </label>
-            <label>
-              Branch (optional)
-              <input name="branch" maxLength={100} value={form.branch} onChange={change} />
-            </label>
-            <label>
-              Academic year (optional)
-              <input
-                name="academic_year"
-                type="number"
-                min="1"
-                max="4"
-                value={form.academic_year ?? ''}
-                onChange={change}
-              />
-            </label>
-            <label>
-              City
-              <input
-                name="city"
-                maxLength={100}
-                value={form.city}
-                onChange={change}
-                autoComplete="address-level2"
-              />
-            </label>
-            <label>
-              Organization or club (optional)
-              <input
-                name="organization_name"
-                maxLength={120}
-                value={form.organization_name}
-                onChange={change}
-                placeholder="Leave blank if you participate as an individual"
-              />
-            </label>
-            <label className="full">
-              Bio
-              <textarea
-                name="bio"
-                maxLength={1000}
-                value={form.bio}
-                onChange={change}
-                placeholder="What do you enjoy, and what would you like to do together?"
-              />
-            </label>
-          </div>
-        </section>
-        <section className="profile-section" aria-labelledby="skills-title">
-          <div className="form-section-heading">
-            <h2 id="skills-title">Skills & interests</h2>
-            <p>These details help personalize your recommendations.</p>
-          </div>
-          <div className="form-grid">
-            <label className="full">
-              Skills, separated by commas
-              <input
-                name="skills"
-                value={form.skills}
-                onChange={change}
-                placeholder="Python, React, machine learning"
-              />
-              <small>
-                Optional. Add things you know or are learning, from gardening to programming.
-              </small>
-            </label>
-            <label className="full">
-              Interests, separated by commas
-              <input
-                name="interests"
-                required
-                value={form.interests}
-                onChange={change}
-                placeholder="Research, sustainability, education"
-              />
-            </label>
-            <div className="full">
-              <InterestSuggestions
-                value={form.interests}
-                onChange={(interests) => setForm({ ...form, interests })}
-              />
-            </div>
-            <label className="full">
-              Activity location preference
-              <select
-                name="activity_location_preference"
-                value={form.activity_location_preference}
-                onChange={change}
-              >
-                <option value="any">Any location</option>
-                <option value="local">My city and online</option>
-              </select>
-              <small>
-                Nearby suggestions use the city you enter above. Interests must still match.
-              </small>
-            </label>
-            <SelectField
-              label="Technical domain"
-              name="domain"
-              value={form.domain}
-              onChange={change}
-              options={DOMAINS}
-            />
-            <SelectField
-              label="Experience"
-              name="experience"
-              value={form.experience}
-              onChange={change}
-              options={EXPERIENCE}
-            />
-          </div>
-        </section>
-        <section className="profile-section" aria-labelledby="preferences-title">
-          <div className="form-section-heading">
-            <h2 id="preferences-title">Project preferences</h2>
-            <p>Tell potential teammates how you like to work.</p>
-          </div>
-          <div className="form-grid">
-            <label>
-              Preferred project type
-              <input
-                name="preferred_project_type"
-                maxLength={80}
-                value={form.preferred_project_type}
-                onChange={change}
-                list="project-types"
-              />
-            </label>
-            <label>
-              Hours available each week
-              <input
-                name="availability_hours"
-                type="number"
-                min="1"
-                max="40"
-                required
-                value={form.availability_hours}
-                onChange={change}
-              />
-            </label>
-            <label>
-              Projects completed
-              <input
-                name="projects_completed"
-                type="number"
-                min="0"
-                max="100"
-                required
-                value={form.projects_completed}
-                onChange={change}
-              />
-            </label>
-          </div>
-        </section>
-        <section className="profile-section" aria-labelledby="contact-title">
-          <div className="form-section-heading">
-            <h2 id="contact-title">Links & contact</h2>
-            <p>Optional. Choose what you share.</p>
-          </div>
-          <div className="form-grid">
-            <label>
-              GitHub or portfolio URL
-              <input
-                name="github"
-                type="url"
-                value={form.github}
-                onChange={change}
-                placeholder="https://github.com/yourname"
-              />
-            </label>
-            <label>
-              Contact number (optional)
-              <input
-                name="phone"
-                type="tel"
-                maxLength={40}
-                value={form.phone}
-                onChange={change}
-                autoComplete="tel"
-              />
-            </label>
-            <label className="checkbox full">
-              <input
-                name="share_contact"
-                type="checkbox"
-                checked={form.share_contact}
-                onChange={change}
-              />
-              Share my number with accepted connections
-            </label>
-          </div>
-        </section>
-        <div className="profile-save">
-          <ErrorBox message={error} />
-          <div className="save-row">
-            <span>Your changes are saved only when you click Save.</span>
-            <button className="primary" disabled={busy || uploading}>
-              {busy ? 'Saving…' : 'Save profile'}
-            </button>
-          </div>
-        </div>
-      </form>
+  const answered = FIELDS.slice(0, 4).filter(([key]) => splitTags(form[key]).length).length + (form.years_code !== '' ? 1 : 0);
+  return <div className="profile-page">
+    <PageTitle title={profile ? 'My profile' : 'Create your profile'}>Share what you have used and what you want to explore next.</PageTitle>
+    <div className="notice survey-source">
+      <strong>Built around real developer survey questions</strong>
+      <p>Technology fields follow the Stack Overflow Developer Survey 2024. Use your own answers; we never copy a survey respondent into your account.</p>
+      <Link to="/method">See how recommendations work →</Link>
     </div>
-  );
+    <ResumeTechnologyImport options={options.data} onApply={(suggestions) => setForm(previous => ({ ...previous, ...Object.fromEntries(Object.entries(suggestions).map(([key, values]) => [key, [...new Set([...splitTags(previous[key]), ...values])].join(', ')])) }))} />
+    <form className="profile-form" onSubmit={save}>
+      <section className="profile-section">
+        <div className="form-section-heading"><h2>Your name</h2><p>Used for your account, never as a model input.</p></div>
+        <label>Full name<input name="name" required maxLength={80} value={form.name} onChange={change} autoComplete="name" /></label>
+      </section>
+      <section className="profile-section">
+        <div className="form-section-heading"><h2>Your technology profile</h2><p>Think about technologies you used during the past year. Leave unanswered fields blank.</p></div>
+        <div className="profile-completeness" role="status"><strong>{answered} of 5 input fields answered</strong><span>Completeness describes your answers, not model confidence.</span></div>
+        <div className="form-grid">
+          {FIELDS.map(([key, title, source]) => <label key={key} className={key === 'wanted_languages' ? 'full' : ''}>
+            {title}
+            <input name={key} value={form[key]} onChange={change} maxLength={2000} placeholder="Separate technologies with commas" list={'survey-' + key} />
+            <datalist id={'survey-' + key}>{options.data?.[key]?.map(value => <option key={value} value={value} />)}</datalist>
+            <small className="muted">Survey field: {source}</small>
+            {key === 'wanted_languages' && <small className="muted">For the coming year, including technologies you want to keep using. Your answer takes priority over a prediction.</small>}
+          </label>)}
+          <label>Coding years (including education)
+            <input name="years_code" type="number" min="0" max="51" step="0.5" value={form.years_code} onChange={change} placeholder="Optional" />
+            <small className="muted">YearsCode · Use 0.5 for less than 1 year, 51 for more than 50.</small>
+          </label>
+        </div>
+        <p className="muted">No technologies entered? You can save and browse manually. The system will ask for more information before making ML suggestions.</p>
+      </section>
+      <ErrorBox message={error} />
+      <button className="primary" disabled={busy}>{busy ? 'Saving…' : 'Save profile'}</button>
+    </form>
+    <p className="muted">Contact details and interests for drives or meetups are in <Link to="/settings">Community settings</Link>. They are separate from the survey model.</p>
+  </div>;
 }

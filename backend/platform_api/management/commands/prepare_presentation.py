@@ -13,7 +13,8 @@ from django.core.management.base import BaseCommand, CommandError
 from platform_api.common import now, pair_key
 from platform_api.mongo import get_collection, ensure_indexes, run_transaction
 from platform_api.presentation_data import SOURCE, build_fixtures, fixture_id
-from platform_api.services.recommendations import candidate_indices, probabilities
+from platform_api.services.recommendations import load_models
+from ml.discovery import recommend_people, project_match
 
 
 LEGACY_USERS = {"data_source": "synthetic_demo", "email": {"$regex": r"^demo\d+@example\.invalid$"}}
@@ -96,23 +97,10 @@ def check_matches(people, projects):
     profiles = {p["key"]: p["profile"] for p in people}
     scores = {}
     for target in ("priya", "rohan"):
-        indices, _ = candidate_indices(profiles["aarav"], [profiles[target]])
-        score = float(probabilities(profiles["aarav"], [profiles[target]])[0])
-        reverse, _ = candidate_indices(profiles[target], [profiles["aarav"]])
-        reverse_score = float(probabilities(profiles[target], [profiles["aarav"]])[0])
-        if not indices or not reverse or min(score, reverse_score) < 0.5:
-            raise CommandError(
-                "The saved model does not recommend the presentation pair. No records changed."
-            )
-        scores[target] = round(score * 100, 1)
+        ranked, _ = recommend_people(load_models(), profiles["aarav"], [profiles[target]])
+        scores[target] = ranked[0]["match_score"] if ranked else None
     study = next(p["values"] for p in projects if p["key"] == "study-buddy")
-    indices, _ = candidate_indices(profiles["aarav"], [study], True)
-    score = float(probabilities(profiles["aarav"], [study], "projects")[0])
-    if not indices or score < 0.5:
-        raise CommandError(
-            "The saved model does not recommend the presentation project. No records changed."
-        )
-    scores["study-buddy"] = round(score * 100, 1)
+    scores["study-buddy"] = project_match(profiles["aarav"], study)["match_score"]
     return scores
 
 
@@ -169,7 +157,7 @@ class Command(BaseCommand):
             "Plan: 5 fictional Indian-name accounts, 5 projects, 2 activities; Aarav and Priya connected; Rohan available for a new connection."
         )
         self.stdout.write(
-            "Actual saved-model scores (synthetic training, not success guarantees): " + str(scores)
+            "Measured discovery scores for fictional UI profiles (not success probabilities): " + str(scores)
         )
         if not options["apply"]:
             self.stdout.write(

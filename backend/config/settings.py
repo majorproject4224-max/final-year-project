@@ -130,4 +130,4 @@ X_FRAME_OPTIONS = "DENY"
 DATA_UPLOAD_MAX_MEMORY_SIZE = 6 * 1024 * 1024
 # A small demo budget, separate from the database provider's own limits.
 CHAT_ATTACHMENT_STORAGE_BYTES = int(os.getenv("CHAT_ATTACHMENT_STORAGE_MB", "100")) * 1024 * 1024
-ML_MODEL_PATH = Path(os.getenv("ML_MODEL_PATH", str(PROJECT_ROOT / "ml/models/recommender.joblib")))
+ML_MODEL_PATH = Path(os.getenv("ML_MODEL_PATH", str(PROJECT_ROOT / "ml/models/survey-recommender.joblib")))

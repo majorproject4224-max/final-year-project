@@ -1928,3 +1928,21 @@ textarea::placeholder {
     transition: none !important;
   }
 }
+
+/* Real survey profile and explainable discovery */
+.survey-source { display:block; margin-bottom:24px; }
+.survey-source p { margin:8px 0; }
+.profile-completeness { display:flex; flex-wrap:wrap; gap:8px 20px; padding:16px; background:#eef2ff; border:1px solid #c7d2fe; border-radius:10px; margin:16px 0 24px; font-size:14px; }
+.method-flow, .evidence-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; margin:24px 0; }
+.method-flow > div { border:1px solid #c7d2fe; border-radius:12px; padding:20px 16px; display:flex; align-items:center; gap:12px; background:#eef2ff; }
+.method-flow span { display:grid; place-items:center; min-width:28px; height:28px; border-radius:50%; background:#4f46e5; color:white; }
+.evidence-stats article { display:flex; flex-direction:column; gap:12px; }
+.evidence-stats strong { font-size:28px; color:#4338ca; }
+.table-scroll { overflow-x:auto; }
+.evidence-table { width:100%; border-collapse:collapse; margin:20px 0; text-align:left; font-variant-numeric:tabular-nums; }
+.evidence-table th, .evidence-table td { padding:13px 15px; border-bottom:1px solid #e2e8f0; white-space:nowrap; }
+.evidence-table th { background:#eef2ff; color:#3730a3; }
+.parameter-tags { display:flex; flex-wrap:wrap; gap:10px; }
+.parameter-tags span { background:#dcfce7; border:1px solid #86efac; border-radius:8px; padding:10px 12px; }
+@media (max-width:900px) { .method-flow, .evidence-stats { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:480px) { .method-flow { grid-template-columns:1fr; } .evidence-stats { gap:8px; } .evidence-stats strong { font-size:24px; } }
