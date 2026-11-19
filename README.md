@@ -111,27 +111,54 @@ K-Means selected **2 groups** from 2, 3, 4, 5, 6, 8 and 10. Test silhouette is *
 
 [Full measured results and explained figures](docs/RESULTS.md) · [Detailed methodology](docs/ML_METHODOLOGY.md) · [Simple teacher walkthrough](docs/TEACHER_GUIDE.md) · [Metrics JSON](ml/evaluation/survey2024/metrics.json)
 
-## 7. Website and technology flow
+## 7. Technology stack and application flow
+
+| Area | Technology used | What it does in ConnectAI |
+|---|---|---|
+| Frontend | **React + JavaScript** | Builds interactive pages such as the dashboard, profiles, projects and chat. |
+| Page design | **HTML + custom CSS + Inter font** | Controls layout, colors, spacing, typography and responsive behavior on different screen sizes. Styles are defined in frontend/src/style.css. |
+| Icons | **Lucide React** | Provides the navigation, action and status icons used throughout the interface. |
+| Navigation and API calls | **React Router + Axios** | React Router switches between pages; Axios sends requests to the Django API and receives data. |
+| Frontend tools | **Node.js + Vite** | Runs the frontend development server and builds the production website files. |
+| Backend | **Python + Django** | Handles application logic, configuration, password hashing and server-side features. |
+| REST API | **Django REST Framework (DRF)** | Connects React to the backend through APIs; validates submitted data and checks authentication and permissions. |
+| Database | **MongoDB + PyMongo** | MongoDB stores accounts, profiles, projects, connections, events and messages as documents. PyMongo lets the Python backend read and update them. |
+| Authentication | **JWT / SimpleJWT** | Uses access and refresh tokens to identify signed-in users when they call protected APIs. |
+| Live connection | **WebSockets** | Keeps a connection open so new chat messages and read updates can arrive without refreshing the page. |
+| Live chat handling | **Django Channels** | Handles WebSocket connections in Django and groups connected clients by conversation. |
+| Temporary messaging and cache | **Redis** | Relays live chat events between Channels connections and provides shared cache storage. MongoDB keeps the permanent message history. |
+| Application server | **Uvicorn (ASGI)** | Runs the Django application and supports both normal HTTP requests and WebSocket connections. |
+| Containers | **Docker + Docker Compose** | Runs MongoDB and Redis in separate containers with a shared startup configuration, making the development services easier to start consistently. |
+| Data preparation | **Pandas + NumPy** | Loads CSV/Excel data, cleans values and prepares numerical arrays for training and evaluation. |
+| Machine learning | **Scikit-learn** | Provides K-Means, Random Forest, preprocessing tools and the functions used to calculate model results. |
+| Saved models | **Joblib** | Saves and reloads the trained models and preprocessing objects so recommendations can use them without retraining. |
+
+### How Docker makes development easier
+
+**Containerization** means packaging a service with the environment it needs so it can run consistently. **Docker Compose** describes several services in one configuration and starts them together.
+
+In this project:
+
+1. **MongoDB and Redis** run in separate Docker containers defined in [docker-compose.yml](docker-compose.yml). A MongoDB volume preserves database records when the container is restarted.
+2. **GitHub Codespaces** uses a development container configured with Python, Node.js and Docker support.
+3. **React and Django** run as processes in that development environment. The development script starts the frontend and backend together.
+
+The startup commands in the next section bring up the data services first, then the application: **start-data.sh starts MongoDB/Redis and prepares the database; dev.sh starts Django/React**. All four services then work together.
+
+### How a request moves through the system
 
 ~~~mermaid
 flowchart LR
     U[User in browser] --> R[React interface]
-    R --> D[Django REST API]
-    D --> M[(MongoDB: live accounts and activity)]
+    R -->|Axios: API requests| D[Django + DRF + Uvicorn]
+    D --> M[(MongoDB: saved application records)]
     D --> S[Saved preprocessing + K-Means + Random Forest]
-    R <-->|Live chat| C[Django Channels + Redis]
+    R <-->|WebSocket connection| C[Django Channels]
+    C <--> Q[(Redis: live event relay)]
     C --> M
 ~~~
 
-| Technology | What it does here |
-|---|---|
-| React | Pages, forms, dashboard and chat interface |
-| Django REST Framework | Validates requests and serves protected APIs |
-| MongoDB | Stores website accounts, profiles, projects, events and messages |
-| JWT | Identifies the signed-in user |
-| Channels, WebSockets and Redis | Deliver messages while both people are online |
-| Pandas / NumPy | Read, clean and prepare survey data |
-| Scikit-learn / Joblib | Train models, calculate results and save/reload fitted models |
+**Example:** React sends a profile update to DRF. The backend validates it and stores it in MongoDB. A later recommendation request uses the saved ML models. For chat, MongoDB stores the message and Channels uses Redis to deliver the live update over WebSockets.
 
 Implemented workflows include profiles, explainable people discovery, connection acceptance, project applications/teams, activities by individuals/clubs/NGOs, and private chat with image/file sharing.
 
