@@ -1,16 +1,16 @@
 {
-  "verified_at_utc": "2026-11-19T17:33:58.977976+00:00",
-  "source_commit": "d0fda59359b9cb40737441b69a03350b4427df23",
+  "verified_at_utc": "2026-11-20T08:39:54.404525+00:00",
+  "source_commit": "7ecd1bd462f62ca3cca250988438c433365a14aa",
   "environment": "GitHub Codespaces; isolated disposable MongoDB database and Redis database 15",
   "checks": {
     "unit": {
-      "tests": 13,
-      "seconds": 1.451,
+      "tests": 15,
+      "seconds": 1.783,
       "status": "passed"
     },
     "backend": {
       "tests": 30,
-      "seconds": 27.965,
+      "seconds": 30.238,
       "status": "passed"
     }
   },
@@ -18,7 +18,7 @@
   "browser_journeys": {
     "browser": "Browser journey passed: registration, profile, ML recommendations, connections, project applications, teams, two-user live chat, image/file uploads, private previews/downloads, retry deduplication, persistent attachment history, read receipts, events and mobile navigation.",
     "presentation-browser": "Presentation checks passed: real ML match, project match, ready connection, two-account live chat, activities and mobile layout.",
-    "survey-browser": "Survey UI, reciprocal explanations, measured results, mobile layout, null fields and invalid-number rejection passed."
+    "survey-browser": "Survey UI, people recommendation explanations, measured results, mobile layout, null fields and invalid-number rejection passed."
   },
   "model_sha256": "b8b53a790a164593212647bd9f88ce352e70ca4460e1602e9880b71a7dfbc5a3",
   "screenshot_accounts": "Fictional UI fixtures; never training data"
