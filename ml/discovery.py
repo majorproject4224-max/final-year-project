@@ -1,4 +1,4 @@
-"""Interpretable discovery using learned preferences and reciprocal comparisons.
+"""Interpretable discovery using learned preferences and profile comparisons.
 
 Weights below are product ranking choices, NOT supervised compatibility labels.
 Never train a classifier on the scores produced by this module.
@@ -29,27 +29,27 @@ def preference_estimates(bundle, profile):
 
 def compare_people(source, candidate, estimates):
     left, right = set(current_technologies(source)), set(current_technologies(candidate))
-    source_wants, target_wants = set(tags(source.get("wanted_languages"))), set(tags(candidate.get("wanted_languages")))
+    source_wants = set(tags(source.get("wanted_languages")))
     learn = source_wants & set(tags(candidate.get("languages")))
-    offer = target_wants & set(tags(source.get("languages")))
     shared = left & right
     forward = len(learn) / len(source_wants) if source_wants else 0
-    reverse = len(offer) / len(target_wants) if target_wants else 0
     similarity = len(shared) / len(left | right) if left | right else 0
     candidate_languages = tags(candidate.get("languages"))
     learned = sum(estimates.get(x, 0.0) for x in candidate_languages) / len(candidate_languages) if candidate_languages else 0
     # Inferred preference never overwrites an explicit answer.
-    score = 0.35 * forward + 0.25 * reverse + 0.25 * similarity + 0.15 * learned
+    # Keep the relative weights of these three signals and normalize to 0..1.
+    # Only the requesting person's interests contribute to this recommendation.
+    score = (0.35 * forward + 0.25 * similarity + 0.15 * learned) / 0.75
     explanations = []
-    for feature, values in [("you_want_they_use", learn), ("they_want_you_use", offer), ("shared_technologies", shared)]:
+    for feature, values in [("you_want_they_use", learn), ("shared_technologies", shared)]:
         if values:
             explanations.append({"feature": feature, "items": sorted(values)})
     inferred = sorted(x for x in candidate_languages if estimates.get(x, 0) >= 0.5 and x not in source_wants)
     if inferred:
         explanations.append({"feature": "predicted_interest", "items": inferred})
     return {"match_score": round(score * 100, 1), "score_label": "discovery score", "explanations": explanations,
-            "reciprocal_learning": bool(learn and offer), "observed_overlap": bool(learn or offer or shared),
-            "components": {"your_interest_coverage": forward, "their_interest_coverage": reverse, "technology_similarity": similarity, "learned_preference_affinity": learned}}
+            "observed_overlap": bool(learn or shared),
+            "components": {"your_interest_coverage": forward, "technology_similarity": similarity, "learned_preference_affinity": learned}}
 
 
 def recommend_people(bundle, source, candidates):
@@ -69,7 +69,7 @@ def recommend_people(bundle, source, candidates):
             continue
         comparison = compare_people(source, candidate, estimates)
         cluster = int(cluster_ids[index])
-        # Explicit reciprocal links can cross clusters; unlike similar-only discovery.
+        # Stated interests and shared technologies can connect nearby or distant groups.
         if cluster not in nearest and not comparison["observed_overlap"]:
             continue
         if not comparison["observed_overlap"] and comparison["components"]["learned_preference_affinity"] < bundle["threshold"]:

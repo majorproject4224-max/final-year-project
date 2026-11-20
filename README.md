@@ -44,9 +44,14 @@ Names, emails and community interests are website information, not ML input. The
 | K-Means — unsupervised learning | Groups similar technology profiles without being given group names | Helps find candidate people with related technologies |
 | Random Forest — supervised learning | Many decision trees learn from current technologies and recorded wanted-language answers | Predicts language preferences that contribute to people ranking |
 
-**Example of reciprocal learning:** Aarav has used Python and wants JavaScript. Priya has used JavaScript and wants Python. Their profiles show what each could learn from the other. This is an illustrative website example, not a training label.
+**People recommendation example:** Aarav wants to use JavaScript. Priya has used JavaScript, so her profile matches one of Aarav's stated interests. Shared technologies and the forest's predicted preferences also contribute. This is an illustrative website example, not a training label.
 
-The people score combines these observed profile comparisons with a learned preference signal. Explanations show actual shared/complementary technologies. Project suggestions use requirement coverage; activity suggestions use explicit interests. These two features do not claim trained success predictions.
+| Feature | Information used | How it works |
+|---|---|---|
+| People recommendations | Technologies used, coding experience and your wanted languages | K-Means + Random Forest + profile comparisons |
+| Activity suggestions | Community interests, city and location preference | Direct interest matching and sorting; no trained ML model |
+
+People ranking considers your interests when suggesting someone to you. Their wanted languages do not increase their score in your suggestions. The score combines your interest coverage, shared technologies and learned preference affinity; [the formula is documented here](docs/ML_METHODOLOGY.md#live-people-discovery-and-explanations). Coding experience is an input to the forest; K-Means uses current technologies. Explanations distinguish stated interests from model predictions. Project and teammate suggestions continue to use requirement coverage, separate from ML preference prediction.
 
 ## 4. Cleaning data and handling empty fields
 
@@ -165,7 +170,7 @@ Implemented workflows include profiles, explainable people discovery, connection
 ![Recommendation dashboard](docs/screenshots/survey-dashboard.png)
 [Profile screenshot](docs/screenshots/survey-profile.png) · [Model explanation page](docs/screenshots/survey-method.png) · [Empty-profile behavior](docs/screenshots/survey-empty-profile.png) · [Verified application checks](docs/VERIFICATION.md)
 
-Screenshots use fictional website accounts. Statistical results use the original survey. The functional reference is [connecT University Social Platform](https://github.com/RohitGaira/connecT-University-Social-Platform). Our contribution is source-aligned profiles, reciprocal learning explanations, missing-input handling and reproducible model evidence. [References](docs/REFERENCES.md).
+Screenshots use fictional website accounts. Statistical results use the original survey. The functional reference is [connecT University Social Platform](https://github.com/RohitGaira/connecT-University-Social-Platform). Our contribution is source-aligned profiles, clear people recommendation explanations, missing-input handling and reproducible model evidence. [References](docs/REFERENCES.md).
 
 ## 8. Run and present
 

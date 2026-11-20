@@ -43,7 +43,7 @@ class UserRecommendationsView(APIView):
         for ranking in ranked:
             candidate = candidates[ranking.pop("candidate_index")]
             items.append({**profile_data(candidate, request.user.id), **ranking})
-        return Response({"items": items, **details, "model_notice": notice(), "candidate_count": len(candidates), "ranking_method": "K-Means + survey preference Random Forest + reciprocal learning comparisons"})
+        return Response({"items": items, **details, "model_notice": notice(), "candidate_count": len(candidates), "ranking_method": "K-Means + survey preference Random Forest + profile comparisons"})
 
 
 class ProjectRecommendationsView(APIView):

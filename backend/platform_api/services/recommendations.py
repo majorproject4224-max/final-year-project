@@ -22,4 +22,4 @@ def load_models():
         raise ModelsUnavailable()
 
 def notice():
-    return "Discovery scores combine technology overlap, reciprocal interests and survey-trained language preferences. They are not probabilities of successful friendship or teamwork."
+    return "Discovery scores combine shared technologies, your wanted languages and survey-trained language preferences. They are not probabilities of successful friendship or teamwork."

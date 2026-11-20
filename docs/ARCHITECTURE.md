@@ -42,7 +42,7 @@ This preserves the existing document architecture while making MongoDB transacti
 | `attachments.py` | Bounded multipart uploads, file validation, image sanitization and metadata |
 | `recommendations.py` | Three authenticated recommendation endpoints |
 | `services/recommendations.py` | Model loading, candidate generation and inference |
-| `ml/survey.py`, `ml/discovery.py` | Shared survey encoder, reciprocal comparisons and explanations |
+| `ml/survey.py`, `ml/discovery.py` | Shared survey encoder, people profile comparisons and explanations |
 | `ml/train.py` | Offline training, evaluation and persistence |
 
 One Django domain app is split into meaningful modules rather than many near-empty apps. Views do input/output handling; shared membership and ML logic lives in services. Small serializers remain explicit.

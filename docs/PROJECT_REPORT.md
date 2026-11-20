@@ -12,7 +12,7 @@ The platform supports students and other community members. Its evaluated ML sco
 
 The [connecT university social platform](https://github.com/RohitGaira/connecT-University-Social-Platform) provides a functional reference for profiles, connections, teams, projects, events and messaging. ConnectAI uses React, Django REST Framework, MongoDB and Django Channels, with an independently documented ML pipeline.
 
-The project's distinctive implementation is reciprocal technology learning discovery: both “what I want to learn that you use” and “what you want to learn that I use” are shown from actual profile comparisons. Source-linked fields, data completeness and measured model evidence make recommendations inspectable. Reciprocal recommendation is established research; we do not claim to invent it. See [REFERENCES.md](REFERENCES.md).
+The project combines learned language preferences with shared technologies and the requesting person's stated wanted languages to suggest relevant people. Source-linked fields, data completeness and measured model evidence make recommendations inspectable. Community activities use separate interest and location matching. See [REFERENCES.md](REFERENCES.md).
 
 ## Architecture and database
 
@@ -32,7 +32,7 @@ K-Means groups L2-normalized technology vectors. Validation silhouette selects k
 
 A multi-output Random Forest predicts 16 desired-language indicators. Training/validation select tree count, depth, minimum leaf size and decision threshold. The held-out test set is used only after those choices. No synthetic compatibility labels, registered accounts or presentation fixtures enter training.
 
-People ranking combines observed forward/reverse learning overlaps, shared technologies and predicted preference affinity. Its weights are transparent design choices. Project recommendations use observed requirement coverage, and community activities use explicit interests/location. These latter systems are not advertised as supervised ML.
+People ranking combines the requesting person's wanted-language coverage, shared technologies and predicted preference affinity. A candidate's wanted languages do not affect their ranking for that person. Its weights are transparent design choices. Project recommendations use observed requirement coverage, and community activities use explicit interests/location. These latter systems are not advertised as supervised ML.
 
 ## Evaluation and results
 
@@ -46,7 +46,7 @@ K-Means test silhouette is 0.0611, indicating overlapping technology groups. All
 
 [TESTING.md](TESTING.md) describes reproducible cloud checks for preprocessing, inference, API permissions, invalid values, empty-profile abstention, collaboration and chat. Actual browser screenshots accompany the README.
 
-The survey records self-reported technology use and interest. The supervised outcome is desired language use; the reported metrics measure that prediction task. Social discovery uses documented ranking weights and observed reciprocal interests. Clustering results describe overlapping technology groups. Controlled missing-input experiments are reported separately from the original dataset's natural missing values, and all test metrics identify the fixed evaluation split.
+The survey records self-reported technology use and interest. The supervised outcome is desired language use; the reported metrics measure that prediction task. Social discovery uses documented ranking weights and observed profile comparisons. Clustering results describe overlapping technology groups. Controlled missing-input experiments are reported separately from the original dataset's natural missing values, and all test metrics identify the fixed evaluation split.
 
 ## Implemented delivery
 

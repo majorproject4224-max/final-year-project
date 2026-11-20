@@ -71,15 +71,32 @@ class SurveyPreprocessingTests(unittest.TestCase):
         self.assertEqual(fit | validation, {r["group"] for r in outer["train"]})
         self.assertEqual(len(tuning["fit"]) + len(tuning["validation"]), len(outer["train"]))
 
-    def test_reciprocal_reasons_and_project_coverage_use_real_comparisons(self):
+    def test_people_reasons_and_project_coverage_use_real_comparisons(self):
         a = {'languages': ['Python'], 'wanted_languages': ['Rust']}
         b = {'languages': ['Rust'], 'wanted_languages': ['Python']}
         match = compare_people(a, b, {'rust': 0.4})
-        self.assertTrue(match['reciprocal_learning'])
         self.assertEqual(match['explanations'][0]['items'], ['rust'])
-        self.assertEqual(match['explanations'][1]['items'], ['python'])
-        self.assertFalse(compare_people(a, {}, {})['reciprocal_learning'])
+        self.assertEqual(match['explanations'], [{'feature': 'you_want_they_use', 'items': ['rust']}])
+        self.assertFalse(compare_people(a, {}, {})['observed_overlap'])
         self.assertEqual(project_match(a, {'required_skills': ['Python', 'Java']})['match_score'], 50)
+
+    def test_candidate_wanted_languages_do_not_change_score_or_reasons(self):
+        source = {'languages': ['Python'], 'wanted_languages': ['Rust']}
+        candidate = {'languages': ['Rust'], 'wanted_languages': []}
+        expected = compare_people(source, candidate, {'rust': 0.4})
+        for wants in [['Python'], ['Java'], ['Python', 'Java'], None]:
+            self.assertEqual(compare_people(source, {**candidate, 'wanted_languages': wants}, {'rust': 0.4}), expected)
+        reverse_only = compare_people(source, {'languages': ['Java'], 'wanted_languages': ['Python']}, {})
+        self.assertFalse(reverse_only['observed_overlap'])
+        self.assertEqual(reverse_only['match_score'], 0)
+        self.assertEqual(reverse_only['explanations'], [])
+
+    def test_people_score_keeps_three_signals_and_is_bounded(self):
+        profile = {'languages': ['Python'], 'wanted_languages': ['Python']}
+        match = compare_people(profile, profile, {'python': 1.0})
+        self.assertEqual(match['match_score'], 100)
+        self.assertEqual(set(match['components']), {'your_interest_coverage', 'technology_similarity', 'learned_preference_affinity'})
+        self.assertEqual(compare_people({}, {}, {})['match_score'], 0)
 
     def test_probability_error_and_correct_wrong_counts(self):
         actual = np.array([[0, 1], [1, 0]])

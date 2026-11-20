@@ -22,7 +22,7 @@ For a fresh Codespace, install the browser-test tool there once:
 - Nulls, duplicate technology names, aliases, punctuation and invalid numeric values.
 - Training-only vocabulary/median; duplicate input groups cannot cross splits.
 - Saved model checksum/provenance, shared encoder and finite predictions.
-- Empty and unseen profiles abstain; reciprocal explanations use actual intersections.
+- Empty and unseen profiles abstain; people explanations use actual intersections. Changing only a candidate's wanted languages leaves their score, explanations and eligibility unchanged.
 - Authentication, refresh/logout, ownership, project capacity, invites and feedback.
 - Activities, individual organizers, joining/location filters and separate interests.
 - Chat permission checks, WebSockets, attachment validation and privacy.

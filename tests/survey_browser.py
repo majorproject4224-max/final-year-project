@@ -41,8 +41,10 @@ with sync_playwright() as p:
     expect(page.get_by_role("heading", name="Welcome, Aarav")).to_be_visible()
     expect(page.locator(".student-card").first).to_be_visible()
     page.locator(".student-card .match-details summary").first.click()
-    expect(page.locator(".student-card .reasons").first).to_contain_text("you have used")
-    page.screenshot(path=str(OUT / "dashboard-reciprocal.png"), full_page=True)
+    expect(page.locator(".student-card .reasons").first).to_contain_text("You want to use; they have used")
+    expect(page.get_by_text("Learning exchange in both directions", exact=True)).to_have_count(0)
+    expect(page.get_by_text("They want to use; you have used", exact=False)).to_have_count(0)
+    page.screenshot(path=str(OUT / "dashboard-people.png"), full_page=True)
     page.goto(BASE + "/profile")
     expect(page.get_by_label("Languages you have used")).to_have_value("python, sql")
     expect(page.get_by_label("Academic year", exact=True)).to_have_count(0)
@@ -76,4 +78,4 @@ with sync_playwright() as p:
     blank.screenshot(path=str(OUT / "empty-profile-behavior.png"), full_page=True)
     assert not errors, errors
     browser.close()
-print("Survey UI, reciprocal explanations, measured results, mobile layout, null fields and invalid-number rejection passed.")
+print("Survey UI, people recommendation explanations, measured results, mobile layout, null fields and invalid-number rejection passed.")

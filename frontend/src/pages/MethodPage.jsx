@@ -11,12 +11,12 @@ export default function MethodPage() {
       Find people to explore technology with, and understand each suggestion.
     </PageTitle>
     <div className="method-flow">
-      {['Your technologies', 'K-Means groups', 'Random Forest preferences', 'Learning exchange'].map((label, i) => <div key={label}><span>{i + 1}</span><strong>{label}</strong></div>)}
+      {['Your technologies', 'K-Means groups', 'Random Forest preferences', 'People recommendations'].map((label, i) => <div key={label}><span>{i + 1}</span><strong>{label}</strong></div>)}
     </div>
     <section className="card">
       <h2>What is the model actually learning?</h2>
       <p>The Random Forest predicts languages developers say they want to use, using real Stack Overflow survey responses. K-Means discovers groups of similar technology profiles.</p>
-      <p>ConnectAI compares these preferences with people’s profiles. It also shows what you want to use that someone else has used, and the reverse direction. A discovery score is a ranking aid, not a friendship-success probability.</p>
+      <p>ConnectAI compares your wanted languages and model-predicted preferences with technologies other people have used. Shared technologies also contribute to your suggestions. A discovery score is a ranking aid, not a friendship-success probability.</p>
       <a href="https://survey.stackoverflow.co/2024/methodology" target="_blank" rel="noreferrer">Original dataset and methodology ↗</a>
     </section>
     <ErrorBox message={state.error} retry={state.reload} />

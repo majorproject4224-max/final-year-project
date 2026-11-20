@@ -21,7 +21,7 @@ def main():
         counts[name] = {"tests": int(match[1]), "seconds": float(match[2]), "status": "passed"}
     if "built in" not in logs["build"]:
         raise RuntimeError("No successful production build")
-    markers = {"browser": "Browser journey passed:", "presentation-browser": "Presentation checks passed:", "survey-browser": "Survey UI, reciprocal explanations"}
+    markers = {"browser": "Browser journey passed:", "presentation-browser": "Presentation checks passed:", "survey-browser": "Survey UI, people recommendation explanations"}
     summaries = {}
     for name, marker in markers.items():
         summaries[name] = next((line for line in logs[name].splitlines() if line.startswith(marker)), None)
@@ -29,7 +29,7 @@ def main():
             raise RuntimeError(f"No successful {name} result")
     destination = ROOT / "docs/screenshots"
     copies = {
-        "survey-ui/dashboard-reciprocal.png": "survey-dashboard.png",
+        "survey-ui/dashboard-people.png": "survey-dashboard.png",
         "survey-ui/survey-profile.png": "survey-profile.png",
         "survey-ui/measured-method.png": "survey-method.png",
         "survey-ui/empty-profile-behavior.png": "survey-empty-profile.png",

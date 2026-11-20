@@ -81,7 +81,7 @@ Open MongoDB in the Codespace sidebar, then connect_ai → profiles → Document
 
 Sign in with the privately supplied account details. Show recommendations and their explanations, connections, chat/file sharing, a project application and a community activity. Aarav and Priya already have a connection; use another unconnected profile to demonstrate a new request.
 
-A reciprocal example is “I have used Python and want JavaScript; you have used JavaScript and want Python.” The explanation comes from the two website profiles, not an invented training label. Having used a technology does not automatically establish teaching ability.
+A people recommendation example is “I want to use JavaScript, and this person has used JavaScript.” Shared technologies and the forest's learned preferences also contribute to ranking. The other person's wanted languages do not increase their score in my suggestions. Explanations come from actual profile comparisons, not invented training labels. Having used a technology does not automatically establish teaching ability. Activity suggestions separately match community interests and location without a trained model.
 
 ## 8. Demonstrate incomplete input
 
@@ -93,6 +93,6 @@ Use your own disposable test account. Save an empty technology profile: the dash
 
 **Why is there validation if the split is 70:30?** Validation is a temporary practice portion inside the 70%. The final models are refitted on the full 70%; the 30% remains the final exam.
 
-**What is new compared with the reference?** Source-aligned profiles, a reproducible real-data experiment, reciprocal learning explanations, a distinction between stated and predicted interests, and clear empty-input behavior. See [references](REFERENCES.md).
+**What is new compared with the reference?** Source-aligned profiles, a reproducible real-data experiment, clear people recommendation explanations, a distinction between stated and predicted interests, and clear empty-input behavior. See [references](REFERENCES.md).
 
 **What is implemented?** Accounts/profiles, explainable discovery, connection acceptance, project teams, community activities and private chat/file sharing. [Cloud checks](VERIFICATION.md) record the completed tests. Deployment happens only on the project owner's instruction.

@@ -59,4 +59,7 @@ class SavedSurveyModelTests(unittest.TestCase):
         ranked, _ = recommend_people(self.bundle, {'languages': ['Python'], 'wanted_languages': ['JavaScript']}, candidates)
         scores = [r['match_score'] for r in ranked]
         self.assertEqual(scores, sorted(scores, reverse=True))
-        self.assertTrue(any(r['reciprocal_learning'] for r in ranked))
+        self.assertTrue(any(reason['feature'] == 'you_want_they_use' for r in ranked for reason in r['explanations']))
+        changed = [{**candidate, 'wanted_languages': ['Rust', 'Python', 'JavaScript']} for candidate in candidates]
+        reranked, _ = recommend_people(self.bundle, {'languages': ['Python'], 'wanted_languages': ['JavaScript']}, changed)
+        self.assertEqual(ranked, reranked)

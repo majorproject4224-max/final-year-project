@@ -4,7 +4,7 @@ This document replaces the synthetic-pair experiment. The official title remains
 
 ## Question and defensible target
 
-We ask: based on technologies someone has used, what languages might they want to use next, and which people offer a reciprocal learning opportunity?
+We ask: based on technologies someone has used, what languages might they want to use next, and which people have relevant technology experience?
 
 The original Stack Overflow Developer Survey 2024 contains actual self-reported `LanguageWantToWorkWith` answers. Each selected language is 1; each unselected language in an answered multi-select response is 0. This means selected/not selected, not compatible/incompatible. An entirely unanswered target is excluded. We do not create person-pair labels, pretend people know one another, or train on application/presentation accounts.
 
@@ -47,7 +47,7 @@ K-Means repeatedly assigns each vector to a nearby centre and updates centres to
 
 We fit k = 2, 3, 4, 5, 6, 8 and 10 on training rows using k-means++, n_init=10, max_iter=300, random_state=42. We choose the highest validation silhouette on a fixed-seed sample of up to 1,500 rows; ties prefer smaller k. Inertia is plotted as an elbow diagnostic, not claimed as a second independent selection rule.
 
-Selected k=2; internal-validation silhouette 0.0700; test silhouette 0.0611. This is **weak separation**, not evidence of clear expert categories. Discovery searches nearby groups and permits observed reciprocal/technology overlaps across groups.
+Selected k=2; internal-validation silhouette 0.0700; test silhouette 0.0611. This is **weak separation**, not evidence of clear expert categories. Discovery searches nearby groups and permits matches to the requesting person's wanted languages or shared technologies across groups.
 
 ## Random Forest: supervised learning
 
@@ -91,11 +91,13 @@ A separate stress experiment masks 0%, 10%, 30%, 50% and 100% of input fields, k
 
 Constructed parser tests cover nulls, duplicate/case variants, aliases, negative years, nonnumeric values, infinity, missing schemas and unknown technology names. They are clearly labelled tests, not original survey rows. API validation rejects malformed inputs, while offline ingestion records invalid values as missing for an audit.
 
-## Live reciprocal discovery and explanations
+## Live people discovery and explanations
 
-An example: A has used Python and wants JavaScript; B has used JavaScript and wants Python. Explanations show both intersections. Having used a technology does not establish proficiency or teaching ability; users discuss that themselves.
+An example: A has used Python and wants JavaScript; B has used JavaScript. B covers one of A's stated interests. B's wanted languages do not affect this recommendation to A. Having used a technology does not establish proficiency or teaching ability; users discuss that themselves.
 
-Discovery score = 100 × (0.35 × A-interest coverage by B + 0.25 × B-interest coverage by A + 0.25 × current-technology Jaccard similarity + 0.15 × learned preference affinity).
+Discovery score = 100 × (0.35 × A-interest coverage by B + 0.25 × current-technology Jaccard similarity + 0.15 × learned preference affinity) / 0.75.
+
+Interest coverage is the fraction of A's wanted languages that B has used. Jaccard similarity is the number of shared current technologies divided by the number of distinct technologies across both profiles. The division by 0.75 keeps the three existing contributions in the same relative proportions while expressing the result on a 0–100 scale. A candidate's wanted languages do not contribute to scoring, explanations or candidate selection for A.
 
 These weights are transparent product choices, **not labels used to train RF** and not statistically optimized social-ranking results. Learned affinity averages A's predicted preference for B's listed languages, with unsupported targets contributing zero. This creates an explicit scope limitation. Candidate retrieval uses K-Means and expands for observed comparisons. Existing connections, ignored people and inactive accounts are excluded.
 
