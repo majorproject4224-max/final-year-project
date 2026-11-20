@@ -246,6 +246,46 @@ The figures show the recorded training and evaluation experiment. Website behavi
 | Machine learning | **Scikit-learn** | Provides K-Means, Random Forest, preprocessing tools and the functions used to calculate model results. |
 | Saved models | **Joblib** | Saves and reloads the trained models and preprocessing objects so recommendations can use them without retraining. |
 
+### How resume import fills your technology profile
+
+Resume import uses **document text extraction and keyword matching** to suggest technologies for the profile form. This feature is separate from the K-Means and Random Forest recommendation models.
+
+| Library or tool | Role in resume import |
+|---|---|
+| **pypdf** | Reads PDF pages with `PdfReader` and extracts their readable text with `extract_text()` |
+| **python-docx** | Reads paragraph text from a Word `.docx` document |
+| **Python `re`** | Uses regular expressions to clean whitespace and match recognised technology names against a predefined list |
+| **Django REST Framework** | Receives the uploaded file through `MultiPartParser` and returns suggestions for review |
+| **React + JavaScript + Axios** | Uploads the file, matches detected names to supported profile options, displays suggestions and merges accepted values into the editable form |
+| **MongoDB + PyMongo** | Stores the updated profile when the user clicks **Save profile** |
+
+~~~mermaid
+flowchart TD
+    A["Upload PDF or DOCX: up to 5 MB"] --> B["Extract readable text"]
+    B --> C["Find recognised technology keywords"]
+    C --> D["Match names to supported profile fields"]
+    D --> E["Review suggestions"]
+    E --> F["Use these suggestions, then edit the form"]
+    F -->|Save profile| G[(MongoDB)]
+~~~
+
+1. **Upload and validate:** React sends the file to `POST /api/profiles/resume-suggestions/`. The backend checks the PDF/DOCX extension and 5 MB size limit, then tries to read the document. An unreadable file or insufficient readable text produces an error.
+2. **Extract and match:** the parser reads the text, normalizes whitespace and capitalization, and searches its technology list. Matching boundaries help distinguish names such as Java and JavaScript.
+3. **Map to profile fields:** the frontend keeps detected technologies that also appear in the survey-based options for used languages, databases, web frameworks and cloud platforms.
+4. **Review and save:** **Use these suggestions** adds the suggested values to the form and removes duplicates. The user can edit them. The profile is updated in MongoDB only after **Save profile** is clicked.
+
+For example, a resume containing `Skills: Python, Django, React, MongoDB.` produces these supported suggestions:
+
+| Profile field | Suggested technologies |
+|---|---|
+| Languages used | Python |
+| Databases used | MongoDB |
+| Web frameworks used | Django, React |
+
+The current profile page imports only those four technology fields. It does not automatically fill the name, coding years or wanted languages. A keyword mention needs review: a sentence such as "I want to learn Python" can also trigger a Python suggestion. Scanned image-only PDFs need OCR beforehand; automatic OCR is not implemented. DOCX extraction reads paragraphs, so text stored only inside tables can be missed. If no supported technologies are found, the user can enter answers manually.
+
+Code: [Text extraction and keyword matching](backend/platform_api/resume.py) · [Upload API](backend/platform_api/people.py) · [Suggestion mapping and review](frontend/src/components/ResumeTechnologyImport.jsx) · [Profile form and saving](frontend/src/pages/ProfilePage.jsx) · [Supported technology options](dataset/survey_profile_options.json).
+
 ### How Docker makes development easier
 
 **Containerization** means packaging a service with the environment it needs so it can run consistently. **Docker Compose** describes several services in one configuration and starts them together.
