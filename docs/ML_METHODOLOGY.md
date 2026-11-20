@@ -93,7 +93,9 @@ Constructed parser tests cover nulls, duplicate/case variants, aliases, negative
 
 ## Live people discovery and explanations
 
-An example: A has used Python and wants JavaScript; B has used JavaScript. B covers one of A's stated interests. B's wanted languages do not affect this recommendation to A. Having used a technology does not establish proficiency or teaching ability; users discuss that themselves.
+People recommendations follow three steps: retrieve candidate profiles using K-Means and observed profile overlaps, estimate the requesting user's language preferences with the saved Random Forest, and rank candidates using profile comparisons. Only the requesting user's interests contribute to the score. A candidate's wanted languages do not affect their score or selection. Having used a technology does not establish proficiency or teaching ability; users discuss that themselves.
+
+In the formula below, A is the requesting user and B is a candidate profile.
 
 Discovery score = 100 × (0.35 × A-interest coverage by B + 0.25 × current-technology Jaccard similarity + 0.15 × learned preference affinity) / 0.75.
 
@@ -103,7 +105,7 @@ These weights are transparent product choices, **not labels used to train RF** a
 
 Explanations come from current profiles. Model-predicted interests are labelled separately from stated interests. Missing/unsupported source technology profiles receive no ML score. Candidate profiles without supported current technologies are omitted. The UI shows input completeness, which is not model confidence.
 
-Project suggestions use observed requirement coverage. Activity suggestions use separate community interests/location. Neither is falsely presented as a supervised outcome model.
+Project and teammate suggestions use observed project requirement coverage. Activity suggestions compare community interests with activity tags, consider city and location preference, and sort the matches. Activities do not use K-Means or Random Forest. These website features are separate from the measured language-preference prediction task.
 
 ## Reproducibility and measurement scope
 

@@ -44,14 +44,23 @@ Names, emails and community interests are website information, not ML input. The
 | K-Means — unsupervised learning | Groups similar technology profiles without being given group names | Helps find candidate people with related technologies |
 | Random Forest — supervised learning | Many decision trees learn from current technologies and recorded wanted-language answers | Predicts language preferences that contribute to people ranking |
 
-**People recommendation example:** Aarav wants to use JavaScript. Priya has used JavaScript, so her profile matches one of Aarav's stated interests. Shared technologies and the forest's predicted preferences also contribute. This is an illustrative website example, not a training label.
+**People recommendations, step by step:**
+
+1. **Find candidates:** K-Means uses current technologies to find profiles in nearby groups. Profiles with shared technologies or a match to your stated interests can also be considered across groups.
+2. **Predict preferences:** the saved Random Forest uses your current technologies and coding experience to estimate which languages you may want to use.
+3. **Compare profiles:** the system combines shared technologies, matches to your wanted languages and the forest's preference estimates into a discovery score.
+4. **Show suggestions:** people are sorted by this score, with explanations based on the actual comparisons.
 
 | Feature | Information used | How it works |
 |---|---|---|
 | People recommendations | Technologies used, coding experience and your wanted languages | K-Means + Random Forest + profile comparisons |
 | Activity suggestions | Community interests, city and location preference | Direct interest matching and sorting; no trained ML model |
 
-People ranking considers your interests when suggesting someone to you. Their wanted languages do not increase their score in your suggestions. The score combines your interest coverage, shared technologies and learned preference affinity; [the formula is documented here](docs/ML_METHODOLOGY.md#live-people-discovery-and-explanations). Coding experience is an input to the forest; K-Means uses current technologies. Explanations distinguish stated interests from model predictions. Project and teammate suggestions continue to use requirement coverage, separate from ML preference prediction.
+**Your suggestions are scored for you.** A candidate's wanted languages do not affect their score or selection in your recommendations. Your own wanted languages are used in profile comparisons; they are not passed to the Random Forest as input. [See the scoring formula](docs/ML_METHODOLOGY.md#live-people-discovery-and-explanations).
+
+**Activities follow a separate path:** compare community interests with activity tags, consider city and location preference, then sort the matching activities. No K-Means or Random Forest model is used for this feature.
+
+Project creation, applications, teams, connections and messaging remain available. Project and teammate suggestions use project requirement coverage. They are separate from the forest's language-preference predictions.
 
 ## 4. Cleaning data and handling empty fields
 
@@ -75,6 +84,13 @@ The original file really contains missing data: **9,685** unanswered wanted-lang
 ## 5. Actual results, explained simply
 
 These results evaluate wanted-language predictions on the **30% test portion**. One decision means one respondent and one language: selected or not selected.
+
+| Number you see | What it measures |
+|---|---|
+| Random Forest accuracy, F1, MSE and RMSE | How well predicted language preferences match recorded survey answers |
+| K-Means silhouette and inertia | How the learned technology groups are separated and how spread out they are |
+| A person's discovery score on the website | A ranking based on profile comparisons and learned preferences; it is not model accuracy or a friendship-success probability |
+| Activity matching reasons | Shared community interests and location preferences; there is no trained-model accuracy for activities |
 
 | Measure | Actual result | Easy meaning |
 |---|---:|---|
@@ -115,6 +131,8 @@ The highlighted settings were selected using validation **inside the training po
 K-Means selected **2 groups** from 2, 3, 4, 5, 6, 8 and 10. Test silhouette is **0.0611**. Silhouette measures group separation: near 1 is more separated, near 0 means overlap. Here the groups overlap, so we do not give them invented expert-category names. [Cluster selection chart](docs/evidence/survey2024/03-cluster-selection.png).
 
 [Full measured results and explained figures](docs/RESULTS.md) · [Detailed methodology](docs/ML_METHODOLOGY.md) · [Simple teacher walkthrough](docs/TEACHER_GUIDE.md) · [Metrics JSON](ml/evaluation/survey2024/metrics.json)
+
+The figures show the recorded training and evaluation experiment. Website behavior is checked separately through [verified application tests and browser journeys](docs/VERIFICATION.md).
 
 ## 7. Technology stack and application flow
 
