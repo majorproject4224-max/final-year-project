@@ -110,6 +110,47 @@ For MSE, a simple example: predicting 0.8 when the actual answer is 1 gives squa
 
 We also compare against a simple rule: predict that people want to continue their currently used languages. Its F1 is **0.7051** and MSE is **0.1580**, compared with the forest's **0.6969** and **0.1141**. Read F1 together with accuracy and error; an ML model does not automatically beat a simpler method on every measure.
 
+### Did we train the models ourselves?
+
+**We trained the models for this project using scikit-learn's implementations of Random Forest and K-Means.** The algorithms come from the library; their fitted trees and cluster centres are learned from the original Stack Overflow survey training data through `.fit()`. We did not download an already-trained model.
+
+The project includes [data preprocessing](ml/survey.py), training, selection of settings, evaluation and website integration. The trained models and preprocessing are saved with **Joblib**, so the website can use them without training again for each request.
+
+### Which libraries calculate the results?
+
+After training, the model predicts wanted languages for the separate **30% test portion**. We compare each prediction with the respondent's actual survey answer: **1 = selected language, 0 = unselected language in an answered question**. Unanswered target questions are excluded. Settings and the decision threshold are selected using validation inside the 70% training portion.
+
+| Measurement | Library or calculation used |
+|---|---|
+| Correct and wrong decision counts | `sklearn.metrics.confusion_matrix()` |
+| Reported 84.39% accuracy | Correct decisions divided by total decisions, using the confusion-matrix counts |
+| Precision | `sklearn.metrics.precision_score()` |
+| Recall | `sklearn.metrics.recall_score()` |
+| F1 | `sklearn.metrics.f1_score()` |
+| MSE | `sklearn.metrics.mean_squared_error()` on predicted probabilities and actual 0/1 answers |
+| RMSE | `numpy.sqrt(MSE)` |
+
+Precision, recall and F1 use **micro averaging**: we combine language decisions across all test respondents before calculating the scores. The separate exact-profile accuracy uses `accuracy_score()` and requires all 16 language decisions for a person to be correct.
+
+The reported decision accuracy can be checked directly:
+
+```text
+16,759 test respondents × 16 languages = 268,144 decisions
+226,278 correct + 41,866 wrong         = 268,144 decisions
+Accuracy = 226,278 / 268,144 × 100     = 84.39% (rounded)
+```
+
+For **K-Means**, we use `sklearn.metrics.silhouette_score()` and the fitted model's `inertia_` value. These describe cluster separation and within-cluster spread. The dataset has no correct cluster labels to compare against, so we do not report classification accuracy for K-Means.
+
+### How to support the results with evidence
+
+1. [Training and evaluation code](ml/train_survey.py) — contains the `.fit()` calls and the `evaluate()` function that calculates the results.
+2. [Saved measurements](ml/evaluation/survey2024/metrics.json) — contains scores, confusion-matrix counts, split sizes, settings, training time and library versions. Look for `test`, `learning_curve`, `selected_parameters` and `metadata`.
+3. [Saved trained model](ml/models/survey-recommender.joblib) — contains the fitted encoder, K-Means, Random Forest, target languages and decision threshold. This is a binary model file, so GitHub cannot display it as ordinary text.
+4. [Graph-generation code](ml/report.py) — uses **Matplotlib** to draw figures from the recorded measurements. The learning-curve image is generated after the training experiments using their saved scores.
+
+The strongest check is to **reproduce the experiment** with the documented dataset, split, settings, random seeds and library versions, then compare the results. A screenshot alone does not establish a result. See the [training reproduction instructions](docs/TESTING.md) and [full measured results](docs/RESULTS.md). These measurements evaluate language preferences; they do not measure successful friendships.
+
 ## 6. Settings and learning charts
 
 The highlighted settings were selected using validation **inside the training portion**, not the final test set.
