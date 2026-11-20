@@ -64,6 +64,55 @@ Project creation, applications, teams, connections and messaging remain availabl
 
 ## 4. Cleaning data and handling empty fields
 
+**We preprocess the dataset after downloading it from Stack Overflow.** The publisher supplies an organized CSV, but it still contains unanswered questions and text answers that need preparation for ML. We preserve the original file unchanged and create separate cleaned exports.
+
+### Libraries used for preprocessing
+
+| Library or tool | What it does in this project |
+|---|---|
+| **Pandas** | Reads CSV/Excel files, checks missing values and creates the cleaned CSV/Excel exports |
+| **Custom Python functions** | Split technology lists, standardize names, remove extra spaces and repeated items, and parse coding years |
+| **scikit-learn: `DictVectorizer`** | Converts technology names into numerical features, such as `languages:python = 1` |
+| **scikit-learn: `SimpleImputer`** | Fills missing coding years using the median learned from training records |
+| **scikit-learn: `Normalizer`** | Applies L2 normalization to current-technology vectors before K-Means clustering |
+| **scikit-learn: `GroupShuffleSplit`** | Splits records into training and testing while keeping identical cleaned input profiles together |
+| **NumPy and SciPy** | Prepare numerical arrays, missing-value flags and sparse feature matrices that store mostly-zero data efficiently |
+
+### How preprocessing works, step by step
+
+1. **Download and verify:** download the original survey and check its SHA-256 fingerprint against the pinned publisher release. Keep the original bytes unchanged.
+2. **Read and validate:** use Pandas to read the file. Check that the required columns exist and each response ID is present and unique.
+3. **Clean answers:** split values such as `Python;JavaScript`, standardize capitalization and aliases, trim spaces and remove repeated technologies within each profile. Convert coding years into numbers; invalid values become missing during dataset ingestion.
+4. **Select usable records:** exclude responses with no wanted-language target or no current technology information. This leaves **55,752 of the original 65,437 responses**. Missing inputs in otherwise usable records remain visible.
+5. **Split without leakage:** group identical cleaned inputs and apply the **70:30 training/test split**. Use validation inside the training portion to choose settings. Website accounts are outside these survey partitions.
+6. **Prepare model inputs:** learn the technology vocabulary and coding-years median from fitting records only during selection, then refit on the full 70% training portion. Reuse those fitted settings for the test portion and website predictions. Random Forest receives technology indicators, coding years and missing flags; K-Means receives normalized current-technology vectors.
+
+```text
+Original survey CSV → validation and cleaning → eligible profiles
+                    → grouped 70:30 split → numerical model inputs
+                    → model training and evaluation
+```
+
+The **processed CSV/Excel files are readable exports of the cleaned profiles**, including `split` and `tuning_role` columns. Missing inputs are still visible in these exports. Numerical encoding and median filling happen inside `SurveyEncoder`; its fitted settings are saved with the models in the Joblib file. Cleaning repeated items within a profile is different from removing respondents: identical input profiles are kept together in the same split.
+
+### Original dataset, processed dataset and code links
+
+| File or evidence | What to open it for |
+|---|---|
+| [Original Stack Overflow 2024 dataset — CSV download](https://media.githubusercontent.com/media/StackExchange/Survey/9dd5c163b7ec09ce5503f711c37a99dbd80ff3c7/packages/archive/2024/results.csv) | The unchanged publisher dataset used by the downloader, about 160 MB; [original column/question definitions](https://media.githubusercontent.com/media/StackExchange/Survey/9dd5c163b7ec09ce5503f711c37a99dbd80ff3c7/packages/archive/2024/schema.csv) explain the fields |
+| [Processed dataset — CSV](dataset/processed/survey2024_profiles.csv) | Cleaned eligible profiles, original anonymous response IDs and training/test membership |
+| [Processed dataset — Excel](dataset/processed/survey2024_profiles.xlsx) | The same cleaned profiles, plus sheets for original missing-value counts and source attribution |
+| [Download and verification code](ml/download_survey.py) | Shows the original source URLs, pinned release and file-hash checks |
+| [Cleaning and encoding code](ml/survey.py) | `read_survey()` validates records, `tags()` cleans technology lists, `years()` parses experience and `SurveyEncoder` prepares numerical model inputs |
+| [Split and training code](ml/train_survey.py) | Shows `split_rows()`, `tuning_rows()` and where preprocessing is fitted using training records |
+| [Processed-file export code](ml/export_data.py) | Creates the cleaned CSV and Excel files using the same cleaning functions and split rules |
+| [Before/after examples — JSON](ml/evaluation/survey2024/preprocessing_examples.json) · [Excel](docs/evidence/survey2024/preprocessing_examples.xlsx) | Actual source records alongside their cleaned values, identified by response ID |
+| [Dataset audit](ml/evaluation/survey2024/data_audit.json) | Original row counts, missing fields, excluded records and eligible record counts |
+
+Large files may not preview on GitHub; use **View raw** or **Download raw file**. The downloaded original is stored at `dataset/raw/stackoverflow2024/results.csv` in the training workspace and is excluded from Git. The original-data link above points directly to the publisher. [Source, license and checksum details](dataset/README.md).
+
+### Examples of cleaning and missing-value handling
+
 | Situation | What the project does |
 |---|---|
 | Python, python, repeated values or extra spaces | Normalize names and remove duplicates |
