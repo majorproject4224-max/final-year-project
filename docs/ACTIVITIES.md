@@ -1,6 +1,6 @@
 # Community activities
 
-Anyone with a connecT account can organize and join an activity. A student, individual, club or NGO uses the same account flow. An organization name is optional; it is self-described, not verified. Branch and academic year are optional, and no technical skill is required to save an interest-based profile.
+Anyone with a ConnectAI account can organize and join an activity. A student, individual, club or NGO uses the same account flow. An organization name is optional; it is self-described, not verified. Branch and academic year are optional, and no technical skill is required to save an interest-based profile.
 
 ## Show with two accounts
 

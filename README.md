@@ -1,4 +1,4 @@
-# ConnectAI: AI/ML-Based Social Connection Recommendation Platform
+# ConnectAI: Social Connection Recommendation Platform
 
 ConnectAI helps people find technology learning partners, connect, build projects, organize community activities and chat. It uses **K-Means** to group similar technology profiles and **Random Forest** to predict languages a person may want to use.
 

@@ -1,5 +1,5 @@
 {
-  "name": "connecT AI — browser development",
+  "name": "ConnectAI — browser development",
   "build": {
     "dockerfile": "Dockerfile"
   },
@@ -15,7 +15,7 @@
   ],
   "portsAttributes": {
     "5173": {
-      "label": "connecT AI",
+      "label": "ConnectAI",
       "onAutoForward": "notify"
     }
   },

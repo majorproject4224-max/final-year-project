@@ -78,8 +78,7 @@ function Shell() {
     return (
       <div className="boot-screen">
         <div className="brand">
-          connec<span>T</span>
-          <small>AI</small>
+          Connect<span>AI</span>
         </div>
         <p>Getting your workspace ready…</p>
         <small>A free backend may take about a minute to wake up.</small>
@@ -100,8 +99,7 @@ function Shell() {
       </a>
       <div className="mobile-header">
         <Link className="brand" to="/">
-          connec<span>T</span>
-          <small>AI</small>
+          Connect<span>AI</span>
         </Link>
         <button
           ref={menuButton}
@@ -132,8 +130,7 @@ function Shell() {
           <X size={19} />
         </button>
         <Link className="brand" to="/" onClick={() => setOpen(false)}>
-          connec<span>T</span>
-          <small>AI</small>
+          Connect<span>AI</span>
         </Link>
         <p className="sidebar-caption">Workspace</p>
         <nav aria-label="Main navigation">
@@ -176,7 +173,7 @@ function Shell() {
         <div className="page-content">
           <Outlet />
         </div>
-        <footer className="page-footer">connecT AI · Connect and collaborate</footer>
+        <footer className="page-footer">ConnectAI · Connect and collaborate</footer>
       </main>
       <datalist id="project-types">
         {[

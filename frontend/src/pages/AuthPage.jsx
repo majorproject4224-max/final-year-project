@@ -49,7 +49,7 @@ export default function AuthPage({ register = false }) {
             Make a difference
           </span>
         </div>
-        <div className="auth-note">connecT AI · Connect and collaborate</div>
+        <div className="auth-note">ConnectAI · Connect and collaborate</div>
       </section>
       <section className="auth-panel">
         <div className="auth-form">
@@ -115,7 +115,7 @@ export default function AuthPage({ register = false }) {
 function LinkBrand() {
   return (
     <div className="brand">
-      connecT<span>.</span>
+      ConnectAI<span>.</span>
     </div>
   );
 }

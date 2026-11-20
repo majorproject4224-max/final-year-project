@@ -1,4 +1,4 @@
-# Run connecT AI
+# Run ConnectAI
 
 Use a local or cloud development environment.
 

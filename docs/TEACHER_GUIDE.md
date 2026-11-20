@@ -1,6 +1,6 @@
 # ConnectAI presentation: a simple walkthrough
 
-Use GitHub Codespaces and the website. The title is **ConnectAI: AI/ML-Based Social Connection Recommendation Platform**.
+Use GitHub Codespaces and the website. The title is **ConnectAI: Social Connection Recommendation Platform**.
 
 ## Start with this explanation
 

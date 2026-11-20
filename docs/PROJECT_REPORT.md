@@ -1,4 +1,4 @@
-# ConnectAI: AI/ML-Based Social Connection Recommendation Platform
+# ConnectAI: Social Connection Recommendation Platform
 
 B.Tech Computer Science and Engineering project. Author, institution, department, guide and submission details should be completed by the project team.
 

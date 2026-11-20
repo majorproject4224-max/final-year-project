@@ -1,6 +1,6 @@
 # References and project contribution
 
-Official title: **ConnectAI: AI/ML-Based Social Connection Recommendation Platform**.
+Official title: **ConnectAI: Social Connection Recommendation Platform**.
 
 ## Functional reference
 

@@ -1,6 +1,6 @@
 # Real-data ML methodology
 
-This document replaces the synthetic-pair experiment. The official title remains **ConnectAI: AI/ML-Based Social Connection Recommendation Platform**.
+This document replaces the synthetic-pair experiment. The official title remains **ConnectAI: Social Connection Recommendation Platform**.
 
 ## Question and defensible target
 
